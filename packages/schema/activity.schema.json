@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ainativeprofile.dev/schema/activity-v1.json",
+  "title": "AI Native Profile Activity Batch",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "batchId", "deviceId", "generatedAt", "collectorVersion", "daily", "coverage", "signature"],
+  "properties": {
+    "schemaVersion": { "const": "anp.activity.v1" },
+    "batchId": { "type": "string", "minLength": 1 },
+    "deviceId": { "type": "string", "minLength": 1 },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "collectorVersion": { "type": "string", "minLength": 1 },
+    "signature": { "type": "string", "minLength": 1 },
+    "daily": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["date", "source", "category", "metrics"],
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "source": { "$ref": "#/$defs/source" },
+          "category": { "enum": ["coding", "conversation", "delivery"] },
+          "metrics": { "type": "array", "items": { "$ref": "#/$defs/metric" } },
+          "models": { "$ref": "#/$defs/counts" },
+          "tools": { "$ref": "#/$defs/counts" },
+          "skills": { "$ref": "#/$defs/counts" }
+        }
+      }
+    },
+    "coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source", "coverageStart", "coverageEnd", "lastSyncedAt", "completeness", "competitiveEligible"],
+        "properties": {
+          "source": { "$ref": "#/$defs/source" },
+          "coverageStart": { "type": "string", "format": "date" },
+          "coverageEnd": { "type": "string", "format": "date" },
+          "lastSyncedAt": { "type": "string", "format": "date-time" },
+          "completeness": { "enum": ["full", "partial", "unknown"] },
+          "competitiveEligible": { "type": "boolean" },
+          "note": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "source": { "enum": ["codex", "claude_code", "cursor", "gemini_cli", "copilot_cli", "chatgpt_web", "claude_web", "github"] },
+    "provenance": { "enum": ["official_account_api", "official_export", "local_exact", "local_derived", "mcp_observed", "estimated"] },
+    "counts": { "type": "object", "additionalProperties": { "type": "number", "minimum": 0 } },
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "value", "unit", "provenance", "source", "coverageStart", "coverageEnd", "competitiveEligible"],
+      "properties": {
+        "name": { "enum": ["tokens", "sessions", "turns", "tool_calls", "tool_using_sessions", "advanced_workflow_sessions", "skill_uses", "command_uses", "agent_runs", "duration_seconds", "commits", "merged_pull_requests", "reviews", "releases"] },
+        "value": { "type": "number", "minimum": 0 },
+        "unit": { "type": "string", "minLength": 1 },
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "source": { "$ref": "#/$defs/source" },
+        "coverageStart": { "type": "string", "format": "date" },
+        "coverageEnd": { "type": "string", "format": "date" },
+        "competitiveEligible": { "type": "boolean" }
+      }
+    }
+  }
+}

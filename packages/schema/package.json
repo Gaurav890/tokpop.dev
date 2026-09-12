@@ -1,0 +1,7 @@
+{
+  "name": "@ai-native-profile/schema",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "files": ["src", "activity.schema.json"]
+}

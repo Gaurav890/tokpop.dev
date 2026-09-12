@@ -1,0 +1,7 @@
+{
+  "name": "@ai-native-profile/adapters",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": { "@ai-native-profile/schema": "workspace:*" }
+}

@@ -1,0 +1,4 @@
+'use client';
+
+import { useState } from 'react';
+export function GitHubSync() { const [status, setStatus] = useState(''); async function sync() { setStatus('Reading public GitHub delivery events…'); const response = await fetch('/api/v1/github/sync', { method: 'POST' }); const body = await response.json().catch(() => ({})) as { events?: number; activeDays?: number; error?: string }; setStatus(response.ok ? `Synced ${body.events ?? 0} events across ${body.activeDays ?? 0} active days.` : body.error ?? 'Sync failed.'); } return <section className="settings-card"><p className="eyebrow">Public delivery evidence</p><h2>Sync GitHub</h2><p>Collect commit, merged pull request, review, and release counts. Repository names stay private.</p><button className="primary-button" onClick={sync}>Sync now</button>{status && <p className="status-line">{status}</p>}</section>; }

@@ -1,0 +1,6 @@
+import { env } from 'cloudflare:workers';
+import { NextResponse } from 'next/server';
+import { ensureDb } from '../../../../db/ensure';
+import { currentGitHubUser } from '../../../../lib/auth';
+
+export async function GET() { const user = await currentGitHubUser(); if (!user) return NextResponse.json({ error: 'Authentication required.' }, { status: 401 }); await ensureDb(); const [metrics, coverage, stories] = await Promise.all([env.DB.prepare('SELECT date,source,category,metric_name,value,unit,provenance,competitive_eligible FROM daily_metrics WHERE user_id=? ORDER BY date').bind(user.userId).all(), env.DB.prepare('SELECT source,coverage_start,coverage_end,last_synced_at,completeness,competitive_eligible,note FROM source_coverage WHERE user_id=?').bind(user.userId).all(), env.DB.prepare('SELECT id,source,title,summary,tags_json,visibility,expires_at,revoked_at,created_at FROM session_stories WHERE user_id=?').bind(user.userId).all()]); const body = { schemaVersion: 'anp.export.v1', exportedAt: new Date().toISOString(), github: user.login, metrics: metrics.results, coverage: coverage.results, stories: stories.results }; return new NextResponse(JSON.stringify(body, null, 2), { headers: { 'content-type': 'application/json', 'content-disposition': `attachment; filename="ai-native-profile-${user.login}.json"`, 'cache-control': 'private, no-store' } }); }

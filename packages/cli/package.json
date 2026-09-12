@@ -1,0 +1,9 @@
+{
+  "name": "ai-native-profile",
+  "version": "0.1.0",
+  "description": "Privacy-first collector for AI Native Profile",
+  "type": "module",
+  "bin": { "anp": "./bin/anp.mjs", "ai-native-profile": "./bin/anp.mjs" },
+  "files": ["bin", "src"],
+  "engines": { "node": ">=22.13.0" }
+}

@@ -4,6 +4,7 @@ import { getPublicProfile } from '../../../lib/profile';
 import { SiteHeader } from '../../ui/site-header';
 import { ShareBox } from '../../ui/share-box';
 import Link from 'next/link';
+import Image from 'next/image';
 
 function compact(value: number) { return new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value); }
 
@@ -19,7 +20,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   const profile = await getPublicProfile(username);
   if (!profile) notFound();
   return <main className="profile-page"><SiteHeader/><section className="profile-hero">
-    <div className="identity"><span className="profile-avatar">{profile.avatarUrl ? <img src={profile.avatarUrl} alt=""/> : profile.name.slice(0, 2).toUpperCase()}</span><div><p className="verified-line">● GITHUB VERIFIED</p><h1>{profile.name}</h1><p>@{profile.username} · Updated {new Date(profile.updatedAt).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })}</p></div></div>
+    <div className="identity"><span className="profile-avatar">{profile.avatarUrl ? <Image src={profile.avatarUrl} width={88} height={88} alt=""/> : profile.name.slice(0, 2).toUpperCase()}</span><div><p className="verified-line">● GITHUB VERIFIED</p><h1>{profile.name}</h1><p>@{profile.username} · Updated {new Date(profile.updatedAt).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })}</p></div></div>
     <div className="index-badge"><span>AI WORKFLOW INDEX</span><strong>{profile.scoreEligible ? profile.score : '—'}</strong><small>/100</small><Link href="/methodology">{profile.scoreEligible ? 'View methodology →' : 'Insufficient coverage →'}</Link></div>
   </section>
   <section className="profile-strip"><div><strong>{compact(profile.lifetimeTokens)}</strong><span>coding tokens</span></div><div><strong>{profile.activeDays}</strong><span>active days</span></div><div><strong>{profile.currentStreak}d</strong><span>current streak</span></div><div><strong>{profile.deliveryPoints}</strong><span>delivery points</span></div><div><strong>#{profile.rank || '—'}</strong><span>rank</span></div></section>

@@ -24,8 +24,8 @@ export type PublicProfile = {
 };
 
 export const demoProfile: PublicProfile = {
-  username: 'gaurav',
-  name: 'Gaurav',
+  username: 'demo',
+  name: 'Example Profile',
   avatarUrl: '',
   verified: true,
   publicEnabled: true,

@@ -7,20 +7,22 @@ AI Native Profile turns attributable activity from AI coding tools and GitHub in
 ## Three-minute quickstart
 
 ```bash
-git clone https://github.com/your-org/ai-native-profile.git
+git clone https://github.com/Gaurav890/ai-native-profile.git
 cd ai-native-profile
 pnpm install
 cp .env.example .env.local
 pnpm dev
 ```
 
-Configure a GitHub OAuth App with callback URL `http://localhost:3000/api/auth/github/callback`, then add its client ID and secret to `.env.local`. Open `http://localhost:3000`, sign in, and pair the collector:
+Configure a GitHub OAuth App with callback URL `http://localhost:3000/api/auth/github/callback`, then add its client ID and secret to `.env.local`. Open `http://localhost:3000`, sign in with GitHub, open **Connections**, and pair the collector:
 
 ```bash
 ANP_API_URL=http://localhost:3000 pnpm cli connect
 ```
 
 The collector shows detected tools and the exact aggregate payload. Automatic background synchronization does not start until the user runs `anp watch`.
+
+GitHub is the product account identity. Coding providers appear inside the Connections screen and use the strongest supported evidence source—official account data where available, otherwise a consented local collector. ChatGPT and Claude Web are optional conversation sources connected through explicit MCP tools or locally parsed official exports; they are never presented as silent account access.
 
 ## What is implemented
 

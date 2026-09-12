@@ -1,7 +1,9 @@
 import Link from 'next/link';
-import { demoProfile, type PublicProfile } from '../lib/demo-profile';
+import type { PublicProfile } from '../lib/demo-profile';
+import { currentGitHubUser } from '../lib/auth';
+import { SiteHeader } from './ui/site-header';
 
-export function DashboardDemo({ profile = demoProfile }: { profile?: PublicProfile }) {
+export function DashboardDemo({ profile }: { profile: PublicProfile }) {
   const displaySources = profile.coverage.filter((item) => !['chatgpt_web', 'claude_web', 'github'].includes(item.source)).slice(0, 4).map((item, index) => ({ mark: item.label.split(/\s+/).map((word) => word[0]).join('').slice(0, 2).toUpperCase(), name: item.label, detail: item.provenance, state: item.status, tone: ['lime', 'orange', 'blue', 'violet'][index] }));
   const breakdown = [['Consistency', profile.scoreBreakdown.consistency, 30], ['Workflow depth', profile.scoreBreakdown.workflowDepth, 25], ['Provider breadth', profile.scoreBreakdown.providerBreadth, 15], ['Delivery', profile.scoreBreakdown.delivery, 30]] as const;
   return (
@@ -15,7 +17,7 @@ export function DashboardDemo({ profile = demoProfile }: { profile?: PublicProfi
         <nav className="nav" aria-label="Primary navigation">
           <Link className="nav-link active" href="/dashboard"><span>⌁</span>Overview</Link>
           <a className="nav-link" href="#activity"><span>⌗</span>Activity</a>
-          <Link className="nav-link" href="/connect"><span>↗</span>Sources</Link>
+          <Link className="nav-link" href="/connections"><span>↗</span>Sources</Link>
           <Link className="nav-link" href="/u/demo"><span>◎</span>Public profile</Link>
           <Link className="nav-link" href="/leaderboard"><span>♜</span>Leaderboard</Link>
         </nav>
@@ -91,7 +93,7 @@ export function DashboardDemo({ profile = demoProfile }: { profile?: PublicProfi
             </article>
 
             <aside className="card sources-card" id="sources">
-              <div className="card-head compact"><div><p className="eyebrow">Source coverage</p><h2>{displaySources.length} of 5 connected</h2></div><Link href="/connect">Manage</Link></div>
+              <div className="card-head compact"><div><p className="eyebrow">Source coverage</p><h2>{displaySources.length} of 5 connected</h2></div><Link href="/connections">Manage</Link></div>
               <div className="source-list">
                 {displaySources.map((source) => (
                   <div className="source-row" key={source.name}>
@@ -110,4 +112,45 @@ export function DashboardDemo({ profile = demoProfile }: { profile?: PublicProfi
   );
 }
 
-export default function Home() { return <DashboardDemo/>; }
+export const dynamic = 'force-dynamic';
+
+export default async function Home() {
+  const user = await currentGitHubUser();
+  return <main className="marketing-page home-page">
+    <SiteHeader user={user}/>
+    <section className="home-hero">
+      <div className="home-copy">
+        <p className="eyebrow">The open proof layer for AI-native developers</p>
+        <h1>One GitHub identity. Every attributable AI workflow.</h1>
+        <p>Build a private, coverage-aware view of how you work across coding assistants, then share only the evidence you choose.</p>
+        <div className="home-actions">
+          <Link className="primary-link" href={user ? '/dashboard' : '/api/auth/github/start?return_to=/connections'}>{user ? 'Open your dashboard' : 'Continue with GitHub'}</Link>
+          <Link className="secondary-link" href={user ? '/connections' : '/u/demo'}>{user ? 'Manage connections' : 'View labelled example'}</Link>
+        </div>
+        <p className="trust-line"><span/>GitHub is your account identity. Provider credentials never come to us.</p>
+      </div>
+      <div className="connection-preview" aria-label="How sources connect to a profile">
+        <div className="preview-head"><span>PROFILE SOURCES</span><b>Private by default</b></div>
+        {[
+          ['GH', 'GitHub', 'Identity connected', 'official'],
+          ['CX', 'Codex', 'Local connector', 'local'],
+          ['CL', 'Claude Code', 'Local connector', 'local'],
+          ['CU', 'Cursor', 'Local connector', 'local'],
+          ['WEB', 'ChatGPT + Claude Web', 'MCP or export', 'optional'],
+        ].map(([mark, name, method, state]) => <div className="preview-source" key={name}>
+          <span>{mark}</span><div><strong>{name}</strong><small>{method}</small></div><em className={state}>{state}</em>
+        </div>)}
+      </div>
+    </section>
+    <section className="connection-flow" aria-label="Onboarding steps">
+      <article><span>01</span><h2>Sign in with GitHub</h2><p>Your GitHub account verifies identity and anchors your public profile.</p></article>
+      <article><span>02</span><h2>Pair your computer</h2><p>The connector discovers local coding tools and previews safe aggregates.</p></article>
+      <article><span>03</span><h2>Choose web activity</h2><p>Add optional MCP observations or locally parsed conversation exports.</p></article>
+      <article><span>04</span><h2>Publish selectively</h2><p>Keep analytics private or opt into profiles, cards, and rankings separately.</p></article>
+    </section>
+    <section className="home-boundary">
+      <div><p className="eyebrow">What “connected” means</p><h2>Evidence, never guesswork.</h2></div>
+      <p>Each source names its collection method, provenance, coverage dates, freshness, and ranking eligibility. When a provider does not offer account-level analytics, the interface says <strong>local connector</strong>—never OAuth.</p>
+    </section>
+  </main>;
+}

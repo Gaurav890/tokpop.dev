@@ -32,7 +32,7 @@ function currentStreak(dates: string[]): number {
 }
 
 export async function getPublicProfile(username: string): Promise<PublicProfile | null> {
-  if (username === 'demo' || username === 'gaurav') return demoProfile;
+  if (username === 'demo') return demoProfile;
   await ensureDb();
   const user = await env.DB.prepare(`SELECT id, github_login, display_name, avatar_url, public_enabled FROM users WHERE lower(github_login)=lower(?) LIMIT 1`).bind(username).first<ProfileUser>();
   if (!user || !user.public_enabled) return null;

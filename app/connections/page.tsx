@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import Link from 'next/link';
+import Link from '../ui/native-link';
 import { currentGitHubUser } from '../../lib/auth';
 import { ensureDb } from '../../db/ensure';
 import { SiteHeader } from '../ui/site-header';

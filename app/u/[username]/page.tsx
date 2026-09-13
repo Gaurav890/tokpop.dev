@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { getPublicProfile } from '../../../lib/profile';
 import { SiteHeader } from '../../ui/site-header';
 import { ShareBox } from '../../ui/share-box';
-import Link from 'next/link';
+import Link from '../../ui/native-link';
 import Image from 'next/image';
 
 function compact(value: number) { return new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value); }

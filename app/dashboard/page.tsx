@@ -2,7 +2,7 @@ import { currentGitHubUser } from '../../lib/auth';
 import { getPrivateProfile } from '../../lib/profile';
 import { DashboardDemo } from '../page';
 import { SiteHeader } from '../ui/site-header';
-import Link from 'next/link';
+import Link from '../ui/native-link';
 
 export const dynamic = 'force-dynamic';
 export default async function DashboardPage() {

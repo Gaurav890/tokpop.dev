@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '../ui/native-link';
 import { currentGitHubUser } from '../../lib/auth';
 import { SiteHeader } from '../ui/site-header';
 import { ImportPanel } from './import-panel';

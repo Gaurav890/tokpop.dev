@@ -1,5 +1,5 @@
 import type { GitHubSession } from '../../lib/auth';
-import Link from 'next/link';
+import Link from './native-link';
 
 export function SiteHeader({ user }: { user?: GitHubSession | null }) {
   return <header className="site-header">

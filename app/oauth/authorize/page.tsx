@@ -15,6 +15,19 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
   const user = await currentGitHubUser();
   const returnTo = `/oauth/authorize?${new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri, response_type: 'code', state, code_challenge: codeChallenge, code_challenge_method: 'S256', scope }).toString()}`;
   if (!valid) return <main className="center-page"><section className="consent-card"><span className="brand-mark">A/</span><h1>Invalid connection request</h1><p>The client, callback, or PKCE challenge could not be verified.</p></section></main>;
-  if (!user) return <main className="center-page"><section className="consent-card"><span className="brand-mark">A/</span><p className="eyebrow">AI Native Profile</p><h1>Connect your profile</h1><p>Sign in with GitHub to approve this ChatGPT or Claude connection.</p><a className="primary-link" href={`/api/auth/github/start?return_to=${encodeURIComponent(returnTo)}`}>Continue with GitHub</a></section></main>;
-  return <main className="center-page"><section className="consent-card"><span className="brand-mark">A/</span><p className="eyebrow">MCP connection</p><h1>Allow access to your profile?</h1><p>This connection can read your public profile, record a provider-observed activity event, and publish a session story only when you explicitly invoke the corresponding tool.</p><ul><li>No chat history access</li><li>No provider credentials</li><li>No background conversation collection</li></ul><form method="post" action="/oauth/authorize/decision"><input type="hidden" name="client_id" value={clientId}/><input type="hidden" name="redirect_uri" value={redirectUri}/><input type="hidden" name="state" value={state}/><input type="hidden" name="code_challenge" value={codeChallenge}/><input type="hidden" name="scope" value={scope}/><button className="primary-button" name="decision" value="approve">Allow connection</button><button className="text-button" name="decision" value="deny">Cancel</button></form></section></main>;
+  if (!user) return <main className="center-page"><section className="consent-card"><span className="brand-mark">A/</span><p className="eyebrow">AI Native Profile</p><h1>Connect your profile</h1><p>Sign in with GitHub to approve this assistant connection.</p><a className="primary-link" href={`/api/auth/github/start?return_to=${encodeURIComponent(returnTo)}`}>Continue with GitHub</a></section></main>;
+  return <main className="center-page"><section className="consent-card">
+    <span className="brand-mark">A/</span>
+    <p className="eyebrow">MCP connection</p>
+    <h1>Allow your assistant to use this profile?</h1>
+    <p className="consent-direction">You are authorizing the connected assistant to call AI Native Profile tools on your behalf. This does not give AI Native Profile access to your assistant account.</p>
+    <div className="consent-flow" aria-label="Connection direction"><strong>Your assistant</strong><span aria-hidden="true">→</span><strong>AI Native Profile tools</strong></div>
+    <div className="consent-permissions">
+      <div><strong>Read profile</strong><span>See your profile summary and sharing links.</span></div>
+      <div><strong>Record on request</strong><span>Add one observed event only when a recording tool is invoked.</span></div>
+      <div><strong>Publish on request</strong><span>Create a reviewed session story only when you explicitly ask.</span></div>
+    </div>
+    <p className="consent-boundary"><strong>Not included:</strong> chat history, provider credentials, or background collection.</p>
+    <form className="consent-actions" method="post" action="/oauth/authorize/decision"><input type="hidden" name="client_id" value={clientId}/><input type="hidden" name="redirect_uri" value={redirectUri}/><input type="hidden" name="state" value={state}/><input type="hidden" name="code_challenge" value={codeChallenge}/><input type="hidden" name="scope" value={scope}/><button className="primary-button" name="decision" value="approve">Allow connection</button><button className="text-button" name="decision" value="deny">Cancel</button></form>
+  </section></main>;
 }

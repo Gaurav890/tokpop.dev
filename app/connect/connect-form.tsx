@@ -11,5 +11,5 @@ export function ConnectForm({ initialCode = '' }: { initialCode?: string }) {
     const body = await response.json().catch(() => ({})) as { error?: string };
     setStatus(response.ok ? 'Device approved. Return to the terminal; synchronization can now begin.' : body.error ?? 'Approval failed.');
   }
-  return <form className="connect-form" onSubmit={approve}><label htmlFor="pair-code">Pairing code</label><div><input id="pair-code" value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} placeholder="AB12CD34" maxLength={12} autoFocus/><button className="primary-button">Approve device</button></div>{status && <p className="status-line">{status}</p>}</form>;
+  return <form className="connect-form" onSubmit={approve}><label htmlFor="pair-code">Pairing code</label><div><input id="pair-code" value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} placeholder="AB12CD34" maxLength={12} autoComplete="off" spellCheck={false} required autoFocus/><button type="submit" className="primary-button">Approve device</button></div>{status ? <p className="status-line" aria-live="polite">{status}</p> : null}</form>;
 }

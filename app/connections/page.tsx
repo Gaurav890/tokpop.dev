@@ -25,8 +25,8 @@ const sourceDefinitions = [
   { id: 'cursor', mark: 'CU', name: 'Cursor', group: 'Coding activity', method: 'Local connector', description: 'Reads supported local database metadata. Derived values are labelled and estimated values are not ranked.', href: '/connect', action: 'Pair connector' },
   { id: 'gemini_cli', mark: 'GE', name: 'Gemini CLI', group: 'Coding activity', method: 'Local connector', description: 'Collects aggregate CLI telemetry with prompt logging disabled.', href: '/connect', action: 'Pair connector' },
   { id: 'copilot_cli', mark: 'CP', name: 'GitHub Copilot CLI', group: 'Coding activity', method: 'Local connector', description: 'Collects supported CLI activity only; personal IDE autocomplete is not claimed.', href: '/connect', action: 'Pair connector' },
-  { id: 'chatgpt_web', mark: 'CG', name: 'ChatGPT Web', group: 'Conversation activity', method: 'MCP observation or official export', description: 'Records explicit tool calls or approved export aggregates—not silent conversation history.', href: '/integrations/mcp', action: 'Connection options' },
-  { id: 'claude_web', mark: 'CW', name: 'Claude Web', group: 'Conversation activity', method: 'MCP observation or official export', description: 'Records explicit tool calls or approved export aggregates and never affects rankings.', href: '/integrations/mcp', action: 'Connection options' },
+  { id: 'chatgpt_web', mark: 'CG', name: 'ChatGPT Web', group: 'Conversation activity', method: 'Browser import or MCP observation', description: 'Imports approved export aggregates or records explicit tool calls—not silent conversation history.', href: '/connect', action: 'Choose connection' },
+  { id: 'claude_web', mark: 'CW', name: 'Claude Web', group: 'Conversation activity', method: 'Browser import or MCP observation', description: 'Imports approved export aggregates or records explicit tool calls and never affects rankings.', href: '/connect', action: 'Choose connection' },
 ] as const;
 
 const provenanceLabels: Record<string, string> = {
@@ -49,7 +49,7 @@ function relativeSync(value: string): string {
 
 export default async function ConnectionsPage() {
   const user = await currentGitHubUser();
-  if (!user) return <main className="marketing-page"><SiteHeader/><section className="narrow-hero"><p className="eyebrow">Connections</p><h1>Connect every source after GitHub sign-in.</h1><p>GitHub verifies your identity. Inside your private dashboard, add Codex, Claude Code, Cursor, ChatGPT Web, Claude Web, and the rest individually.</p><Link className="primary-link dashboard-signin" href="/api/auth/github/start?return_to=/connections">Continue with GitHub</Link></section></main>;
+  if (!user) return <main className="marketing-page"><SiteHeader/><section className="narrow-hero"><p className="eyebrow">Onboarding</p><h1>Create your proof in one guided flow.</h1><p>GitHub verifies your identity and syncs public delivery evidence immediately. You then add a browser or coding activity source before reviewing the dashboard.</p><Link className="primary-link dashboard-signin" href={`/api/auth/github/start?return_to=${encodeURIComponent('/connect?onboarding=1')}`}>Continue with GitHub</Link></section></main>;
 
   let coverageRows: CoverageRow[];
   let approvedDevices: number;

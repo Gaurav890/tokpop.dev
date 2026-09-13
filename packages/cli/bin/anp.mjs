@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 
 const VERSION = '0.1.0';
+const DEFAULT_API_URL = 'https://ai-native-profile.vercel.app';
 const configDir = join(homedir(), '.config', 'ai-native-profile');
 const configFile = join(configDir, 'config.json');
 const paths = {
@@ -146,12 +147,8 @@ function printSources() {
 }
 
 async function connect() {
-  const apiUrl = process.env.ANP_API_URL;
-  if (!apiUrl) {
-    console.log('Set ANP_API_URL to your hosted AI Native Profile URL, then run this command again.');
-    console.log('No provider credentials or activity were transmitted.');
-    return;
-  }
+  const apiUrl = option('api-url') ?? process.env.ANP_API_URL ?? DEFAULT_API_URL;
+  if (!/^https?:\/\//.test(apiUrl)) throw new Error('The API URL must start with https:// or http://.');
   const response = await fetch(`${apiUrl.replace(/\/$/, '')}/api/v1/device/pair`, { method:'POST', headers:{ 'content-type':'application/json' }, body:JSON.stringify({ deviceName:process.env.USER ?? 'Developer device', collectorVersion:VERSION }) });
   if (!response.ok) throw new Error(`Pairing failed (${response.status}).`);
   const pair = await response.json();
@@ -184,7 +181,7 @@ async function sync() {
 }
 
 function help() {
-  console.log(`AI Native Profile collector ${VERSION}\n\nUsage: anp <command>\n\n  connect      Pair this device with the cloud dashboard\n  sources      Detect supported coding tools\n  preview      Print the exact aggregate payload\n  sync         Send one aggregate batch\n  watch        Sync every 15 minutes until stopped\n  doctor       Check configuration and sources\n  sessions     Explain selected-session sharing\n  share        Publish a selected sanitized session\n  unshare      Revoke a shared session\n  export       Alias for preview\n  disconnect   Remove the local platform pairing\n`);
+  console.log(`AI Native Profile collector ${VERSION}\n\nUsage: anp <command> [options]\n\n  connect      Pair this device with the cloud dashboard\n               --api-url <url> overrides the hosted dashboard\n  sources      Detect supported coding tools\n  preview      Print the exact aggregate payload\n  sync         Send one aggregate batch\n  watch        Sync every 15 minutes until stopped\n  doctor       Check configuration and sources\n  sessions     Explain selected-session sharing\n  share        Publish a selected sanitized session\n  unshare      Revoke a shared session\n  export       Alias for preview\n  disconnect   Remove the local platform pairing\n`);
 }
 
 function option(name) { const index = process.argv.indexOf(`--${name}`); return index >= 0 ? process.argv[index + 1] : undefined; }

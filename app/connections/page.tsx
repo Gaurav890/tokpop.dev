@@ -48,7 +48,7 @@ function relativeSync(value: string): string {
 
 export default async function ConnectionsPage() {
   const user = await currentGitHubUser();
-  if (!user) return <main className="marketing-page"><SiteHeader/><section className="narrow-hero"><p className="eyebrow">Connections</p><h1>GitHub is the front door to your profile.</h1><p>Sign in once with GitHub, then connect each coding or conversation source from your private dashboard.</p><Link className="primary-link dashboard-signin" href="/api/auth/github/start?return_to=/connections">Continue with GitHub</Link></section></main>;
+  if (!user) return <main className="marketing-page"><SiteHeader/><section className="narrow-hero"><p className="eyebrow">Connections</p><h1>Connect every source after GitHub sign-in.</h1><p>GitHub verifies your identity. Inside your private dashboard, add Codex, Claude Code, Cursor, ChatGPT Web, Claude Web, and the rest individually.</p><Link className="primary-link dashboard-signin" href="/api/auth/github/start?return_to=/connections">Continue with GitHub</Link></section></main>;
 
   await ensureDb();
   const [coverageResult, deviceResult] = await Promise.all([
@@ -63,7 +63,7 @@ export default async function ConnectionsPage() {
   return <main className="marketing-page connections-page">
     <SiteHeader user={user}/>
     <section className="connections-hero">
-      <div><p className="eyebrow">Connections · @{user.login}</p><h1>Bring your workflow together.</h1><p>GitHub verifies who you are. Every other source is connected separately using the strongest supported evidence path.</p></div>
+      <div><p className="eyebrow">Sources · @{user.login}</p><h1>Connections</h1><p>Every source names what it can prove, how it was collected, and when it was last seen.</p></div>
       <div className="connection-summary"><strong>{connectedCount}<small>/{sourceDefinitions.length}</small></strong><span>sources with evidence</span><p>{deviceResult?.count ?? 0} approved local {(deviceResult?.count ?? 0) === 1 ? 'device' : 'devices'}</p></div>
     </section>
     <section className="connection-groups">
@@ -76,14 +76,14 @@ export default async function ConnectionsPage() {
             const state = source.id === 'github' && !record ? 'Identity connected' : !record ? 'Not connected' : stale ? 'Stale' : record.completeness === 'full' ? 'Connected' : 'Partial';
             const stateClass = state === 'Connected' || state === 'Identity connected' ? 'connected' : state === 'Not connected' ? 'disconnected' : 'partial';
             return <article className="connection-card" key={source.id}>
-              <div className="connection-card-head"><span className="connection-mark">{source.mark}</span><span className={`connection-state ${stateClass}`}><i/>{state}</span></div>
-              <p className="eyebrow">{source.method}</p><h3>{source.name}</h3><p>{source.description}</p>
+              <div className="connection-source"><span className="connection-mark">{source.mark}</span><div><h3>{source.name}</h3><p>{source.method}</p></div></div>
+              <p className="connection-description">{source.description}</p>
               <div className="connection-meta">
                 <span><b>Provenance</b>{source.id === 'github' && !record ? 'GitHub verified identity' : record?.provenance ? provenanceLabels[record.provenance] ?? record.provenance : 'No evidence received'}</span>
                 <span><b>Coverage</b>{record ? `${record.coverage_start} → ${record.coverage_end}` : 'Starts after first sync'}</span>
                 <span><b>Freshness</b>{record ? relativeSync(record.last_synced_at) : source.id === 'github' ? 'Signed in now' : 'Never synced'}</span>
               </div>
-              <Link className="secondary-link connection-action" href={source.href}>{record ? 'Manage connection' : source.action} →</Link>
+              <div className="connection-controls"><span className={`connection-state ${stateClass}`}><i/>{state}</span><Link className="connection-action" href={source.href}>{record ? 'Manage' : source.action} →</Link></div>
             </article>;
           })}
         </div>

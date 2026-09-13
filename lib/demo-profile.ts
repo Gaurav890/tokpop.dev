@@ -27,7 +27,7 @@ export const demoProfile: PublicProfile = {
   username: 'demo',
   name: 'Example Profile',
   avatarUrl: '',
-  verified: true,
+  verified: false,
   publicEnabled: true,
   score: 78,
   scoreEligible: true,

@@ -4,21 +4,21 @@ import { currentGitHubUser } from '../lib/auth';
 import { SiteHeader } from './ui/site-header';
 
 export function DashboardDemo({ profile }: { profile: PublicProfile }) {
-  const displaySources = profile.coverage.filter((item) => !['chatgpt_web', 'claude_web', 'github'].includes(item.source)).slice(0, 4).map((item, index) => ({ mark: item.label.split(/\s+/).map((word) => word[0]).join('').slice(0, 2).toUpperCase(), name: item.label, detail: item.provenance, state: item.status, tone: ['lime', 'orange', 'blue', 'violet'][index] }));
+  const displaySources = profile.coverage.filter((item) => !['chatgpt_web', 'claude_web', 'github'].includes(item.source)).slice(0, 5).map((item, index) => ({ mark: item.label.split(/\s+/).map((word) => word[0]).join('').slice(0, 2).toUpperCase(), name: item.label, detail: item.provenance, state: item.status, tone: ['lime', 'orange', 'blue', 'violet'][index % 4] }));
   const breakdown = [['Consistency', profile.scoreBreakdown.consistency, 30], ['Workflow depth', profile.scoreBreakdown.workflowDepth, 25], ['Provider breadth', profile.scoreBreakdown.providerBreadth, 15], ['Delivery', profile.scoreBreakdown.delivery, 30]] as const;
   return (
     <main className="shell">
       <aside className="sidebar">
         <a className="brand" href="#top" aria-label="AI Native Profile home">
-          <span className="brand-mark">A/</span>
-          <span>AI Native</span>
+          <span className="brand-mark">anp/</span>
+          <span>AI Native Profile</span>
         </a>
 
         <nav className="nav" aria-label="Primary navigation">
           <Link className="nav-link active" href="/dashboard"><span>⌁</span>Overview</Link>
           <a className="nav-link" href="#activity"><span>⌗</span>Activity</a>
           <Link className="nav-link" href="/connections"><span>↗</span>Sources</Link>
-          <Link className="nav-link" href="/u/demo"><span>◎</span>Public profile</Link>
+          <Link className="nav-link" href={profile.publicEnabled ? `/u/${profile.username}` : '/settings/privacy'}><span>◎</span>Public profile</Link>
           <Link className="nav-link" href="/leaderboard"><span>♜</span>Leaderboard</Link>
         </nav>
 
@@ -35,22 +35,21 @@ export function DashboardDemo({ profile }: { profile: PublicProfile }) {
       <section className="workspace" id="top">
         <header className="topbar">
           <div>
-            <p className="eyebrow">Your private workspace</p>
-            <h1>Good morning, {profile.name.split(' ')[0]}.</h1>
+            <p className="eyebrow">Private dashboard · @{profile.username}</p>
+            <h1>Your evidence, at a glance.</h1>
           </div>
           <div className="top-actions">
-            <button className="icon-button" aria-label="Notifications">◌</button>
             <Link className="secondary-button button-link" href={profile.publicEnabled ? `/u/${profile.username}` : '/settings/privacy'}>{profile.publicEnabled ? 'View public profile' : 'Enable public profile'} <span>↗</span></Link>
-            <Link className="primary-button button-link" href={profile.publicEnabled ? `/u/${profile.username}#share` : '/settings/privacy'}>Share your stats</Link>
+            <Link className="primary-button button-link" href="/connections">Manage sources</Link>
           </div>
         </header>
 
         <div className="content" id="overview">
           <section className="score-panel">
             <div className="score-copy">
-              <div className="section-kicker"><span className="live-dot" />AI WORKFLOW INDEX</div>
+              <div className="section-kicker"><span className="live-dot" />AI WORKFLOW INDEX · COVERAGE WEIGHTED</div>
               <div className="score-line"><strong>{profile.scoreEligible ? profile.score : '—'}</strong><span>/100</span>{profile.scoreEligible && <em>rank eligible</em>}</div>
-              <p>{profile.scoreEligible ? 'A balanced signal of consistency, workflow depth, provider breadth, and shipped work.' : profile.scoreReason ?? 'Insufficient coverage for a ranked score.'}</p>
+              <p>{profile.scoreEligible ? 'Consistency, workflow depth, provider breadth, and shipped work—without rewarding raw token volume.' : profile.scoreReason ?? 'Insufficient coverage for a ranked score.'}</p>
               <Link href="/methodology">How your score works <span>→</span></Link>
             </div>
             <div className="score-breakdown" aria-label="Score breakdown">
@@ -64,10 +63,10 @@ export function DashboardDemo({ profile }: { profile: PublicProfile }) {
           </section>
 
           <section className="stat-grid" aria-label="Coding activity summary">
-            <article><span className="stat-icon">◫</span><p>Lifetime tokens</p><strong>{new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 2 }).format(profile.lifetimeTokens)}</strong><small><b>Provenance</b> official wins on overlap</small></article>
-            <article><span className="stat-icon">↯</span><p>Coding sessions</p><strong>{profile.sessions}</strong><small>Across {profile.providers.length} sources</small></article>
-            <article><span className="stat-icon">⌁</span><p>Current streak</p><strong>{profile.currentStreak} <em>days</em></strong><small>Longest: {profile.longestStreak} days</small></article>
-            <article><span className="stat-icon">✓</span><p>Delivery points</p><strong>{profile.deliveryPoints}</strong><small>Last 90 days</small></article>
+            <article><span className="stat-icon">01</span><p>Active coding days</p><strong>{profile.activeDays}</strong><small><b>Coverage</b> eligible sources only</small></article>
+            <article><span className="stat-icon">02</span><p>Coding sessions</p><strong>{profile.sessions}</strong><small>Across {profile.providers.length} sources</small></article>
+            <article><span className="stat-icon">03</span><p>Current streak</p><strong>{profile.currentStreak} <em>days</em></strong><small>Longest: {profile.longestStreak} days</small></article>
+            <article><span className="stat-icon">04</span><p>Delivery points</p><strong>{profile.deliveryPoints}</strong><small>GitHub · last 90 days</small></article>
           </section>
 
           <section className="dashboard-grid">
@@ -118,39 +117,41 @@ export default async function Home() {
   const user = await currentGitHubUser();
   return <main className="marketing-page home-page">
     <SiteHeader user={user}/>
-    <section className="home-hero">
-      <div className="home-copy">
-        <p className="eyebrow">The open proof layer for AI-native developers</p>
-        <h1>One GitHub identity. Every attributable AI workflow.</h1>
-        <p>Build a private, coverage-aware view of how you work across coding assistants, then share only the evidence you choose.</p>
+    <section className="proof-hero">
+      <div className="proof-copy">
+        <div className="release-line"><span>OPEN SOURCE</span><code>anp.activity.v1</code></div>
+        <p className="eyebrow">Proof of work for AI-native developers</p>
+        <h1>Show how you build.<br/><span>Back it with evidence.</span></h1>
+        <p className="proof-intro">One verified profile for your coding-agent activity and the work you ship—private until you decide to share it.</p>
         <div className="home-actions">
-          <Link className="primary-link" href={user ? '/dashboard' : '/api/auth/github/start?return_to=/connections'}>{user ? 'Open your dashboard' : 'Continue with GitHub'}</Link>
-          <Link className="secondary-link" href={user ? '/connections' : '/u/demo'}>{user ? 'Manage connections' : 'View labelled example'}</Link>
+          <Link className="primary-link" href={user ? '/dashboard' : '/api/auth/github/start?return_to=/connections'}>{user ? 'Open dashboard' : 'Create profile with GitHub'} <span>→</span></Link>
+          <Link className="secondary-link" href={user ? '/connections' : '/u/demo'}>{user ? 'Manage sources' : 'See an example'}</Link>
         </div>
-        <p className="trust-line"><span/>GitHub is your account identity. Provider credentials never come to us.</p>
+        <div className="proof-promises"><span>No prompts</span><span>No source code</span><span>Private by default</span></div>
       </div>
-      <div className="connection-preview" aria-label="How sources connect to a profile">
-        <div className="preview-head"><span>PROFILE SOURCES</span><b>Private by default</b></div>
-        {[
-          ['GH', 'GitHub', 'Identity connected', 'official'],
-          ['CX', 'Codex', 'Local connector', 'local'],
-          ['CL', 'Claude Code', 'Local connector', 'local'],
-          ['CU', 'Cursor', 'Local connector', 'local'],
-          ['WEB', 'ChatGPT + Claude Web', 'MCP or export', 'optional'],
-        ].map(([mark, name, method, state]) => <div className="preview-source" key={name}>
-          <span>{mark}</span><div><strong>{name}</strong><small>{method}</small></div><em className={state}>{state}</em>
-        </div>)}
+      <aside className="proof-sample" aria-label="Labelled example profile summary">
+        <div className="sample-top"><span>EXAMPLE PROFILE</span><b>SAMPLE DATA</b></div>
+        <div className="sample-identity"><div><strong>@demo</strong><small>Updated 4 minutes ago</small></div><span><b>78</b>/100</span></div>
+        <div className="sample-stats"><div><strong>61</strong><span>active days</span></div><div><strong>41d</strong><span>streak</span></div><div><strong>172</strong><span>delivery pts</span></div></div>
+        <div className="sample-activity" aria-hidden="true">{[0,2,1,3,0,1,4,2,2,0,3,4,1,2,4,3,0,2,1,4,3,2,4,4,1,3,2,4].map((level, index) => <i key={index} className={`sample-level-${level}`}/>)}</div>
+        <div className="sample-sources"><span>Codex <b>official</b></span><span>Claude Code <b>local exact</b></span><span>Cursor <b>derived</b></span></div>
+        <div className="sample-foot"><span>Coverage shown on every metric</span><Link href="/u/demo">Open profile ↗</Link></div>
+      </aside>
+    </section>
+    <section className="supported-strip" aria-label="Supported sources"><span>SUPPORTED</span><div>{['Codex','Claude Code','Cursor','Gemini CLI','Copilot CLI','GitHub','ChatGPT Web','Claude Web'].map((source) => <b key={source}>{source}</b>)}</div></section>
+    <section className="proof-value">
+      <div className="value-heading"><p className="eyebrow">What the profile answers</p><h2>The signals people actually care about.</h2></div>
+      <div className="value-grid">
+        <article><span>01</span><h3>Do you use these tools consistently?</h3><p>Active coding days and streaks, normalized across supported providers.</p></article>
+        <article><span>02</span><h3>How deep is your workflow?</h3><p>Tool calls, skills, commands, subagents, and provider breadth—not token flexing.</p></article>
+        <article><span>03</span><h3>Does the work ship?</h3><p>GitHub commits, merged pull requests, reviews, and releases shown beside activity.</p></article>
+        <article><span>04</span><h3>Can the numbers be trusted?</h3><p>Every signal includes source, coverage, freshness, and provenance.</p></article>
       </div>
     </section>
-    <section className="connection-flow" aria-label="Onboarding steps">
-      <article><span>01</span><h2>Sign in with GitHub</h2><p>Your GitHub account verifies identity and anchors your public profile.</p></article>
-      <article><span>02</span><h2>Pair your computer</h2><p>The connector discovers local coding tools and previews safe aggregates.</p></article>
-      <article><span>03</span><h2>Choose web activity</h2><p>Add optional MCP observations or locally parsed conversation exports.</p></article>
-      <article><span>04</span><h2>Publish selectively</h2><p>Keep analytics private or opt into profiles, cards, and rankings separately.</p></article>
-    </section>
-    <section className="home-boundary">
-      <div><p className="eyebrow">What “connected” means</p><h2>Evidence, never guesswork.</h2></div>
-      <p>Each source names its collection method, provenance, coverage dates, freshness, and ranking eligibility. When a provider does not offer account-level analytics, the interface says <strong>local connector</strong>—never OAuth.</p>
+    <section className="setup-rail">
+      <div><p className="eyebrow">Three-minute setup</p><h2>GitHub in. Sources on. Share when ready.</h2></div>
+      <ol><li><span>1</span>Sign in with GitHub</li><li><span>2</span>Run <code>npx ai-native-profile connect</code></li><li><span>3</span>Preview and approve aggregates</li></ol>
+      <Link className="primary-link" href={user ? '/connections' : '/api/auth/github/start?return_to=/connections'}>{user ? 'Open connections' : 'Get started'} →</Link>
     </section>
   </main>;
 }

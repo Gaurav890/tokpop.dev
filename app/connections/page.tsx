@@ -3,6 +3,7 @@ import Link from '../ui/native-link';
 import { currentGitHubUser } from '../../lib/auth';
 import { ensureDb } from '../../db/ensure';
 import { SiteHeader } from '../ui/site-header';
+import { backendJson, backendOrigin } from '../../lib/server-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,21 +51,31 @@ export default async function ConnectionsPage() {
   const user = await currentGitHubUser();
   if (!user) return <main className="marketing-page"><SiteHeader/><section className="narrow-hero"><p className="eyebrow">Connections</p><h1>Connect every source after GitHub sign-in.</h1><p>GitHub verifies your identity. Inside your private dashboard, add Codex, Claude Code, Cursor, ChatGPT Web, Claude Web, and the rest individually.</p><Link className="primary-link dashboard-signin" href="/api/auth/github/start?return_to=/connections">Continue with GitHub</Link></section></main>;
 
-  await ensureDb();
-  const [coverageResult, deviceResult] = await Promise.all([
-    env.DB.prepare(`SELECT sc.source,sc.coverage_start,sc.coverage_end,sc.last_synced_at,sc.completeness,sc.competitive_eligible,sc.note,
-      (SELECT dm.provenance FROM daily_metrics dm WHERE dm.user_id=sc.user_id AND dm.source=sc.source ORDER BY dm.date DESC LIMIT 1) AS provenance
-      FROM source_coverage sc WHERE sc.user_id=? ORDER BY sc.source`).bind(user.userId).all<CoverageRow>(),
-    env.DB.prepare(`SELECT count(*) AS count FROM devices WHERE user_id=? AND status='approved'`).bind(user.userId).first<{ count: number }>(),
-  ]);
-  const coverage = new Map((coverageResult.results ?? []).map((row) => [row.source, row]));
+  let coverageRows: CoverageRow[];
+  let approvedDevices: number;
+  if (backendOrigin()) {
+    const data = await backendJson<{ coverage: CoverageRow[]; approvedDevices: number }>('/api/v1/connections', { authenticated: true });
+    coverageRows = data.coverage;
+    approvedDevices = data.approvedDevices;
+  } else {
+    await ensureDb();
+    const [coverageResult, deviceResult] = await Promise.all([
+      env.DB.prepare(`SELECT sc.source,sc.coverage_start,sc.coverage_end,sc.last_synced_at,sc.completeness,sc.competitive_eligible,sc.note,
+        (SELECT dm.provenance FROM daily_metrics dm WHERE dm.user_id=sc.user_id AND dm.source=sc.source ORDER BY dm.date DESC LIMIT 1) AS provenance
+        FROM source_coverage sc WHERE sc.user_id=? ORDER BY sc.source`).bind(user.userId).all<CoverageRow>(),
+      env.DB.prepare(`SELECT count(*) AS count FROM devices WHERE user_id=? AND status='approved'`).bind(user.userId).first<{ count: number }>(),
+    ]);
+    coverageRows = coverageResult.results ?? [];
+    approvedDevices = deviceResult?.count ?? 0;
+  }
+  const coverage = new Map(coverageRows.map((row) => [row.source, row]));
   const connectedCount = sourceDefinitions.filter((source) => source.id === 'github' || coverage.has(source.id)).length;
 
   return <main className="marketing-page connections-page">
     <SiteHeader user={user}/>
     <section className="connections-hero">
       <div><p className="eyebrow">Sources · @{user.login}</p><h1>Connections</h1><p>Every source names what it can prove, how it was collected, and when it was last seen.</p></div>
-      <div className="connection-summary"><strong>{connectedCount}<small>/{sourceDefinitions.length}</small></strong><span>sources with evidence</span><p>{deviceResult?.count ?? 0} approved local {(deviceResult?.count ?? 0) === 1 ? 'device' : 'devices'}</p></div>
+      <div className="connection-summary"><strong>{connectedCount}<small>/{sourceDefinitions.length}</small></strong><span>sources with evidence</span><p>{approvedDevices} approved local {approvedDevices === 1 ? 'device' : 'devices'}</p></div>
     </section>
     <section className="connection-groups">
       {['Identity and delivery', 'Coding activity', 'Conversation activity'].map((group) => <div className="connection-group" key={group}>

@@ -36,9 +36,9 @@ Do not set `BACKEND_URL` on Railway.
 2. Set `BACKEND_URL` to the Railway application domain, including `https://` and without a trailing slash.
 3. Set `PUBLIC_APP_URL` to the final Vercel production origin.
 4. Set the same `SESSION_SECRET` used on Railway.
-5. Set `DATABASE_URL` to the Railway Postgres public connection URL and `DATABASE_SSL=require`.
+5. Do not configure `DATABASE_URL` on Vercel. Server-rendered pages read through the Railway API.
 
-The Vercel server-rendered profile and settings pages currently share the PostgreSQL read model. Browser API writes, CLI batches, MCP calls, and OAuth token operations are proxied to Railway. A later service extraction can remove the Vercel database connection without changing the public API contract.
+Vercel holds only the public origin, backend origin, and shared session-signing secret. Browser API requests, CLI batches, MCP calls, OAuth operations, and server-rendered data reads terminate at Railway. PostgreSQL remains on Railway's private network.
 
 ## 3. Finish OAuth
 

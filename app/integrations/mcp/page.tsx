@@ -5,15 +5,17 @@ import { CopyEndpoint } from './copy-endpoint';
 
 const origin = (process.env.PUBLIC_APP_URL ?? 'https://ai-native-profile.vercel.app').replace(/\/$/, '');
 
-export default async function McpPage() {
+export default async function McpPage({ searchParams }: { searchParams: Promise<{ onboarding?: string }> }) {
   const user = await currentGitHubUser();
+  const { onboarding } = await searchParams;
+  const isOnboarding = onboarding === '1';
   const chatgptEndpoint = `${origin}/mcp/chatgpt`;
   const claudeEndpoint = `${origin}/mcp/claude`;
 
   return <main className="marketing-page">
     <SiteHeader user={user}/>
     <section className="narrow-hero">
-      <p className="eyebrow">Remote MCP · explicit activity</p>
+      <p className="eyebrow">{isOnboarding ? 'Onboarding · add an AI source' : 'Remote MCP · explicit activity'}</p>
       <h1>Connect future conversations you choose to record.</h1>
       <p>MCP connects an assistant to AI Native Profile. It does not grant us access to your provider account, old conversations, or activity where you do not invoke a tool.</p>
     </section>
@@ -40,6 +42,7 @@ export default async function McpPage() {
       <p>A recorded event proves that one of these tools was deliberately invoked. To add earlier activity, use an official export that is aggregated locally in your browser.</p>
       <Link className="secondary-link compact-link" href="/import">Import an export</Link>
     </section>
+    {isOnboarding ? <section className="onboarding-mcp-return"><div><strong>After adding the connector</strong><p>Invoke <code>record_session</code> once, then return to review your observed activity.</p></div><Link className="primary-link compact-link" href="/dashboard">Open my dashboard →</Link></section> : null}
     <section className="tool-list"><p className="eyebrow">Available tools</p>{[['get_profile','Read profile summary and sharing URLs.'],['record_session','Record one explicit mcp_observed session event.'],['publish_session','Publish a reviewed summary, unlisted by default.'],['create_share_card','Create README card and public profile URLs.']].map(([name, detail]) => <div key={name}><code>{name}</code><p>{detail}</p></div>)}</section>
     <section className="plain-section"><h2>What authorization means</h2><p>OAuth signs you into AI Native Profile with GitHub. Your ChatGPT or Claude credentials stay with that provider. Published summaries pass secret scanning and require an explicit tool invocation; observed conversation activity remains non-competitive.</p><Link className="secondary-link" href="/connect">See every connection option →</Link></section>
   </main>;

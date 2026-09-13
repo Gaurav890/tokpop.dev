@@ -1,0 +1,58 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
+type SyncResult = {
+  events?: number;
+  activeDays?: number;
+  error?: string;
+};
+
+async function requestGitHubProof(): Promise<SyncResult> {
+  const response = await fetch('/api/v1/github/sync', { method: 'POST' });
+  const body = await response.json().catch(() => ({})) as SyncResult;
+  if (!response.ok) throw new Error(body.error ?? 'GitHub activity sync failed.');
+  return body;
+}
+
+function resultDetail(result: SyncResult) {
+  return `${result.events ?? 0} public events across ${result.activeDays ?? 0} active days are ready.`;
+}
+
+export function GitHubProofSync({ username }: { username: string }) {
+  const [state, setState] = useState<'syncing' | 'ready' | 'error'>('syncing');
+  const [detail, setDetail] = useState('Reading your public delivery activity…');
+
+  useEffect(() => {
+    let cancelled = false;
+    requestGitHubProof().then((result) => {
+      if (cancelled) return;
+      setState('ready');
+      setDetail(resultDetail(result));
+    }).catch((error: unknown) => {
+      if (cancelled) return;
+      setState('error');
+      setDetail(error instanceof Error ? error.message : 'GitHub activity sync failed.');
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  async function retry() {
+    setState('syncing');
+    setDetail('Reading your public delivery activity…');
+    try {
+      const body = await requestGitHubProof();
+      setState('ready');
+      setDetail(resultDetail(body));
+    } catch (error) {
+      setState('error');
+      setDetail(error instanceof Error ? error.message : 'GitHub activity sync failed.');
+    }
+  }
+
+  return <section className={`github-proof-sync ${state}`}>
+    <div className="github-proof-icon">GH</div>
+    <div><p className="eyebrow">GitHub connected · @{username}</p><h2>{state === 'ready' ? 'Your first proof source is ready.' : state === 'error' ? 'GitHub needs another try.' : 'Building your first proof automatically.'}</h2><p aria-live="polite">{detail}</p></div>
+    {state === 'error' ? <button type="button" className="secondary-link compact-link" onClick={retry}>Retry sync</button> : <span className="onboarding-source-state">{state === 'ready' ? 'Connected' : 'Syncing'}</span>}
+  </section>;
+}

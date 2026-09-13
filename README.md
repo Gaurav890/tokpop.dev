@@ -6,13 +6,15 @@ AI Native Profile turns attributable activity from AI coding tools and GitHub in
 
 ## Three-minute quickstart
 
-Use the hosted service and pair supported coding tools with:
+Open the hosted service, sign in with GitHub, and complete the guided source step. Public GitHub delivery evidence syncs automatically before the dashboard appears. ChatGPT and Claude Web can be added through browser-local export import or explicit MCP activity without installing the collector.
+
+For the strongest coding proof, optionally pair supported local tools with:
 
 ```bash
 npx ai-native-profile connect
 ```
 
-The command opens the hosted pairing flow at `https://ai-native-profile.vercel.app`. It reads only supported local coding-tool records and shows aggregate activity before synchronization. Use `--api-url` only when connecting to a self-hosted instance.
+The command opens the hosted pairing flow at `https://ai-native-profile.vercel.app`. It reads only supported local coding-tool records and shows aggregate activity before synchronization. It is an optional profile upgrade, not an onboarding prerequisite. Use `--api-url` only when connecting to a self-hosted instance.
 
 For local development:
 

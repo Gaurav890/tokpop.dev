@@ -2,11 +2,13 @@
 
 import { useRef, useState } from 'react';
 import type { ExportAggregate } from '@ai-native-profile/adapters';
+import Link from '../ui/native-link';
 
-export function ImportPanel({ initialSource = 'chatgpt_web' }: { initialSource?: ExportAggregate['source'] }) {
+export function ImportPanel({ initialSource = 'chatgpt_web', onboarding = false }: { initialSource?: ExportAggregate['source']; onboarding?: boolean }) {
   const [source, setSource] = useState<ExportAggregate['source']>(initialSource);
   const [status, setStatus] = useState('Choose an official export ZIP. Nothing is uploaded yet.');
   const [aggregate, setAggregate] = useState<ExportAggregate | null>(null);
+  const [completed, setCompleted] = useState(false);
   const worker = useRef<Worker | null>(null);
 
   async function inspect(file?: File) {
@@ -29,7 +31,10 @@ export function ImportPanel({ initialSource = 'chatgpt_web' }: { initialSource?:
     const response = await fetch('/api/v1/imports/aggregate', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(aggregate) });
     const body = await response.json().catch(() => ({})) as { acceptedDays?: number; error?: string };
     setStatus(response.ok ? `Imported ${body.acceptedDays} aggregate days. Raw content never left this browser.` : body.error ?? 'Import failed.');
-    if (response.ok) setAggregate(null);
+    if (response.ok) {
+      setAggregate(null);
+      setCompleted(true);
+    }
   }
 
   return <section className="import-box">
@@ -44,5 +49,6 @@ export function ImportPanel({ initialSource = 'chatgpt_web' }: { initialSource?:
     </label>
     <p className="status-line" aria-live="polite">{status}</p>
     {aggregate ? <div className="import-preview"><div><span>Coverage</span><strong>{aggregate.coverageStart} → {aggregate.coverageEnd}</strong></div><div><span>Sessions</span><strong>{aggregate.days.reduce((sum, day) => sum + day.sessions, 0)}</strong></div><div><span>Turns</span><strong>{aggregate.days.reduce((sum, day) => sum + day.turns, 0)}</strong></div><button type="button" className="primary-button" onClick={commit}>Approve aggregates</button></div> : null}
+    {completed && onboarding ? <div className="import-complete"><div><strong>AI activity source connected</strong><span>Your approved aggregates are ready to review.</span></div><Link className="primary-link compact-link" href="/dashboard">Open my dashboard →</Link></div> : null}
   </section>;
 }

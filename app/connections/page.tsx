@@ -49,7 +49,7 @@ function relativeSync(value: string): string {
 
 export default async function ConnectionsPage() {
   const user = await currentGitHubUser();
-  if (!user) return <main className="marketing-page"><SiteHeader/><section className="narrow-hero"><p className="eyebrow">Connections</p><h1>Connect every source after GitHub sign-in.</h1><p>GitHub verifies your identity. Inside your private dashboard, add Codex, Claude Code, Cursor, ChatGPT Web, Claude Web, and the rest individually.</p><Link className="primary-link dashboard-signin" href="/api/auth/github/start?return_to=/connections">Continue with GitHub</Link></section></main>;
+  if (!user) return <main className="marketing-page"><SiteHeader/><section className="narrow-hero"><p className="eyebrow">Onboarding</p><h1>Create your proof in one guided flow.</h1><p>GitHub verifies your identity and syncs public delivery evidence immediately. You then add a browser or coding activity source before reviewing the dashboard.</p><Link className="primary-link dashboard-signin" href={`/api/auth/github/start?return_to=${encodeURIComponent('/connect?onboarding=1')}`}>Continue with GitHub</Link></section></main>;
 
   let coverageRows: CoverageRow[];
   let approvedDevices: number;

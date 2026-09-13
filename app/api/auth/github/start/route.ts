@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:workers';
+import { runtimeEnv as env } from '@/lib/runtime-env';
 import { NextRequest, NextResponse } from 'next/server';
 import { hmac, randomToken } from '../../../../../lib/crypto';
 
@@ -17,7 +17,8 @@ export async function GET(request: NextRequest) {
   const storageAuthorization = request.nextUrl.searchParams.get('scope') === 'repo';
   authorize.searchParams.set('scope', storageAuthorization ? 'read:user repo' : 'read:user');
   authorize.searchParams.set('state', state);
-  authorize.searchParams.set('redirect_uri', new URL('/api/auth/github/callback', request.url).toString());
+  const publicOrigin = (env.PUBLIC_APP_URL ?? request.nextUrl.origin).replace(/\/$/, '');
+  authorize.searchParams.set('redirect_uri', `${publicOrigin}/api/auth/github/callback`);
   const response = NextResponse.redirect(authorize);
   response.cookies.set('anp_oauth_state', signedState, { httpOnly: true, sameSite: 'lax', secure: request.nextUrl.protocol === 'https:', path: '/', maxAge: 600 });
   const returnTo = request.nextUrl.searchParams.get('return_to');

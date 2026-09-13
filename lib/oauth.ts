@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:workers';
+import { runtimeEnv as env } from './runtime-env';
 import { hmac, secureEqual } from './crypto';
 
 type ClientRegistration = { redirect_uris: string[]; client_name?: string };

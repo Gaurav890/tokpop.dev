@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:workers';
+import { runtimeEnv as env } from './runtime-env';
 import { ensureDb } from '../db/ensure';
 import { sha256 } from './crypto';
 
@@ -9,7 +9,7 @@ export async function authenticateMcp(request: Request): Promise<McpIdentity | n
   const token = authorization?.startsWith('Bearer ') ? authorization.slice(7) : '';
   if (!token) return null;
   await ensureDb();
-  return env.DB.prepare(`SELECT t.user_id AS userId, t.scope, u.github_login AS login, u.display_name AS name
+  return env.DB.prepare(`SELECT t.user_id AS "userId", t.scope, u.github_login AS login, u.display_name AS name
     FROM oauth_tokens t JOIN users u ON u.id=t.user_id
     WHERE t.token_hash=? AND t.revoked_at IS NULL AND t.expires_at>? LIMIT 1`)
     .bind(await sha256(token), new Date().toISOString()).first<McpIdentity>();

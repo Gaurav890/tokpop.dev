@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:workers';
+import { runtimeEnv as env } from '@/lib/runtime-env';
 import { NextResponse } from 'next/server';
 import { currentGitHubUser } from '../../../../../lib/auth';
 import { authenticateDevice } from '../../../../../lib/device-auth';

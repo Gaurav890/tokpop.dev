@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:workers';
+import { runtimeEnv as env } from '@/lib/runtime-env';
 import { NextRequest, NextResponse } from 'next/server';
 import { ensureDb } from '../../../../db/ensure';
 import { currentGitHubUser } from '../../../../lib/auth';

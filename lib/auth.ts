@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { env } from 'cloudflare:workers';
+import { runtimeEnv as env } from './runtime-env';
 import { hmac, secureEqual } from './crypto';
 
 export type GitHubSession = { userId: string; login: string; name: string; avatarUrl: string; exp: number };

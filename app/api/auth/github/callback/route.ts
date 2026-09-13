@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:workers';
+import { runtimeEnv as env } from '@/lib/runtime-env';
 import { NextRequest, NextResponse } from 'next/server';
 import { ensureDb } from '../../../../../db/ensure';
 import { sessionCookieName, signSession } from '../../../../../lib/auth';
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
   const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
     method: 'POST', headers: { accept: 'application/json', 'content-type': 'application/json' },
-    body: JSON.stringify({ client_id: clientId, client_secret: clientSecret, code, redirect_uri: new URL('/api/auth/github/callback', request.url).toString() }),
+    body: JSON.stringify({ client_id: clientId, client_secret: clientSecret, code, redirect_uri: `${(env.PUBLIC_APP_URL ?? request.nextUrl.origin).replace(/\/$/, '')}/api/auth/github/callback` }),
   });
   const tokenBody = await tokenResponse.json() as { access_token?: string; scope?: string; error_description?: string };
   if (!tokenResponse.ok || !tokenBody.access_token) return NextResponse.json({ error: tokenBody.error_description ?? 'GitHub token exchange failed.' }, { status: 502 });
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
   const session = await signSession({ userId, login: github.login, name: github.name ?? github.login, avatarUrl: github.avatar_url, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 });
   const returnTo = request.cookies.get('anp_auth_return')?.value;
   const safeReturnTo = returnTo?.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/dashboard';
-  const response = NextResponse.redirect(new URL(safeReturnTo, request.url));
+  const response = NextResponse.redirect(new URL(safeReturnTo, env.PUBLIC_APP_URL ?? request.nextUrl.origin));
   response.cookies.set(sessionCookieName, session, { httpOnly: true, sameSite: 'lax', secure: request.nextUrl.protocol === 'https:', path: '/', maxAge: 60 * 60 * 24 * 30 });
   response.cookies.delete('anp_oauth_state');
   response.cookies.delete('anp_auth_return');

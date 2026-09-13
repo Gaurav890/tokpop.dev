@@ -52,7 +52,7 @@ db                    PostgreSQL schema, compatibility client, and migrations
 docs                  Methodology, privacy, providers, threat model, self-hosting
 ```
 
-The production topology uses Vercel for the public web surface, Railway for the API origin, and Railway Postgres for canonical structured data. The root app is deployable to both services: Vercel proxies API, MCP, and OAuth writes to the Railway origin, while Railway runs those routes without a proxy. See the [deployment guide](docs/deployment.md).
+The production topology uses Vercel for the public web surface, Railway for the API origin, and Railway Postgres for canonical structured data. The root app is deployable to both services: Vercel proxies API, MCP, and OAuth routes and fetches server-rendered data through the Railway API, while Railway is the only application service with database access. See the [deployment guide](docs/deployment.md).
 
 ## Trust statement
 

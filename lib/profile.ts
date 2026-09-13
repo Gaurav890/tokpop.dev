@@ -2,6 +2,7 @@ import { runtimeEnv as env } from './runtime-env';
 import { calculateWorkflowIndex } from '@ai-native-profile/scoring';
 import { ensureDb } from '../db/ensure';
 import { demoProfile, type PublicProfile } from './demo-profile';
+import { backendOrigin, backendResponse } from './server-api';
 
 type MetricRow = { date: string; source: string; metric_name: string; value: number; provenance: string; competitive_eligible: number };
 type CoverageRow = { source: string; completeness: string; last_synced_at: string; provenance?: string };
@@ -33,6 +34,17 @@ function currentStreak(dates: string[]): number {
 
 export async function getPublicProfile(username: string): Promise<PublicProfile | null> {
   if (username === 'demo') return demoProfile;
+  if (backendOrigin()) {
+    const response = await backendResponse(`/api/v1/profile/${encodeURIComponent(username)}`);
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(`Profile service returned ${response.status}.`);
+    return response.json() as Promise<PublicProfile>;
+  }
+  return getPublicProfileFromDatabase(username);
+}
+
+export async function getPublicProfileFromDatabase(username: string): Promise<PublicProfile | null> {
+  if (username === 'demo') return demoProfile;
   await ensureDb();
   const user = await env.DB.prepare(`SELECT id, github_login, display_name, avatar_url, public_enabled FROM users WHERE lower(github_login)=lower(?) LIMIT 1`).bind(username).first<ProfileUser>();
   if (!user || !user.public_enabled) return null;
@@ -40,6 +52,16 @@ export async function getPublicProfile(username: string): Promise<PublicProfile 
 }
 
 export async function getPrivateProfile(userId: string): Promise<PublicProfile | null> {
+  if (backendOrigin()) {
+    const response = await backendResponse('/api/v1/me/profile', { authenticated: true });
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(`Profile service returned ${response.status}.`);
+    return response.json() as Promise<PublicProfile>;
+  }
+  return getPrivateProfileFromDatabase(userId);
+}
+
+export async function getPrivateProfileFromDatabase(userId: string): Promise<PublicProfile | null> {
   await ensureDb();
   const user = await env.DB.prepare(`SELECT id, github_login, display_name, avatar_url, public_enabled FROM users WHERE id=? LIMIT 1`).bind(userId).first<ProfileUser>();
   return user ? buildProfile(user) : null;

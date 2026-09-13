@@ -1,8 +1,23 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState, type DragEvent } from 'react';
 import type { ExportAggregate } from '@ai-native-profile/adapters';
 import Link from '../ui/native-link';
+
+const exportGuides = {
+  chatgpt_web: {
+    name: 'ChatGPT',
+    href: 'https://help.openai.com/en/articles/7260999-how-do-i-export-my-chat-history-and-data',
+    steps: ['Open your profile menu, then Settings.', 'Choose Data Controls → Export Data → Confirm export.', 'Download the ZIP from the email, then choose or drop it below.'],
+    timing: 'The export can take up to 7 days. The email download link expires after 24 hours.',
+  },
+  claude_web: {
+    name: 'Claude',
+    href: 'https://support.anthropic.com/en/articles/9450526-how-can-i-export-my-claude-data',
+    steps: ['Open your initials menu, then Settings.', 'Choose Privacy → Export data.', 'Download the ZIP from the email, then choose or drop it below.'],
+    timing: 'Claude may take a short time to prepare the export. The email download link expires after 24 hours.',
+  },
+} as const;
 
 export function ImportPanel({ initialSource = 'chatgpt_web', onboarding = false }: { initialSource?: ExportAggregate['source']; onboarding?: boolean }) {
   const [source, setSource] = useState<ExportAggregate['source']>(initialSource);
@@ -10,6 +25,17 @@ export function ImportPanel({ initialSource = 'chatgpt_web', onboarding = false 
   const [aggregate, setAggregate] = useState<ExportAggregate | null>(null);
   const [completed, setCompleted] = useState(false);
   const worker = useRef<Worker | null>(null);
+  const guide = exportGuides[source];
+
+  useEffect(() => () => worker.current?.terminate(), []);
+
+  function selectSource(nextSource: ExportAggregate['source']) {
+    worker.current?.terminate();
+    setSource(nextSource);
+    setAggregate(null);
+    setCompleted(false);
+    setStatus(`Choose an official ${exportGuides[nextSource].name} export ZIP. Nothing is uploaded yet.`);
+  }
 
   async function inspect(file?: File) {
     if (!file) return;
@@ -23,6 +49,11 @@ export function ImportPanel({ initialSource = 'chatgpt_web', onboarding = false 
       setStatus(`Ready: ${event.data.aggregate.days.length} aggregate days. Review before committing.`);
     };
     worker.current.postMessage({ file, source });
+  }
+
+  function dropFile(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    void inspect(event.dataTransfer.files[0]);
   }
 
   async function commit() {
@@ -39,11 +70,16 @@ export function ImportPanel({ initialSource = 'chatgpt_web', onboarding = false 
 
   return <section className="import-box">
     <div className="provider-toggle" aria-label="Export provider">
-      <button type="button" className={source === 'chatgpt_web' ? 'active' : ''} onClick={() => setSource('chatgpt_web')}>ChatGPT</button>
-      <button type="button" className={source === 'claude_web' ? 'active' : ''} onClick={() => setSource('claude_web')}>Claude</button>
+      <button type="button" className={source === 'chatgpt_web' ? 'active' : ''} aria-pressed={source === 'chatgpt_web'} onClick={() => selectSource('chatgpt_web')}>ChatGPT</button>
+      <button type="button" className={source === 'claude_web' ? 'active' : ''} aria-pressed={source === 'claude_web'} onClick={() => selectSource('claude_web')}>Claude</button>
     </div>
-    <label className="drop-zone">
-      <strong>Drop an official {source === 'chatgpt_web' ? 'ChatGPT' : 'Claude'} export ZIP</strong>
+    <div className="export-guide">
+      <div className="export-guide-head"><div><p className="eyebrow">Get the archive</p><h2>Export from {guide.name}</h2></div><a href={guide.href} target="_blank" rel="noreferrer">Official instructions ↗</a></div>
+      <ol>{guide.steps.map((step, index) => <li key={step}><span>{index + 1}</span>{step}</li>)}</ol>
+      <p>{guide.timing}</p>
+    </div>
+    <label className="drop-zone" onDragOver={(event) => event.preventDefault()} onDrop={dropFile}>
+      <strong>Choose or drop the official {guide.name} export ZIP</strong>
       <span>Parsing happens in a Web Worker on this device.</span>
       <input type="file" accept=".zip,application/zip" onChange={(event) => inspect(event.target.files?.[0])} />
     </label>

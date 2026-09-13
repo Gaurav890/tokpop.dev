@@ -150,7 +150,7 @@ export default async function Home() {
     </section>
     <section className="setup-rail">
       <div><p className="eyebrow">Three-minute setup</p><h2>GitHub in. Sources on. Share when ready.</h2></div>
-      <ol><li><span>1</span>Sign in with GitHub</li><li><span>2</span>Run <code>npx ai-native-profile connect</code></li><li><span>3</span>Preview and approve aggregates</li></ol>
+      <ol><li><span>1</span>Sign in with GitHub</li><li><span>2</span>Choose browser or local sources</li><li><span>3</span>Review and approve aggregates</li></ol>
       <Link className="primary-link" href={user ? '/connections' : '/api/auth/github/start?return_to=/connections'}>{user ? 'Open connections' : 'Get started'} →</Link>
     </section>
   </main>;

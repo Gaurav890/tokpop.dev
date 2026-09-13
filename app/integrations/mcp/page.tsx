@@ -1,4 +1,46 @@
 import Link from '../../ui/native-link';
+import { currentGitHubUser } from '../../../lib/auth';
 import { SiteHeader } from '../../ui/site-header';
+import { CopyEndpoint } from './copy-endpoint';
 
-export default function McpPage() { return <main className="marketing-page"><SiteHeader/><section className="narrow-hero"><p className="eyebrow">Remote MCP · OAuth 2.1 + PKCE</p><h1>Let ChatGPT and Claude record only what you choose.</h1><p>MCP connects the assistant to AI Native Profile. It does not grant access to your provider account or silently read conversation history.</p></section><section className="integration-grid"><article><span className="source-mark lime">CG</span><h2>ChatGPT</h2><p>Add the hosted endpoint as a custom connector.</p><code>/mcp/chatgpt</code></article><article><span className="source-mark orange">CL</span><h2>Claude</h2><p>Add the hosted endpoint as a remote custom integration.</p><code>/mcp/claude</code></article></section><section className="tool-list"><p className="eyebrow">Available tools</p>{[['get_profile','Read profile summary and sharing URLs.'],['record_session','Record one explicit mcp_observed session event.'],['publish_session','Publish a reviewed summary, unlisted by default.'],['create_share_card','Create README card and public profile URLs.']].map(([name, detail]) => <div key={name}><code>{name}</code><p>{detail}</p></div>)}</section><section className="plain-section"><h2>What authorization means</h2><p>OAuth signs you into AI Native Profile with GitHub. Your ChatGPT or Claude credentials stay with that provider. Published summaries pass secret scanning and require an explicit tool invocation; observed conversation activity remains non-competitive.</p><Link className="secondary-link" href="/import">Import historical exports →</Link></section></main>; }
+const origin = (process.env.PUBLIC_APP_URL ?? 'https://ai-native-profile.vercel.app').replace(/\/$/, '');
+
+export default async function McpPage() {
+  const user = await currentGitHubUser();
+  const chatgptEndpoint = `${origin}/mcp/chatgpt`;
+  const claudeEndpoint = `${origin}/mcp/claude`;
+
+  return <main className="marketing-page">
+    <SiteHeader user={user}/>
+    <section className="narrow-hero">
+      <p className="eyebrow">Remote MCP · explicit activity</p>
+      <h1>Connect future conversations you choose to record.</h1>
+      <p>MCP connects an assistant to AI Native Profile. It does not grant us access to your provider account, old conversations, or activity where you do not invoke a tool.</p>
+    </section>
+    <section className="integration-grid">
+      <article id="chatgpt">
+        <span className="source-mark lime">CG</span>
+        <h2>ChatGPT</h2>
+        <p>In ChatGPT settings, open Apps &amp; Connectors, enable developer mode if your plan supports custom MCP, and add this endpoint.</p>
+        <code className="endpoint-code">{chatgptEndpoint}</code>
+        <div className="integration-actions"><CopyEndpoint value={chatgptEndpoint}/><a className="primary-link compact-link" href="https://chatgpt.com/" target="_blank" rel="noreferrer">Open ChatGPT ↗</a></div>
+        <small>Custom MCP availability depends on the ChatGPT plan and workspace policy.</small>
+      </article>
+      <article id="claude">
+        <span className="source-mark orange">CL</span>
+        <h2>Claude</h2>
+        <p>Open Claude Settings → Connectors, choose Add custom connector, and paste this endpoint.</p>
+        <code className="endpoint-code">{claudeEndpoint}</code>
+        <div className="integration-actions"><CopyEndpoint value={claudeEndpoint}/><a className="primary-link compact-link" href="https://claude.ai/settings/connectors" target="_blank" rel="noreferrer">Open Claude connectors ↗</a></div>
+        <small>Custom connectors require a supported Claude plan and may be controlled by workspace administrators.</small>
+      </article>
+    </section>
+    <section className="mcp-boundary">
+      <strong>MCP is not history sync.</strong>
+      <p>A recorded event proves that one of these tools was deliberately invoked. To add earlier activity, use an official export that is aggregated locally in your browser.</p>
+      <Link className="secondary-link compact-link" href="/import">Import an export</Link>
+    </section>
+    <section className="tool-list"><p className="eyebrow">Available tools</p>{[['get_profile','Read profile summary and sharing URLs.'],['record_session','Record one explicit mcp_observed session event.'],['publish_session','Publish a reviewed summary, unlisted by default.'],['create_share_card','Create README card and public profile URLs.']].map(([name, detail]) => <div key={name}><code>{name}</code><p>{detail}</p></div>)}</section>
+    <section className="plain-section"><h2>What authorization means</h2><p>OAuth signs you into AI Native Profile with GitHub. Your ChatGPT or Claude credentials stay with that provider. Published summaries pass secret scanning and require an explicit tool invocation; observed conversation activity remains non-competitive.</p><Link className="secondary-link" href="/connect">See every connection option →</Link></section>
+  </main>;
+}

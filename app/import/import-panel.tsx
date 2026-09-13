@@ -3,8 +3,8 @@
 import { useRef, useState } from 'react';
 import type { ExportAggregate } from '@ai-native-profile/adapters';
 
-export function ImportPanel() {
-  const [source, setSource] = useState<ExportAggregate['source']>('chatgpt_web');
+export function ImportPanel({ initialSource = 'chatgpt_web' }: { initialSource?: ExportAggregate['source'] }) {
+  const [source, setSource] = useState<ExportAggregate['source']>(initialSource);
   const [status, setStatus] = useState('Choose an official export ZIP. Nothing is uploaded yet.');
   const [aggregate, setAggregate] = useState<ExportAggregate | null>(null);
   const worker = useRef<Worker | null>(null);
@@ -34,15 +34,15 @@ export function ImportPanel() {
 
   return <section className="import-box">
     <div className="provider-toggle" aria-label="Export provider">
-      <button className={source === 'chatgpt_web' ? 'active' : ''} onClick={() => setSource('chatgpt_web')}>ChatGPT</button>
-      <button className={source === 'claude_web' ? 'active' : ''} onClick={() => setSource('claude_web')}>Claude</button>
+      <button type="button" className={source === 'chatgpt_web' ? 'active' : ''} onClick={() => setSource('chatgpt_web')}>ChatGPT</button>
+      <button type="button" className={source === 'claude_web' ? 'active' : ''} onClick={() => setSource('claude_web')}>Claude</button>
     </div>
     <label className="drop-zone">
       <strong>Drop an official {source === 'chatgpt_web' ? 'ChatGPT' : 'Claude'} export ZIP</strong>
       <span>Parsing happens in a Web Worker on this device.</span>
       <input type="file" accept=".zip,application/zip" onChange={(event) => inspect(event.target.files?.[0])} />
     </label>
-    <p className="status-line">{status}</p>
-    {aggregate && <div className="import-preview"><div><span>Coverage</span><strong>{aggregate.coverageStart} → {aggregate.coverageEnd}</strong></div><div><span>Sessions</span><strong>{aggregate.days.reduce((sum, day) => sum + day.sessions, 0)}</strong></div><div><span>Turns</span><strong>{aggregate.days.reduce((sum, day) => sum + day.turns, 0)}</strong></div><button className="primary-button" onClick={commit}>Approve aggregates</button></div>}
+    <p className="status-line" aria-live="polite">{status}</p>
+    {aggregate ? <div className="import-preview"><div><span>Coverage</span><strong>{aggregate.coverageStart} → {aggregate.coverageEnd}</strong></div><div><span>Sessions</span><strong>{aggregate.days.reduce((sum, day) => sum + day.sessions, 0)}</strong></div><div><span>Turns</span><strong>{aggregate.days.reduce((sum, day) => sum + day.turns, 0)}</strong></div><button type="button" className="primary-button" onClick={commit}>Approve aggregates</button></div> : null}
   </section>;
 }

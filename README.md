@@ -6,6 +6,16 @@ AI Native Profile turns attributable activity from AI coding tools and GitHub in
 
 ## Three-minute quickstart
 
+Use the hosted service and pair supported coding tools with:
+
+```bash
+npx ai-native-profile connect
+```
+
+The command opens the hosted pairing flow at `https://ai-native-profile.vercel.app`. It reads only supported local coding-tool records and shows aggregate activity before synchronization. Use `--api-url` only when connecting to a self-hosted instance.
+
+For local development:
+
 ```bash
 git clone https://github.com/Gaurav890/ai-native-profile.git
 cd ai-native-profile
@@ -20,7 +30,7 @@ Configure a GitHub OAuth App with callback URL `http://localhost:3000/api/auth/g
 ANP_API_URL=http://localhost:3000 pnpm cli connect
 ```
 
-The collector shows detected tools and the exact aggregate payload. Automatic background synchronization does not start until the user runs `anp watch`.
+The collector shows detected tools and the exact aggregate payload. Automatic background synchronization does not start until the user runs `anp watch`. ChatGPT and Claude Web do not require the collector: use a locally parsed official export for historical activity or an explicit MCP tool for future observed activity.
 
 GitHub is the product account identity. Coding providers appear inside the Connections screen and use the strongest supported evidence source—official account data where available, otherwise a consented local collector. ChatGPT and Claude Web are optional conversation sources connected through explicit MCP tools or locally parsed official exports; they are never presented as silent account access.
 

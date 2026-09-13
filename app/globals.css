@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-:root { --ink:#121521; --muted:#626979; --paper:#f4f6fa; --card:#ffffff; --line:#d9deea; --blue:#3451ff; --orange:#ff6846; --lime:#3451ff; }
+:root { --ink:#121521; --muted:#626979; --paper:#f4f6fa; --card:#ffffff; --line:#d9deea; --blue:#3451ff; --orange:#ff6846; --lime:#3451ff; --font-geist-sans:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; --font-geist-mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace; }
 * { box-sizing:border-box; }
 html { scroll-behavior:smooth; }
 body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-geist-sans),Arial,sans-serif; }

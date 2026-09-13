@@ -37,22 +37,22 @@ GitHub is the product account identity. Coding providers appear inside the Conne
 - OAuth 2.1/PKCE remote MCP endpoints for ChatGPT and Claude
 - Browser-only ChatGPT/Claude export parsing with aggregate-only commit
 - Device revocation, data export, visibility controls, and deletion
-- D1-compatible structured storage and R2-compatible short-lived secret delivery
+- PostgreSQL structured storage with encrypted, one-time device-token delivery
 
 ## Repository map
 
 ```text
-apps/web              Cloud surface (implemented in the root Next/Vinext app)
+app                   Next.js cloud surface and API routes
 packages/cli          Pairing, discovery, filtering, sync, diagnostics
 packages/adapters     Provider collectors and export aggregation
 packages/schema       Versioned activity contract and JSON Schema
 packages/scoring      Public scoring implementation
 packages/renderers    README/social asset renderers
-db                    D1/SQLite schema and bootstrap
+db                    PostgreSQL schema, compatibility client, and migrations
 docs                  Methodology, privacy, providers, threat model, self-hosting
 ```
 
-The web app remains at the repository root because the Sites/Vinext runtime owns its deployment configuration there; the package boundaries match the planned monorepo interfaces.
+The production topology uses Vercel for the public web surface, Railway for the API origin, and Railway Postgres for canonical structured data. The root app is deployable to both services: Vercel proxies API, MCP, and OAuth writes to the Railway origin, while Railway runs those routes without a proxy. See the [deployment guide](docs/deployment.md).
 
 ## Trust statement
 
@@ -68,6 +68,7 @@ pnpm typecheck
 pnpm lint
 pnpm build
 pnpm db:generate
+pnpm db:migrate
 ```
 
 Provider fixtures must be redacted and conform to [`docs/fixtures.md`](docs/fixtures.md). New collectors should follow the [adapter guide](docs/adapter-guide.md).

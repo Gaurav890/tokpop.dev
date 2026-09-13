@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:workers';
+import { runtimeEnv as env } from './runtime-env';
 import { calculateWorkflowIndex } from '@ai-native-profile/scoring';
 import { ensureDb } from '../db/ensure';
 import { demoProfile, type PublicProfile } from './demo-profile';

@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:workers';
+import { runtimeEnv as env } from '@/lib/runtime-env';
 import { ensureDb } from '../../db/ensure';
 import { getPublicProfile } from '../../lib/profile';
 import { SiteHeader } from '../ui/site-header';

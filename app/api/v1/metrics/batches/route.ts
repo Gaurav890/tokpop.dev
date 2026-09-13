@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:workers';
+import { runtimeEnv as env } from '@/lib/runtime-env';
 import { NextRequest, NextResponse } from 'next/server';
 import { privacyCheck } from '@ai-native-profile/adapters';
 import { ensureDb } from '../../../../../db/ensure';

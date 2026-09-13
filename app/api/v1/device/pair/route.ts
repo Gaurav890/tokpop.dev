@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:workers';
+import { runtimeEnv as env } from '@/lib/runtime-env';
 import { NextRequest, NextResponse } from 'next/server';
 import { ensureDb } from '../../../../../db/ensure';
 import { randomToken, sha256 } from '../../../../../lib/crypto';
@@ -13,5 +13,5 @@ export async function POST(request: NextRequest) {
   await ensureDb();
   await env.DB.prepare(`INSERT INTO devices (id, name, collector_version, device_code_hash, user_code_hash, status, expires_at, created_at) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?)`)
     .bind(deviceId, String(body.deviceName ?? 'Developer device').slice(0, 80), String(body.collectorVersion ?? 'unknown').slice(0, 30), await sha256(deviceCode), await sha256(userCode), expiresAt, now.toISOString()).run();
-  return NextResponse.json({ deviceId, deviceCode, userCode, verificationUrl: new URL(`/connect?code=${encodeURIComponent(userCode)}`, request.url).toString(), expiresAt }, { status: 201 });
+  return NextResponse.json({ deviceId, deviceCode, userCode, verificationUrl: new URL(`/connect?code=${encodeURIComponent(userCode)}`, env.PUBLIC_APP_URL ?? request.nextUrl.origin).toString(), expiresAt }, { status: 201 });
 }

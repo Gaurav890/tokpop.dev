@@ -4,7 +4,7 @@ import { ensureDb } from '../../../../db/ensure';
 import { currentGitHubUser } from '../../../../lib/auth';
 import { randomToken, sha256 } from '../../../../lib/crypto';
 import { verifyClient } from '../../../../lib/oauth';
-import { redirectToOAuthClient } from '../../../../lib/oauth-response';
+import { oauthClientTarget, redirectToOAuthClient } from '../../../../lib/oauth-response';
 
 export async function POST(request: NextRequest) {
   const user = await currentGitHubUser();
@@ -13,9 +13,11 @@ export async function POST(request: NextRequest) {
   const clientId = String(form.get('client_id') ?? '');
   const redirectUri = String(form.get('redirect_uri') ?? '');
   const state = String(form.get('state') ?? '');
+  const explicitNavigation = form.get('response_mode') === 'json';
   if (!(await verifyClient(clientId, redirectUri))) return NextResponse.json({ error: 'Invalid OAuth client.' }, { status: 400 });
   const target = new URL(redirectUri);
-  if (form.get('decision') !== 'approve') { target.searchParams.set('error', 'access_denied'); target.searchParams.set('state', state); return redirectToOAuthClient(target); }
+  const complete = () => explicitNavigation ? oauthClientTarget(target) : redirectToOAuthClient(target);
+  if (form.get('decision') !== 'approve') { target.searchParams.set('error', 'access_denied'); target.searchParams.set('state', state); return complete(); }
   const codeChallenge = String(form.get('code_challenge') ?? '');
   if (!codeChallenge) return NextResponse.json({ error: 'PKCE challenge is required.' }, { status: 400 });
   const code = randomToken(32);
@@ -23,5 +25,5 @@ export async function POST(request: NextRequest) {
   await ensureDb();
   await env.DB.prepare(`INSERT INTO oauth_codes (code_hash,user_id,client_id,redirect_uri,code_challenge,scope,expires_at) VALUES (?,?,?,?,?,?,?)`).bind(await sha256(code), user.userId, clientId, redirectUri, codeChallenge, scope, new Date(Date.now() + 10 * 60 * 1000).toISOString()).run();
   target.searchParams.set('code', code); target.searchParams.set('state', state);
-  return redirectToOAuthClient(target);
+  return complete();
 }

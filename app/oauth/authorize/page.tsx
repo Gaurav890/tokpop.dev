@@ -1,5 +1,6 @@
 import { currentGitHubUser } from '../../../lib/auth';
 import { verifyClient } from '../../../lib/oauth';
+import { ConsentActions } from './consent-actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +29,6 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
       <div><strong>Publish on request</strong><span>Create a reviewed session story only when you explicitly ask.</span></div>
     </div>
     <p className="consent-boundary"><strong>Not included:</strong> chat history, provider credentials, or background collection.</p>
-    <form className="consent-actions" method="post" action="/oauth/authorize/decision"><input type="hidden" name="client_id" value={clientId}/><input type="hidden" name="redirect_uri" value={redirectUri}/><input type="hidden" name="state" value={state}/><input type="hidden" name="code_challenge" value={codeChallenge}/><input type="hidden" name="scope" value={scope}/><button className="primary-button" name="decision" value="approve">Allow connection</button><button className="text-button" name="decision" value="deny">Cancel</button></form>
+    <ConsentActions clientId={clientId} redirectUri={redirectUri} state={state} codeChallenge={codeChallenge} scope={scope}/>
   </section></main>;
 }

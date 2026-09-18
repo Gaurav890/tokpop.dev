@@ -122,12 +122,12 @@ export default async function Home() {
         <div className="release-line"><span>OPEN SOURCE</span><code>anp.activity.v1</code></div>
         <p className="eyebrow">Proof of work for AI-native developers</p>
         <h1>Show how you build.<br/><span>Back it with evidence.</span></h1>
-        <p className="proof-intro">One verified profile for your coding-agent activity and the work you ship—private until you decide to share it.</p>
+        <p className="proof-intro">Create a GitHub-verified profile in 30 seconds—no installation required. Add coding-agent evidence later when you want stronger proof.</p>
         <div className="home-actions">
           <Link className="primary-link" href={user ? '/dashboard' : `/api/auth/github/start?return_to=${encodeURIComponent('/connect?onboarding=1')}`}>{user ? 'Open dashboard' : 'Create profile with GitHub'} <span>→</span></Link>
           <Link className="secondary-link" href={user ? '/connections' : '/u/demo'}>{user ? 'Manage sources' : 'See an example'}</Link>
         </div>
-        <div className="proof-promises"><span>No prompts</span><span>No source code</span><span>Private by default</span></div>
+        <div className="proof-promises"><span>No install to start</span><span>No prompts or source code</span><span>Private by default</span></div>
       </div>
       <aside className="proof-sample" aria-label="Labelled example profile summary">
         <div className="sample-top"><span>EXAMPLE PROFILE</span><b>SAMPLE DATA</b></div>
@@ -149,9 +149,9 @@ export default async function Home() {
       </div>
     </section>
     <section className="setup-rail">
-      <div><p className="eyebrow">Three-minute onboarding</p><h2>Create proof before you reach the dashboard.</h2></div>
-      <ol><li><span>1</span>Sign in with GitHub</li><li><span>2</span>GitHub evidence syncs automatically</li><li><span>3</span>Add an AI source during onboarding</li></ol>
-      <Link className="primary-link" href={user ? '/connect?onboarding=1' : `/api/auth/github/start?return_to=${encodeURIComponent('/connect?onboarding=1')}`}>{user ? 'Strengthen profile' : 'Get started'} →</Link>
+      <div><p className="eyebrow">30-second starter profile</p><h2>Share first. Strengthen the evidence later.</h2><p>Connecting local coding tools is an optional upgrade, never an onboarding requirement.</p></div>
+      <ol><li><span>1</span>Sign in with GitHub</li><li><span>2</span>Preview your private profile</li><li><span>3</span>Publish and copy your card</li></ol>
+      <Link className="primary-link" href={user ? '/share?onboarding=1' : `/api/auth/github/start?return_to=${encodeURIComponent('/connect?onboarding=1')}`}>{user ? 'Preview my profile' : 'Create free profile'} →</Link>
     </section>
   </main>;
 }

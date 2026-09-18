@@ -12,19 +12,22 @@ The primary early audience is public-building developers: open-source contributo
 
 A signup is not activation. A connected GitHub account is not activation either.
 
-The launch activation event is:
+The launch acquisition activation event is:
 
-> A developer connects at least one coding-activity source, publishes a coverage-labelled profile, and copies or opens a share asset.
+> A developer signs in with GitHub, publishes a coverage-labelled starter profile, and copies or opens a share asset.
+
+Connecting the first coding source is a separate **evidence activation** event. A returning automatic sync is a **retained evidence** event. Neither is required before the developer sees or shares a truthful starter profile.
 
 The product should measure the time and conversion between:
 
 1. Landing-page visit
 2. GitHub sign-in
-3. First evidence sync
-4. First coding source
-5. Public profile enabled
-6. README card or profile link copied
-7. A second person visits that shared profile and starts onboarding
+3. GitHub evidence sync
+4. Public profile enabled
+5. README card or profile link copied
+6. First coding source connected
+7. A returning automatic sync
+8. A second person visits that shared profile and starts onboarding
 
 The north-star metric for the first launch is **weekly verified profiles shared**, supported by activation rate, median time to first evidence, card-copy rate, shared-profile visitor conversion, seven-day sync retention, and adapter failure rate.
 
@@ -32,9 +35,9 @@ The north-star metric for the first launch is **weekly verified profiles shared*
 
 ### P0 — The advertised collector is not installable
 
-The product currently promises `npx ai-native-profile connect`. Until the package is publicly available, the strongest evidence path is a dead end. Prepare a repeatable release workflow, publish the first package manually with two-factor authentication, and then bind later releases to npm trusted publishing with provenance.
+The product promises `npx ai-native-profile connect` as an optional path to stronger local coding evidence. Until the package is publicly available, that upgrade path is a dead end, but it must never block signup, profile creation, publishing, or sharing. Prepare a repeatable release workflow, publish the first package manually with two-factor authentication, and then bind later releases to npm trusted publishing with provenance.
 
-Launch gate: a clean machine can run `npx ai-native-profile@latest sources` and reach device pairing without cloning the repository.
+Launch gate for local coding evidence: a clean machine can run `npx ai-native-profile@latest sources` and reach device pairing without cloning the repository. The browser-only starter-profile launch may proceed independently.
 
 ### P0 — Onboarding ends before the viral action
 
@@ -68,7 +71,8 @@ Add privacy-safe product events for funnel steps and failures without recording 
 
 ### Phase 1 — Truthful activation
 
-- Publish the collector and test it from a clean environment.
+- Keep profile creation, publishing, and sharing completely browser-based.
+- Publish the optional collector and test it from a clean environment before promoting local coding evidence.
 - Put publish-and-share inside onboarding.
 - Replace placeholder leaderboard behavior with real eligible scores and an honest empty state.
 - Tighten trust language on share cards.

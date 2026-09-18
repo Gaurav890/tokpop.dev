@@ -8,10 +8,10 @@ AI Native Profile turns attributable activity from AI coding tools and GitHub in
 
 Open the hosted service, sign in with GitHub, and complete the guided source step. Public GitHub delivery evidence syncs automatically before the dashboard appears. ChatGPT and Claude Web can be added through browser-local export import or explicit MCP activity without installing the collector.
 
-For the strongest coding proof, optionally pair supported local tools with:
+For the strongest coding proof, optionally pair supported local tools with the published collector:
 
 ```bash
-npx ai-native-profile connect
+npx ai-native-profile@latest connect
 ```
 
 The command opens the hosted pairing flow at `https://ai-native-profile.vercel.app`. It reads only supported local coding-tool records and shows aggregate activity before synchronization. It is an optional profile upgrade, not an onboarding prerequisite. Use `--api-url` only when connecting to a self-hosted instance.
@@ -35,6 +35,8 @@ ANP_API_URL=http://localhost:3000 pnpm cli connect
 The collector shows detected tools and the exact aggregate payload. Automatic background synchronization does not start until the user runs `anp watch`. ChatGPT and Claude Web do not require the collector: use a locally parsed official export for historical activity or an explicit MCP tool for future observed activity.
 
 GitHub is the product account identity. Coding providers appear inside the Connections screen and use the strongest supported evidence source—official account data where available, otherwise a consented local collector. ChatGPT and Claude Web are optional conversation sources connected through explicit MCP tools or locally parsed official exports; they are never presented as silent account access.
+
+Onboarding ends with an explicit publish-and-share step. The user can keep the profile private, publish it, copy a linked README card, copy the profile URL, or copy a launch-post draft without visiting a separate settings screen.
 
 ## What is implemented
 
@@ -71,6 +73,8 @@ The production topology uses Vercel for the public web surface, Railway for the 
 Normal sync accepts counts and identifiers—not prompts, responses, source code, tool arguments or outputs, shell commands, repository names, file paths, conversation titles, email addresses, cookies, credentials, or environment variables. Device signatures prove continuity and integrity in transit; they do not make a user-controlled machine tamper-proof.
 
 Read [the privacy boundary](docs/privacy.md), [threat model](docs/threat-model.md), [provider matrix](docs/providers.md), and [scoring methodology](docs/methodology.md) before deploying.
+
+Launch work is tracked in the [launch readiness and growth plan](docs/launch-plan.md). Maintainers should follow the [collector release runbook](docs/cli-release.md) before advertising the npm command.
 
 ## Development
 

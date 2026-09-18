@@ -14,5 +14,6 @@
   },
   "homepage": "https://ai-native-profile.vercel.app",
   "bugs": { "url": "https://github.com/Gaurav890/ai-native-profile/issues" },
+  "publishConfig": { "access": "public", "provenance": true },
   "keywords": ["developer-tools", "analytics", "activity", "profile", "privacy"]
 }

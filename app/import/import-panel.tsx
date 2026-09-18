@@ -85,6 +85,6 @@ export function ImportPanel({ initialSource = 'chatgpt_web', onboarding = false 
     </label>
     <p className="status-line" aria-live="polite">{status}</p>
     {aggregate ? <div className="import-preview"><div><span>Coverage</span><strong>{aggregate.coverageStart} → {aggregate.coverageEnd}</strong></div><div><span>Sessions</span><strong>{aggregate.days.reduce((sum, day) => sum + day.sessions, 0)}</strong></div><div><span>Turns</span><strong>{aggregate.days.reduce((sum, day) => sum + day.turns, 0)}</strong></div><button type="button" className="primary-button" onClick={commit}>Approve aggregates</button></div> : null}
-    {completed && onboarding ? <div className="import-complete"><div><strong>AI activity source connected</strong><span>Your approved aggregates are ready to review.</span></div><Link className="primary-link compact-link" href="/dashboard">Open my dashboard →</Link></div> : null}
+    {completed && onboarding ? <div className="import-complete"><div><strong>AI activity source connected</strong><span>Your approved aggregates are ready to include in your profile.</span></div><Link className="primary-link compact-link" href="/share?onboarding=1">Preview and publish →</Link></div> : null}
   </section>;
 }

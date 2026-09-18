@@ -9,6 +9,13 @@ export type ProfileCard = {
 
 const escapeXml = (value: string) => value.replace(/[<>&'\"]/g, (char) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' })[char]!);
 
+function compactProviders(providers: string[], visible: number): string {
+  if (!providers.length) return 'No coding source yet';
+  const shown = providers.slice(0, visible);
+  if (providers.length > visible) shown.push(`+${providers.length - visible} more`);
+  return shown.map(escapeXml).join(' · ');
+}
+
 export function renderProfileCard(profile: ProfileCard, theme: 'light' | 'dark' = 'light'): string {
   const dark = theme === 'dark';
   const background = dark ? '#171b2c' : '#ffffff';
@@ -16,7 +23,7 @@ export function renderProfileCard(profile: ProfileCard, theme: 'light' | 'dark' 
   const muted = dark ? '#aab2c8' : '#697181';
   const line = dark ? '#3a435f' : '#d9deea';
   const score = profile.score == null ? '—' : String(profile.score);
-  const providers = profile.providers.map(escapeXml).join(' · ');
+  const providers = compactProviders(profile.providers, 2);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="210" role="img" aria-label="AI Native Profile for ${escapeXml(profile.username)}">
   <rect width="640" height="210" rx="18" fill="${background}" stroke="${line}"/>
   <rect x="24" y="24" width="48" height="34" rx="4" fill="#3451ff"/><text x="48" y="45" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#ffffff">anp/</text>
@@ -27,7 +34,7 @@ export function renderProfileCard(profile: ProfileCard, theme: 'light' | 'dark' 
   <text x="358" y="58" font-family="Arial,sans-serif" font-size="12" fill="${muted}">ACTIVE DAYS</text><text x="500" y="58" font-family="Arial,sans-serif" font-size="18" font-weight="700" fill="${foreground}">${profile.activeDays}</text>
   <text x="358" y="93" font-family="Arial,sans-serif" font-size="12" fill="${muted}">CURRENT STREAK</text><text x="500" y="93" font-family="Arial,sans-serif" font-size="18" font-weight="700" fill="${foreground}">${profile.streakDays} days</text>
   <text x="358" y="128" font-family="Arial,sans-serif" font-size="12" fill="${muted}">SOURCES</text><text x="358" y="151" font-family="Arial,sans-serif" font-size="12" font-weight="600" fill="${foreground}">${providers}</text>
-  <text x="24" y="180" font-family="Arial,sans-serif" font-size="10" fill="${muted}">Verified collection · Updated ${escapeXml(profile.updatedAt)}</text>
+  <text x="24" y="180" font-family="Arial,sans-serif" font-size="10" fill="${muted}">Coverage-labelled evidence · Updated ${escapeXml(profile.updatedAt)}</text>
   </svg>`;
 }
 
@@ -50,6 +57,6 @@ export function renderSocialCard(profile: ProfileCard, format: 'og' | 'square' |
   <rect x="${Math.round(width * .08)}" y="${Math.round(height * .08)}" width="74" height="74" rx="10" fill="${accent}"/><text x="${Math.round(width * .08) + 37}" y="${Math.round(height * .08) + 46}" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="19" font-weight="700" fill="#ffffff">anp/</text>
   <text x="${Math.round(width * .08) + 96}" y="${Math.round(height * .08) + 31}" font-family="Arial,sans-serif" font-size="20" font-weight="700" letter-spacing="2" fill="${muted}">AI NATIVE PROFILE</text><text x="${Math.round(width * .08) + 96}" y="${Math.round(height * .08) + 62}" font-family="Arial,sans-serif" font-size="25" font-weight="700" fill="${foreground}">@${escapeXml(profile.username)}</text>
   <text x="${Math.round(width * .08)}" y="${centerY}" font-family="Arial,sans-serif" font-size="${format === 'story' ? 220 : 170}" font-weight="700" letter-spacing="-10" fill="${accent}">${score}</text><text x="${Math.round(width * .08)}" y="${centerY + 58}" font-family="Arial,sans-serif" font-size="25" fill="${muted}">AI WORKFLOW INDEX / 100</text>
-  <text x="${Math.round(width * .08)}" y="${height - Math.round(height * .14)}" font-family="Arial,sans-serif" font-size="24" fill="${foreground}">${profile.activeDays} active days  ·  ${profile.streakDays} day streak</text><text x="${Math.round(width * .08)}" y="${height - Math.round(height * .1)}" font-family="Arial,sans-serif" font-size="19" fill="${muted}">${profile.providers.map(escapeXml).join('  ·  ')}</text>
+  <text x="${Math.round(width * .08)}" y="${height - Math.round(height * .14)}" font-family="Arial,sans-serif" font-size="24" fill="${foreground}">${profile.activeDays} active days  ·  ${profile.streakDays} day streak</text><text x="${Math.round(width * .08)}" y="${height - Math.round(height * .1)}" font-family="Arial,sans-serif" font-size="19" fill="${muted}">${compactProviders(profile.providers, 4)}</text>
   </svg>`;
 }

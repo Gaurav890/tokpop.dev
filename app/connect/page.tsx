@@ -18,7 +18,7 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
     </section>
 
     {isOnboarding && user ? <>
-      <section className="onboarding-progress" aria-label="Onboarding progress"><div className="complete"><span>01</span><strong>GitHub identity</strong><small>Complete</small></div><div className="active"><span>02</span><strong>Add AI activity</strong><small>Choose below</small></div><div><span>03</span><strong>Review profile</strong><small>Next</small></div></section>
+      <section className="onboarding-progress" aria-label="Onboarding progress"><div className="complete"><span>01</span><strong>GitHub identity</strong><small>Complete</small></div><div className="active"><span>02</span><strong>Add AI activity</strong><small>Choose below</small></div><div><span>03</span><strong>Publish and share</strong><small>Next</small></div></section>
       <GitHubProofSync username={user.login}/>
     </> : null}
 
@@ -53,12 +53,12 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
         <p>The collector is not required to create a profile. Use it when you want verified local coding activity: it removes sensitive fields, previews the exact aggregate payload, and pairs this device.</p>
       </div>
       <div className="connect-grid">
-        <article className="command-card"><span>01 · RUN ON YOUR COMPUTER</span><code>npx ai-native-profile connect</code><p>Nothing is uploaded before you review the privacy boundary and approve this device.</p></article>
+        <article className="command-card"><span>01 · RUN ON YOUR COMPUTER</span><code>npx ai-native-profile@latest connect</code><p>Nothing is uploaded before you review the privacy boundary and approve this device.</p></article>
         <article className="approval-card"><span>02 · APPROVE HERE</span>{user ? <ConnectForm initialCode={code}/> : <><h2>GitHub identity required</h2><p>Pairing attaches the device to a verified account.</p><a className="primary-link" href={`/api/auth/github/start?return_to=${encodeURIComponent(`/connect?code=${code}`)}`}>Continue with GitHub</a></>}</article>
       </div>
     </section>
 
     <section className="field-boundary"><div><p className="eyebrow">May sync</p><h2>Aggregates only</h2><p>Dates, provider/model IDs, counts, duration, collector versions, anonymous device ID, coverage, and provenance.</p></div><div className="never"><p className="eyebrow">Never syncs</p><h2>Content or credentials</h2><p>Prompts, responses, source code, arguments, outputs, commands, repositories, paths, titles, emails, cookies, tokens, and environment variables.</p></div></section>
-    {isOnboarding && user ? <section className="onboarding-finish"><div><p className="eyebrow">Step 3</p><h2>Review the proof you have connected.</h2><p>You can return here to strengthen the profile with additional sources at any time.</p></div><Link className="primary-link" href="/dashboard">Open my dashboard →</Link></section> : null}
+    {isOnboarding && user ? <section className="onboarding-finish"><div><p className="eyebrow">Step 3</p><h2>Preview, publish, and copy your card.</h2><p>Your profile remains private until you confirm. You can strengthen it with additional sources at any time.</p></div><Link className="primary-link" href="/share?onboarding=1">Finish my profile →</Link></section> : null}
   </main>;
 }

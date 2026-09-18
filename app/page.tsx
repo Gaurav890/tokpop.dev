@@ -39,7 +39,7 @@ export function DashboardDemo({ profile }: { profile: PublicProfile }) {
             <h1>Your evidence, at a glance.</h1>
           </div>
           <div className="top-actions">
-            <Link className="secondary-button button-link" href={profile.publicEnabled ? `/u/${profile.username}` : '/settings/privacy'}>{profile.publicEnabled ? 'View public profile' : 'Enable public profile'} <span>↗</span></Link>
+            <Link className="secondary-button button-link" href="/share">{profile.publicEnabled ? 'Share profile' : 'Publish profile'} <span>↗</span></Link>
             <Link className="primary-button button-link" href="/connections">Manage sources</Link>
           </div>
         </header>

@@ -59,6 +59,7 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
         deliveryPoints: profile?.deliveryPoints ?? 0,
         providers: profile?.providers ?? [],
         lifetimeTokens: profile?.lifetimeTokens ?? 0,
+        tokenBreakdown: profile?.tokenBreakdown.map(({ label, tokens }) => ({ label, tokens })) ?? [],
         sessions: profile?.sessions ?? 0,
         archetype: profile?.archetype ?? { emoji: '⚡', title: 'Workflow Builder', summary: 'Building an evidence-backed coding workflow, one active day at a time.' },
       }}

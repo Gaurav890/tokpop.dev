@@ -4,6 +4,7 @@ export type ProfileCard = {
   activeDays: number;
   streakDays: number;
   tokens: number;
+  tokenBreakdown: Array<{ label: string; tokens: number }>;
   providers: string[];
   archetype: { emoji: string; title: string };
   updatedAt: string;
@@ -39,21 +40,24 @@ export function renderProfileCard(profile: ProfileCard, theme: 'light' | 'dark' 
   const line = dark ? '#3a435f' : '#d9deea';
   const score = profile.score == null ? '—' : String(profile.score);
   const providers = providerLines(profile.providers);
-  const providerText = providers.map((providerLine, index) => `<text x="358" y="${196 + index * 13}" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="${foreground}">${escapeXml(providerLine)}</text>`).join('');
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="230" role="img" aria-label="AI Native Profile for ${escapeXml(profile.username)}">
-  <rect width="640" height="230" rx="18" fill="${background}" stroke="${line}"/>
+  const tokenRows = profile.tokenBreakdown.length ? profile.tokenBreakdown : [{ label: 'No source reports tokens', tokens: 0 }];
+  const tokenSplitText = tokenRows.map((item, index) => `<text x="358" y="${118 + index * 17}" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="${foreground}">${escapeXml(item.label)}</text><text x="616" y="${118 + index * 17}" text-anchor="end" font-family="monospace" font-size="10" font-weight="700" fill="${foreground}">${escapeXml(compact(item.tokens))}</text>`).join('');
+  const providerText = providers.map((providerLine, index) => `<text x="358" y="${245 + index * 13}" font-family="Arial,sans-serif" font-size="9" font-weight="600" fill="${foreground}">${escapeXml(providerLine)}</text>`).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="282" role="img" aria-label="AI Native Profile for ${escapeXml(profile.username)}">
+  <rect width="640" height="282" rx="18" fill="${background}" stroke="${line}"/>
   <rect x="24" y="24" width="48" height="34" rx="4" fill="#3451ff"/><text x="48" y="45" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#ffffff">anp/</text>
   <text x="78" y="42" font-family="Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="1.4" fill="${muted}">AI NATIVE PROFILE</text>
   <text x="78" y="61" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="${foreground}">@${escapeXml(profile.username)}</text>
   <text x="616" y="42" text-anchor="end" font-family="Arial,sans-serif" font-size="9" fill="${muted}">UPDATED ${escapeXml(updatedLabel(profile.updatedAt).toUpperCase())}</text>
   <text x="24" y="94" font-family="Arial,sans-serif" font-size="20">${escapeXml(profile.archetype.emoji)}</text><text x="54" y="93" font-family="Arial,sans-serif" font-size="12" font-weight="700" letter-spacing=".8" fill="${foreground}">${escapeXml(profile.archetype.title.toUpperCase())}</text>
   <text x="24" y="153" font-family="Arial,sans-serif" font-size="48" font-weight="700" letter-spacing="-2" fill="#3451ff">${escapeXml(compact(profile.tokens))}</text><text x="24" y="174" font-family="Arial,sans-serif" font-size="11" fill="${muted}">OBSERVED CODING TOKENS</text>
-  <text x="24" y="214" font-family="Arial,sans-serif" font-size="9" fill="${muted}">Coverage-labelled evidence · provider definitions may differ</text>
-  <line x1="330" y1="75" x2="330" y2="214" stroke="${line}"/>
-  <text x="358" y="92" font-family="Arial,sans-serif" font-size="10" fill="${muted}">WORKFLOW INDEX</text><text x="520" y="92" font-family="Arial,sans-serif" font-size="18" font-weight="700" fill="${foreground}">${score}/100</text>
-  <text x="358" y="127" font-family="Arial,sans-serif" font-size="10" fill="${muted}">ACTIVE DAYS</text><text x="520" y="127" font-family="Arial,sans-serif" font-size="18" font-weight="700" fill="${foreground}">${profile.activeDays}</text>
-  <text x="358" y="162" font-family="Arial,sans-serif" font-size="10" fill="${muted}">CURRENT STREAK</text><text x="520" y="162" font-family="Arial,sans-serif" font-size="18" font-weight="700" fill="${foreground}">${profile.streakDays} days</text>
-  <text x="358" y="182" font-family="Arial,sans-serif" font-size="9" font-weight="700" letter-spacing=".7" fill="${muted}">ALL CODING SOURCES</text>${providerText}
+  <text x="24" y="191" font-family="Arial,sans-serif" font-size="8" fill="${muted}">Coverage-labelled evidence</text>
+  <text x="24" y="215" font-family="Arial,sans-serif" font-size="10" fill="${muted}">WORKFLOW INDEX</text><text x="190" y="215" text-anchor="end" font-family="Arial,sans-serif" font-size="15" font-weight="700" fill="${foreground}">${score}/100</text>
+  <text x="24" y="242" font-family="Arial,sans-serif" font-size="10" fill="${muted}">ACTIVE DAYS</text><text x="190" y="242" text-anchor="end" font-family="Arial,sans-serif" font-size="15" font-weight="700" fill="${foreground}">${profile.activeDays}</text>
+  <text x="24" y="269" font-family="Arial,sans-serif" font-size="10" fill="${muted}">CURRENT STREAK</text><text x="190" y="269" text-anchor="end" font-family="Arial,sans-serif" font-size="15" font-weight="700" fill="${foreground}">${profile.streakDays} days</text>
+  <line x1="330" y1="75" x2="330" y2="266" stroke="${line}"/>
+  <text x="358" y="93" font-family="Arial,sans-serif" font-size="9" font-weight="700" letter-spacing=".7" fill="${muted}">PROVIDER TOKEN SPLIT</text>${tokenSplitText}
+  <text x="358" y="224" font-family="Arial,sans-serif" font-size="9" font-weight="700" letter-spacing=".7" fill="${muted}">ALL CODING SOURCES</text>${providerText}
   </svg>`;
 }
 
@@ -70,6 +74,7 @@ export function renderSocialCard(profile: ProfileCard, format: 'og' | 'square' |
   const muted = dark ? '#aab2c8' : '#697181';
   const accent = dark ? '#8294ff' : '#3451ff';
   const score = profile.score == null ? '—' : String(profile.score);
+  const tokenSplit = profile.tokenBreakdown.map((item) => `${item.label} ${compact(item.tokens)}`).join(' · ') || 'No source reports tokens';
   const centerY = Math.round(height * .48);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" role="img" aria-label="AI Native Profile for ${escapeXml(profile.username)}">
   <rect width="${width}" height="${height}" fill="${background}"/><circle cx="${Math.round(width * .82)}" cy="${Math.round(height * .16)}" r="${Math.round(width * .24)}" fill="${accent}" opacity=".12"/>
@@ -78,6 +83,6 @@ export function renderSocialCard(profile: ProfileCard, format: 'og' | 'square' |
   <text x="${Math.round(width * .08)}" y="${centerY - 90}" font-family="Arial,sans-serif" font-size="30" fill="${foreground}">${escapeXml(profile.archetype.emoji)} ${escapeXml(profile.archetype.title)}</text>
   <text x="${Math.round(width * .08)}" y="${centerY}" font-family="Arial,sans-serif" font-size="${format === 'story' ? 220 : 170}" font-weight="700" letter-spacing="-10" fill="${accent}">${escapeXml(compact(profile.tokens))}</text><text x="${Math.round(width * .08)}" y="${centerY + 58}" font-family="Arial,sans-serif" font-size="25" fill="${muted}">OBSERVED CODING TOKENS</text>
   <text x="${Math.round(width * .68)}" y="${centerY - 18}" font-family="Arial,sans-serif" font-size="64" font-weight="700" fill="${foreground}">${score}</text><text x="${Math.round(width * .68)}" y="${centerY + 22}" font-family="Arial,sans-serif" font-size="19" fill="${muted}">WORKFLOW INDEX / 100</text>
-  <text x="${Math.round(width * .08)}" y="${height - Math.round(height * .14)}" font-family="Arial,sans-serif" font-size="24" fill="${foreground}">${profile.activeDays} active days  ·  ${profile.streakDays} day streak</text><text x="${Math.round(width * .08)}" y="${height - Math.round(height * .1)}" font-family="Arial,sans-serif" font-size="19" fill="${muted}">${escapeXml(profile.providers.join(' · ') || 'No coding source yet')}</text>
+  <text x="${Math.round(width * .08)}" y="${height - Math.round(height * .18)}" font-family="Arial,sans-serif" font-size="24" fill="${foreground}">${profile.activeDays} active days  ·  ${profile.streakDays} day streak</text><text x="${Math.round(width * .08)}" y="${height - Math.round(height * .14)}" font-family="Arial,sans-serif" font-size="19" fill="${foreground}">${escapeXml(tokenSplit)}</text><text x="${Math.round(width * .08)}" y="${height - Math.round(height * .1)}" font-family="Arial,sans-serif" font-size="19" fill="${muted}">${escapeXml(profile.providers.join(' · ') || 'No coding source yet')}</text>
   </svg>`;
 }

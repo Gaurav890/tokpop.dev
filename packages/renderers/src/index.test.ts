@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { renderBadge, renderProfileCard, renderSocialCard } from './index';
 
 describe('SVG renderers', () => {
-  const profile = { username: 'demo', score: 72, activeDays: 30, streakDays: 5, tokens: 1_200_000_000, providers: ['Codex'], archetype: { emoji: '🥷', title: 'Token Ninja' }, updatedAt: '2026-09-20T00:00:00.000Z' };
+  const profile = { username: 'demo', score: 72, activeDays: 30, streakDays: 5, tokens: 1_200_000_000, tokenBreakdown: [{ label: 'Codex', tokens: 1_000_000_000 }, { label: 'Claude Code', tokens: 200_000_000 }], providers: ['Codex'], archetype: { emoji: '🥷', title: 'Token Ninja' }, updatedAt: '2026-09-20T00:00:00.000Z' };
 
   it('escapes user-controlled XML', () => {
     const svg = renderProfileCard({ ...profile, username: '<script>' });
@@ -25,6 +25,10 @@ describe('SVG renderers', () => {
     const svg = renderProfileCard(profile);
     expect(svg).toContain('1.2B');
     expect(svg).toContain('TOKEN NINJA');
+    expect(svg).toContain('Codex');
+    expect(svg).toContain('1B');
+    expect(svg).toContain('Claude Code');
+    expect(svg).toContain('200M');
   });
   it('renders story cards at the requested dimensions', () => {
     const svg = renderSocialCard(profile, 'story');

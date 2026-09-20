@@ -21,6 +21,7 @@ type ShareProfile = {
   deliveryPoints: number;
   providers: string[];
   lifetimeTokens: number;
+  tokenBreakdown: Array<{ label: string; tokens: number }>;
   sessions: number;
   archetype: { emoji: string; title: string; summary: string };
 };
@@ -35,6 +36,7 @@ export function ActivationShare({ username, initialSettings, profile }: { userna
   const profilePath = `/u/${username}`;
   const cardPath = `/api/v1/cards/${username}?theme=dark`;
   const previewProviders = profile.providers.join(' · ') || 'GitHub starter only';
+  const previewTokenSplit = profile.tokenBreakdown.map((item) => `${item.label} ${compact(item.tokens)}`).join(' · ') || 'No token-reporting source yet';
 
   async function publish() {
     setPending(true);
@@ -66,12 +68,12 @@ export function ActivationShare({ username, initialSettings, profile }: { userna
     <article className="activation-preview">
       <div className="activation-card-head"><span>LIVE README CARD</span><b>{settings.publicEnabled ? 'PUBLIC' : 'PREVIEW'}</b></div>
       {settings.publicEnabled
-        ? <Image src={cardPath} width={640} height={230} unoptimized alt={`${username}'s live profile card`}/>
+        ? <Image src={cardPath} width={640} height={282} unoptimized alt={`${username}'s live profile card`}/>
         : <div className="private-card-preview">
           <div><span className="brand-mark">anp/</span><strong>@{username}</strong></div>
           <p className="private-archetype"><b>{profile.archetype.emoji}</b><span><strong>{profile.archetype.title}</strong><small>{profile.archetype.summary}</small></span></p>
           <dl><div><dt>Observed tokens</dt><dd>{compact(profile.lifetimeTokens)}</dd></div><div><dt>Workflow index</dt><dd>{profile.score ?? '—'}/100</dd></div><div><dt>Active days</dt><dd>{profile.activeDays}</dd></div><div><dt>Current streak</dt><dd>{profile.streakDays} days</dd></div></dl>
-          <p className="private-provider-list"><span>All sources</span><strong>{previewProviders}</strong></p>
+          <p className="private-provider-list"><span>Provider token split</span><strong>{previewTokenSplit}</strong><span>All sources</span><strong>{previewProviders}</strong></p>
           <small>Coverage-labelled evidence · private preview</small>
         </div>}
       <p className="activation-card-note">The card stays current as new eligible activity arrives. It links back to the profile where visitors can inspect source coverage.</p>

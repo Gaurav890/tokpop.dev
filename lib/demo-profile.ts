@@ -1,3 +1,5 @@
+import type { ProfileArchetype } from './profile-archetype';
+
 export type PublicProfile = {
   username: string;
   name: string;
@@ -13,7 +15,10 @@ export type PublicProfile = {
   currentStreak: number;
   longestStreak: number;
   lifetimeTokens: number;
+  tokenBreakdown: Array<{ source: string; label: string; tokens: number; provenance: string }>;
   sessions: number;
+  activityTotals: { sessions: number; turns: number; toolCalls: number; skillUses: number; commandUses: number; agentRuns: number };
+  archetype: ProfileArchetype;
   deliveryPoints: number;
   providers: string[];
   coverage: Array<{ source: string; label: string; provenance: string; status: string; completeness: string }>;
@@ -37,7 +42,13 @@ export const demoProfile: PublicProfile = {
   currentStreak: 41,
   longestStreak: 46,
   lifetimeTokens: 2_480_000_000,
+  tokenBreakdown: [
+    { source: 'codex', label: 'Codex', tokens: 2_200_000_000, provenance: 'Official account' },
+    { source: 'claude_code', label: 'Claude Code', tokens: 280_000_000, provenance: 'Local exact' },
+  ],
   sessions: 684,
+  activityTotals: { sessions: 684, turns: 8_420, toolCalls: 2_310, skillUses: 410, commandUses: 82, agentRuns: 39 },
+  archetype: { emoji: '🥷', title: 'Token Ninja', summary: '2.5B observed coding tokens. 41 days straight. Quietly relentless.' },
   deliveryPoints: 172,
   providers: ['Codex', 'Claude Code', 'Cursor'],
   coverage: [

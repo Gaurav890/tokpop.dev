@@ -7,7 +7,7 @@ const complete = {
   activeCodingDays90: 45,
   longestStreak90: 14,
   toolUsingSessionRate: 0.8,
-  medianToolCallsPerSession: 12,
+  toolCallsPerSession: 12,
   advancedWorkflowSessionRate: 0.3,
   activeCodingProviders: 5,
   commits: 200,

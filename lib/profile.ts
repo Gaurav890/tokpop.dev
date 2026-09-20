@@ -7,7 +7,7 @@ import { buildProfileArchetype } from './profile-archetype';
 import { buildDailyTokenLedger } from './token-ledger';
 
 type MetricRow = { date: string; source: string; metric_name: string; value: number; provenance: string; competitive_eligible: number };
-type CoverageRow = { source: string; completeness: string; last_synced_at: string; provenance?: string };
+type CoverageRow = { source: string; completeness: string; last_synced_at: string; provenance?: string; note?: string };
 type ProfileUser = { id: string; github_login: string; display_name: string; avatar_url: string; public_enabled: number };
 type EnrichedProfileFields = Pick<PublicProfile, 'tokenBreakdown' | 'dailyTokens' | 'activityTotals' | 'archetype'>;
 type CompatibleProfile = Omit<PublicProfile, keyof EnrichedProfileFields> & Partial<EnrichedProfileFields>;
@@ -99,7 +99,7 @@ export async function getPrivateProfileFromDatabase(userId: string): Promise<Pub
 
 async function buildProfile(user: ProfileUser): Promise<PublicProfile> {
   const metricResult = await env.DB.prepare(`SELECT date, source, metric_name, value, provenance, competitive_eligible FROM daily_metrics WHERE user_id=? AND date >= date('now','-365 days') ORDER BY date`).bind(user.id).all<MetricRow>();
-  const coverageResult = await env.DB.prepare(`SELECT source, completeness, last_synced_at FROM source_coverage WHERE user_id=? ORDER BY source`).bind(user.id).all<CoverageRow>();
+  const coverageResult = await env.DB.prepare(`SELECT source, completeness, last_synced_at, note FROM source_coverage WHERE user_id=? ORDER BY source`).bind(user.id).all<CoverageRow>();
   const rawMetrics = metricResult.results ?? [];
   const officialCodexTokenDates = new Set(rawMetrics.filter((row) => row.source === 'codex' && row.metric_name === 'tokens' && row.provenance === 'official_account_api').map((row) => row.date));
   const metrics = rawMetrics.filter((row) => !(row.source === 'codex' && row.metric_name === 'tokens' && row.provenance !== 'official_account_api' && officialCodexTokenDates.has(row.date)));
@@ -121,7 +121,16 @@ async function buildProfile(user: ProfileUser): Promise<PublicProfile> {
     const rows = eligible.filter((row) => row.source === source && row.metric_name === 'tokens');
     const tokens = rows.reduce((total, row) => total + row.value, 0);
     const provenances = [...new Set(rows.map((row) => provenanceLabel[row.provenance] ?? 'Unknown'))];
-    return tokens > 0 ? [{ source, label: sourceLabel[source] ?? source, tokens, provenance: provenances.join(' + ') }] : [];
+    const components = {
+      input: sum('input_tokens', eligible.filter((row) => row.source === source)),
+      output: sum('output_tokens', eligible.filter((row) => row.source === source)),
+      cacheCreation: sum('cache_creation_input_tokens', eligible.filter((row) => row.source === source)),
+      cacheRead: sum('cache_read_input_tokens', eligible.filter((row) => row.source === source)),
+      combinedOnly: 0,
+    };
+    const classified = components.input + components.output + components.cacheCreation + components.cacheRead;
+    components.combinedOnly = Math.max(0, tokens - classified);
+    return tokens > 0 ? [{ source, label: sourceLabel[source] ?? source, tokens, provenance: provenances.join(' + '), components }] : [];
   }).sort((left, right) => right.tokens - left.tokens);
   const dailyTokens = buildDailyTokenLedger(eligible.filter((row) => row.metric_name === 'tokens'));
   const githubRows = metrics.filter((row) => row.source === 'github');
@@ -145,7 +154,7 @@ async function buildProfile(user: ProfileUser): Promise<PublicProfile> {
     ...demoProfile, username: user.github_login, name: user.display_name, avatarUrl: user.avatar_url, verified: true, publicEnabled: Boolean(user.public_enabled), score: score.total ?? 0, scoreEligible: score.eligible, scoreReason: score.reason, scoreBreakdown: { consistency: score.consistency, workflowDepth: score.workflowDepth, providerBreadth: score.providerBreadth, delivery: score.delivery }, rank: 0,
     activeDays: activeDates.length, currentStreak: currentStreak(activeDates), longestStreak: longestStreak(activeDates), lifetimeTokens, tokenBreakdown, dailyTokens, sessions, activityTotals, archetype,
     deliveryPoints: score.deliveryPoints, providers: sources.map((source) => sourceLabel[source] ?? source), activity,
-    coverage: (coverageResult.results ?? []).map((row) => ({ source: row.source, label: sourceLabel[row.source] ?? row.source, provenance: provenanceLabel[metrics.find((metric) => metric.source === row.source)?.provenance ?? ''] ?? 'Unknown', status: row.completeness === 'full' ? 'Live' : 'Partial', completeness: row.completeness })),
+    coverage: (coverageResult.results ?? []).map((row) => ({ source: row.source, label: sourceLabel[row.source] ?? row.source, provenance: provenanceLabel[metrics.find((metric) => metric.source === row.source)?.provenance ?? ''] ?? 'Unknown', status: row.completeness === 'full' ? 'Live' : 'Partial', completeness: row.completeness, note: row.note })),
     github: { commits: sum('commits', githubRows), mergedPullRequests: sum('merged_pull_requests', githubRows), reviews: sum('reviews', githubRows), releases: sum('releases', githubRows) },
     conversation: { sessions: sum('sessions', metrics.filter((row) => ['chatgpt_web', 'claude_web'].includes(row.source))), activeDays: new Set(metrics.filter((row) => ['chatgpt_web', 'claude_web'].includes(row.source)).map((row) => row.date)).size, coverage: 'Partial and excluded from ranking' }, updatedAt: latest,
   };

@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 import { createHmac, randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
-import { existsSync, readFileSync, mkdirSync, writeFileSync, rmSync, readdirSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, readFileSync, mkdirSync, writeFileSync, rmSync, readdirSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 import { resolveCodexExecutable } from '../src/codex-executable.mjs';
+import { addClaudeSessionEvent, createClaudeSessionAccumulator, finalizeClaudeSessionUsage, mergeClaudeUsage, parseClaudeStatsCache } from '../src/claude-usage.mjs';
 
-const VERSION = '0.1.2';
+const VERSION = '0.1.3';
 const DEFAULT_API_URL = 'https://ai-native-profile.vercel.app';
 const configDir = join(homedir(), '.config', 'ai-native-profile');
 const configFile = join(configDir, 'config.json');
@@ -41,19 +42,32 @@ function canonicalJson(value) {
   return JSON.stringify(value);
 }
 
-function claudeAggregate() {
+async function claudeAggregate() {
   const file = paths.claude_code.find((path) => path.endsWith('stats-cache.json') && existsSync(path));
-  if (!file) return null;
-  try {
-    const stats = JSON.parse(readFileSync(file, 'utf8'));
-    const tokenRows = new Map((stats.dailyModelTokens ?? []).map((row) => [row.date, Object.values(row.tokensByModel ?? {}).reduce((sum, value) => sum + Number(value || 0), 0)]));
-    return (stats.dailyActivity ?? []).filter((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.date ?? '')).map((row) => ({
-      date: row.date, source: 'claude_code', category: 'coding',
-      metrics: [
-        ['sessions', row.sessionCount ?? 0], ['turns', row.messageCount ?? 0], ['tool_calls', row.toolCallCount ?? 0], ['tokens', tokenRows.get(row.date) ?? 0],
-      ].filter(([, value]) => Number(value) > 0).map(([name, value]) => ({ name, value:Number(value), unit:'count', provenance:'local_exact', source:'claude_code', coverageStart:row.date, coverageEnd:row.date, competitiveEligible:true })),
-    }));
-  } catch { return null; }
+  let legacy = { daily: [], undatedCacheTokens:0 };
+  if (file) try { legacy = parseClaudeStatsCache(JSON.parse(readFileSync(file, 'utf8'))); } catch {}
+
+  const accumulator = createClaudeSessionAccumulator();
+  let malformedLines = 0;
+  const projectRoots = paths.claude_code.filter((path) => !path.endsWith('stats-cache.json'));
+  for (const sessionFile of localFiles(projectRoots).filter((path) => /\.jsonl$/i.test(path))) {
+    try {
+      const lines = createInterface({ input:createReadStream(sessionFile, { encoding:'utf8' }), crlfDelay:Infinity });
+      for await (const line of lines) {
+        if (!line.trim()) continue;
+        try { addClaudeSessionEvent(accumulator, JSON.parse(line)); }
+        catch { malformedLines += 1; }
+      }
+    } catch { malformedLines += 1; }
+  }
+  const session = finalizeClaudeSessionUsage(accumulator);
+  const daily = mergeClaudeUsage(session.daily, legacy.daily);
+  if (!daily.length) return null;
+  const notes = ['Exact retained session records include input, output, cache-write, and cache-read tokens; local retention cannot prove complete lifetime coverage.'];
+  if (legacy.daily.length) notes.push('Older stats-cache days include combined base input/output tokens only.');
+  if (legacy.undatedCacheTokens) notes.push(`${Math.round(legacy.undatedCacheTokens)} older cache tokens lack day-level attribution and are excluded from dated totals.`);
+  if (malformedLines) notes.push(`${malformedLines} malformed local record${malformedLines === 1 ? ' was' : 's were'} skipped.`);
+  return { daily, completeness:'partial', note:notes.join(' ') };
 }
 
 function localFiles(candidates, limit = 300) {
@@ -146,13 +160,14 @@ async function createBatch() {
     try { codexDaily = await codexAggregate(); }
     catch (error) { console.error(`Codex skipped: ${error instanceof Error ? error.message : String(error)}`); }
   }
-  const daily = [...codexDaily, ...(claudeAggregate() ?? []), ...(await cursorAggregate()), ...genericLocalAggregate('gemini_cli', paths.gemini_cli), ...genericLocalAggregate('copilot_cli', paths.copilot_cli)];
+  const claude = await claudeAggregate();
+  const daily = [...codexDaily, ...(claude?.daily ?? []), ...(await cursorAggregate()), ...genericLocalAggregate('gemini_cli', paths.gemini_cli), ...genericLocalAggregate('copilot_cli', paths.copilot_cli)];
   const dates = daily.map((day) => day.date).sort();
   const sources = [...new Set(daily.map((day) => day.source))];
   const batch = {
     schemaVersion:'anp.activity.v1', batchId:randomUUID(), deviceId:loadConfig().deviceId ?? randomUUID(), generatedAt:new Date().toISOString(), collectorVersion:VERSION,
     daily,
-    coverage: sources.map((source) => { const sourceDays = daily.filter((day) => day.source === source); const sourceDates = sourceDays.map((day) => day.date).sort(); const competitiveEligible = sourceDays.some((day) => day.metrics.some((metric) => metric.competitiveEligible)); return { source, coverageStart:sourceDates[0] ?? dates[0], coverageEnd:sourceDates.at(-1) ?? dates.at(-1), lastSyncedAt:new Date().toISOString(), completeness:source === 'codex' || source === 'claude_code' ? 'full' : 'partial', competitiveEligible, note:source === 'cursor' ? 'Estimated from supported local database metadata; excluded from rankings.' : source === 'gemini_cli' || source === 'copilot_cli' ? 'Derived from locally retained CLI telemetry; prompt content is never emitted.' : undefined }; }),
+    coverage: sources.map((source) => { const sourceDays = daily.filter((day) => day.source === source); const sourceDates = sourceDays.map((day) => day.date).sort(); const competitiveEligible = sourceDays.some((day) => day.metrics.some((metric) => metric.competitiveEligible)); return { source, coverageStart:sourceDates[0] ?? dates[0], coverageEnd:sourceDates.at(-1) ?? dates.at(-1), lastSyncedAt:new Date().toISOString(), completeness:source === 'codex' ? 'full' : source === 'claude_code' ? claude?.completeness ?? 'unknown' : 'partial', competitiveEligible, note:source === 'claude_code' ? claude?.note : source === 'cursor' ? 'Estimated from supported local database metadata; excluded from rankings.' : source === 'gemini_cli' || source === 'copilot_cli' ? 'Derived from locally retained CLI telemetry; prompt content is never emitted.' : undefined }; }),
     signature:'pending',
   };
   const secret = loadConfig().deviceToken ?? 'preview-only';

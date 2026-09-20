@@ -2,7 +2,7 @@
 
 Private visibility is the default. Public profile, leaderboard inclusion, conversation activity, private-repository evidence, and individual session stories require separate opt-ins.
 
-Normal synchronization may contain dates; provider and model identifiers; token, session, turn, tool, skill, command, and agent counts; duration; collector and adapter versions; anonymous device identifiers; and coverage/provenance fields.
+Normal synchronization may contain dates; provider and model identifiers; aggregate input, output, cache-write, cache-read, session, turn, tool, skill, command, and agent counts; duration; collector and adapter versions; anonymous device identifiers; and coverage/provenance fields.
 
 Normal synchronization must never contain prompts, responses, source code, tool arguments or outputs, shell commands, repository names, file paths, conversation titles, email addresses, cookies, credentials, provider tokens, or environment variables. The CLI preview makes the aggregate payload inspectable before sync, and the server repeats schema, privacy, signature, and replay checks.
 

@@ -4,11 +4,12 @@ import { ensureDb } from '../db/ensure';
 import { demoProfile, type PublicProfile } from './demo-profile';
 import { backendOrigin, backendResponse } from './server-api';
 import { buildProfileArchetype } from './profile-archetype';
+import { buildDailyTokenLedger } from './token-ledger';
 
 type MetricRow = { date: string; source: string; metric_name: string; value: number; provenance: string; competitive_eligible: number };
 type CoverageRow = { source: string; completeness: string; last_synced_at: string; provenance?: string };
 type ProfileUser = { id: string; github_login: string; display_name: string; avatar_url: string; public_enabled: number };
-type EnrichedProfileFields = Pick<PublicProfile, 'tokenBreakdown' | 'activityTotals' | 'archetype'>;
+type EnrichedProfileFields = Pick<PublicProfile, 'tokenBreakdown' | 'dailyTokens' | 'activityTotals' | 'archetype'>;
 type CompatibleProfile = Omit<PublicProfile, keyof EnrichedProfileFields> & Partial<EnrichedProfileFields>;
 
 const sourceLabel: Record<string, string> = { codex: 'Codex', claude_code: 'Claude Code', cursor: 'Cursor', gemini_cli: 'Gemini CLI', copilot_cli: 'GitHub Copilot CLI', chatgpt_web: 'ChatGPT Web', claude_web: 'Claude Web', github: 'GitHub' };
@@ -50,6 +51,7 @@ function enrichProfile(profile: CompatibleProfile): PublicProfile {
     tokens: profile.lifetimeTokens,
     provenance: 'Covered source totals',
   }] : []);
+  const dailyTokens = profile.dailyTokens ?? [];
   const archetype = profile.archetype ?? buildProfileArchetype({
     tokens: profile.lifetimeTokens,
     currentStreak: profile.currentStreak,
@@ -57,7 +59,7 @@ function enrichProfile(profile: CompatibleProfile): PublicProfile {
     deliveryPoints: profile.deliveryPoints,
     toolCalls: activityTotals.toolCalls,
   });
-  return { ...profile, activityTotals, tokenBreakdown, archetype };
+  return { ...profile, activityTotals, tokenBreakdown, dailyTokens, archetype };
 }
 
 export async function getPublicProfile(username: string): Promise<PublicProfile | null> {
@@ -121,6 +123,7 @@ async function buildProfile(user: ProfileUser): Promise<PublicProfile> {
     const provenances = [...new Set(rows.map((row) => provenanceLabel[row.provenance] ?? 'Unknown'))];
     return tokens > 0 ? [{ source, label: sourceLabel[source] ?? source, tokens, provenance: provenances.join(' + ') }] : [];
   }).sort((left, right) => right.tokens - left.tokens);
+  const dailyTokens = buildDailyTokenLedger(eligible.filter((row) => row.metric_name === 'tokens'));
   const githubRows = metrics.filter((row) => row.source === 'github');
   const score = calculateWorkflowIndex({
     githubConnected: coverageResult.results?.some((row) => row.source === 'github') ?? false, coveredDays: activeDates.length, activeCodingDays90: activeDates.filter((date) => Date.parse(date) >= Date.now() - 90 * 86_400_000).length,
@@ -140,7 +143,7 @@ async function buildProfile(user: ProfileUser): Promise<PublicProfile> {
   const latest = coverageResult.results?.map((row) => row.last_synced_at).sort().at(-1) ?? new Date().toISOString();
   return {
     ...demoProfile, username: user.github_login, name: user.display_name, avatarUrl: user.avatar_url, verified: true, publicEnabled: Boolean(user.public_enabled), score: score.total ?? 0, scoreEligible: score.eligible, scoreReason: score.reason, scoreBreakdown: { consistency: score.consistency, workflowDepth: score.workflowDepth, providerBreadth: score.providerBreadth, delivery: score.delivery }, rank: 0,
-    activeDays: activeDates.length, currentStreak: currentStreak(activeDates), longestStreak: longestStreak(activeDates), lifetimeTokens, tokenBreakdown, sessions, activityTotals, archetype,
+    activeDays: activeDates.length, currentStreak: currentStreak(activeDates), longestStreak: longestStreak(activeDates), lifetimeTokens, tokenBreakdown, dailyTokens, sessions, activityTotals, archetype,
     deliveryPoints: score.deliveryPoints, providers: sources.map((source) => sourceLabel[source] ?? source), activity,
     coverage: (coverageResult.results ?? []).map((row) => ({ source: row.source, label: sourceLabel[row.source] ?? row.source, provenance: provenanceLabel[metrics.find((metric) => metric.source === row.source)?.provenance ?? ''] ?? 'Unknown', status: row.completeness === 'full' ? 'Live' : 'Partial', completeness: row.completeness })),
     github: { commits: sum('commits', githubRows), mergedPullRequests: sum('merged_pull_requests', githubRows), reviews: sum('reviews', githubRows), releases: sum('releases', githubRows) },

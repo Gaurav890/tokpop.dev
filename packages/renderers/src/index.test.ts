@@ -29,15 +29,15 @@ describe('SVG renderers', () => {
     expect(svg).toContain('1B');
     expect(svg).toContain('Claude Code');
     expect(svg).toContain('200M');
-    expect(svg).toContain('TOOL LOADOUT');
-    expect(svg).toContain('MAKE YOURS');
+    expect(svg).toContain('POWER BY PROVIDER');
+    expect(svg).toContain('LIVE BUILD CARD');
   });
   it('uses bright card palettes instead of the old black slab', () => {
     const pop = renderProfileCard(profile, 'dark');
     const clean = renderProfileCard(profile, 'light');
-    expect(pop).toContain('#f1ecff');
-    expect(pop).toContain('#dfff73');
-    expect(clean).toContain('#eaf4ff');
+    expect(pop).toContain('#7647ff');
+    expect(pop).toContain('#d9ff57');
+    expect(clean).toContain('#2868f2');
     expect(pop).not.toContain('#101426');
     expect(clean).not.toContain('#101426');
   });

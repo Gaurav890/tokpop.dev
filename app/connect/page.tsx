@@ -8,23 +8,29 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
   const user = await currentGitHubUser();
   const { code = '', onboarding } = await searchParams;
   const isOnboarding = onboarding === '1';
+  const starterProfileReady = isOnboarding && Boolean(user);
 
   return <main className="marketing-page connect-page">
     <SiteHeader user={user}/>
     <section className="narrow-hero connect-hero">
-      <p className="eyebrow">{isOnboarding ? 'Onboarding · step 2 of 3' : 'Choose the evidence source'}</p>
-      <h1>{isOnboarding && user ? 'Your GitHub proof is connected. Add AI activity now.' : 'Web conversations in the browser. Coding activity from your computer.'}</h1>
-      <p>{isOnboarding ? 'Your profile starts with GitHub delivery evidence. Choose a browser option or the optional local collector to add an AI activity source before reviewing your dashboard.' : 'ChatGPT and Claude Web have browser-based options. Coding tools store their evidence locally, so they use a small privacy-filtering collector.'}</p>
+      <p className="eyebrow">{starterProfileReady ? 'Onboarding · your starter profile is ready' : isOnboarding ? 'Onboarding · start with GitHub' : 'Choose the evidence source'}</p>
+      <h1>{starterProfileReady ? 'Publish now. Add stronger proof when you want.' : isOnboarding ? 'Create your profile without installing anything.' : 'Web conversations in the browser. Coding activity from your computer.'}</h1>
+      <p>{starterProfileReady ? 'GitHub already created your private starter profile. Preview and publish it now with no installation, or add one of the optional evidence sources below first.' : isOnboarding ? 'Sign in with GitHub to create a private starter profile. Additional browser and local coding sources are optional upgrades.' : 'ChatGPT and Claude Web have browser-based options. Coding tools store their evidence locally, so they use a small privacy-filtering collector.'}</p>
+      {isOnboarding && !user ? <Link className="primary-link dashboard-signin" href={`/api/auth/github/start?return_to=${encodeURIComponent('/connect?onboarding=1')}`}>Create profile with GitHub →</Link> : null}
     </section>
 
     {isOnboarding && user ? <>
-      <section className="onboarding-progress" aria-label="Onboarding progress"><div className="complete"><span>01</span><strong>GitHub identity</strong><small>Complete</small></div><div className="active"><span>02</span><strong>Add AI activity</strong><small>Choose below</small></div><div><span>03</span><strong>Publish and share</strong><small>Next</small></div></section>
+      <section className="onboarding-progress" aria-label="Onboarding progress"><div className="complete"><span>01</span><strong>GitHub identity</strong><small>Complete</small></div><div className="active"><span>02</span><strong>Starter profile</strong><small>Ready</small></div><div><span>03</span><strong>Publish and share</strong><small>Next</small></div></section>
       <GitHubProofSync username={user.login}/>
+      <section className="onboarding-publish-now">
+        <div><p className="eyebrow">30-second path · no install</p><h2>Your private profile is ready to preview.</h2><p>Publish a GitHub-verified starter profile now. Local coding evidence can be connected later without recreating your profile.</p></div>
+        <div><Link className="primary-link" href="/share?onboarding=1">Preview and publish →</Link><a className="text-link" href="#add-sources">Add a source first ↓</a></div>
+      </section>
     </> : null}
 
-    <section className="web-connect-section">
+    <section className="web-connect-section" id="add-sources">
       <div className="section-intro">
-        <div><p className="eyebrow">Browser options · no install</p><h2>ChatGPT and Claude Web</h2></div>
+        <div><p className="eyebrow">Optional upgrades · browser only</p><h2>ChatGPT and Claude Web</h2></div>
         <p>A browser sign-in alone cannot give another service your complete history. Choose a local export for past activity or MCP for explicit future activity.</p>
       </div>
       <div className="web-connect-grid">
@@ -49,7 +55,7 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
 
     <section className="local-connector-section">
       <div className="section-intro">
-        <div><p className="eyebrow">Optional · strongest coding proof</p><h2>Codex, Claude Code, Cursor, Gemini CLI, and Copilot CLI</h2></div>
+        <div><p className="eyebrow">Optional upgrade · strongest coding proof</p><h2>Codex, Claude Code, Cursor, Gemini CLI, and Copilot CLI</h2></div>
         <p>The collector is not required to create a profile. Use it when you want verified local coding activity: it removes sensitive fields, previews the exact aggregate payload, and pairs this device.</p>
       </div>
       <div className="connect-grid">
@@ -59,6 +65,6 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
     </section>
 
     <section className="field-boundary"><div><p className="eyebrow">May sync</p><h2>Aggregates only</h2><p>Dates, provider/model IDs, counts, duration, collector versions, anonymous device ID, coverage, and provenance.</p></div><div className="never"><p className="eyebrow">Never syncs</p><h2>Content or credentials</h2><p>Prompts, responses, source code, arguments, outputs, commands, repositories, paths, titles, emails, cookies, tokens, and environment variables.</p></div></section>
-    {isOnboarding && user ? <section className="onboarding-finish"><div><p className="eyebrow">Step 3</p><h2>Preview, publish, and copy your card.</h2><p>Your profile remains private until you confirm. You can strengthen it with additional sources at any time.</p></div><Link className="primary-link" href="/share?onboarding=1">Finish my profile →</Link></section> : null}
+    {isOnboarding && user ? <section className="onboarding-finish"><div><p className="eyebrow">Ready when you are</p><h2>Preview, publish, and copy your card.</h2><p>Adding evidence is always optional. Your profile remains private until you confirm.</p></div><Link className="primary-link" href="/share?onboarding=1">Continue to my profile →</Link></section> : null}
   </main>;
 }

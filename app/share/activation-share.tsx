@@ -73,15 +73,15 @@ export function ActivationShare({ username, initialSettings, profile }: { userna
 
     <article className="activation-checklist">
       <p className="eyebrow">Share readiness</p>
-      <h2>{hasCodingEvidence ? 'This profile has coding evidence.' : 'Add coding evidence for a stronger first share.'}</h2>
+      <h2>{hasCodingEvidence ? 'This profile has coding evidence.' : 'Your starter profile is ready to publish.'}</h2>
       <div className="readiness-list">
         <div className="ready"><span>01</span><p><strong>GitHub identity</strong><small>Connected and verified</small></p></div>
-        <div className={hasCodingEvidence ? 'ready' : 'attention'}><span>02</span><p><strong>Coding activity</strong><small>{hasCodingEvidence ? profile.providers.join(', ') : 'No eligible coding source yet'}</small></p></div>
-        <div className={profile.scoreEligible ? 'ready' : 'attention'}><span>03</span><p><strong>Ranked score</strong><small>{profile.scoreEligible ? `${profile.score}/100 · eligible` : profile.scoreReason ?? 'Requires GitHub and 30 covered days'}</small></p></div>
+        <div className={hasCodingEvidence ? 'ready' : 'optional'}><span>02</span><p><strong>Coding activity</strong><small>{hasCodingEvidence ? profile.providers.join(', ') : 'Optional · connect later for stronger proof'}</small></p></div>
+        <div className={profile.scoreEligible ? 'ready' : 'optional'}><span>03</span><p><strong>Ranked score</strong><small>{profile.scoreEligible ? `${profile.score}/100 · eligible` : profile.scoreReason ?? 'Unlocks after GitHub and 30 covered days'}</small></p></div>
         <div className={settings.publicEnabled ? 'ready' : ''}><span>04</span><p><strong>Public visibility</strong><small>{settings.publicEnabled ? 'Published' : 'Private until you confirm'}</small></p></div>
       </div>
 
-      {!hasCodingEvidence && <div className="activation-advice"><strong>Best next step</strong><p>Connect one coding source before posting the card. A GitHub-only starter profile is accurate, but it does not yet demonstrate an AI coding workflow.</p><Link href="/connect" className="secondary-link compact-link">Connect coding activity</Link></div>}
+      {!hasCodingEvidence && <div className="activation-advice"><strong>Optional profile upgrade</strong><p>Publish now or connect a local coding source later. Your starter profile proves GitHub identity and delivery activity; it does not claim coding-agent activity until evidence is connected.</p><Link href="/connect" className="secondary-link compact-link">Explore coding sources</Link></div>}
 
       <div className="activation-actions">
         {!settings.publicEnabled && <button type="button" className="primary-button" onClick={publish} disabled={pending}>{pending ? 'Publishing…' : hasCodingEvidence ? 'Publish my profile' : 'Publish starter profile'}</button>}

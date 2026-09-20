@@ -36,7 +36,7 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
       <div>
         <p className="eyebrow">{onboarding === '1' ? 'Onboarding · step 3 of 3' : 'Publish and share'}</p>
         <h1>Turn your evidence into something people can see.</h1>
-        <p>Preview your readiness, choose whether the profile is public, and add a live card to your GitHub README. Publishing never exposes prompts, code, repository names, or credentials.</p>
+        <p>Your GitHub-verified starter profile can be published without installing anything. Add a live card to your README now, then connect coding evidence later if you want. Publishing never exposes prompts, code, repository names, or credentials.</p>
       </div>
       <div className="activation-step"><span>{settings?.public_enabled ? 'LIVE' : 'PRIVATE'}</span><strong>@{user.login}</strong><small>{profile?.providers.length ?? 0} coding sources · {profile?.activeDays ?? 0} active days</small></div>
     </section>

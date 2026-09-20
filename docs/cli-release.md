@@ -15,8 +15,10 @@ npm trusted publishing can only be configured after the package exists. The firs
 ```bash
 cd packages/cli
 npm pack --dry-run
-npm publish --access public --provenance
+npm publish --access public --provenance=false
 ```
+
+The first local publication cannot generate provenance because it is not running in a supported CI environment. Keep `publishConfig.provenance` enabled for later GitHub Actions releases; the command-line override applies only to this bootstrap publication.
 
 Confirm the result from a clean temporary directory:
 

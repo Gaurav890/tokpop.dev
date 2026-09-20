@@ -1,11 +1,11 @@
 {
   "name": "ai-native-profile",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Privacy-first collector for AI Native Profile",
   "license": "MIT",
   "type": "module",
   "bin": { "anp": "bin/anp.mjs", "ai-native-profile": "bin/anp.mjs" },
-  "files": ["bin", "src"],
+  "files": ["bin", "src", "README.md"],
   "engines": { "node": ">=22.13.0" },
   "repository": {
     "type": "git",

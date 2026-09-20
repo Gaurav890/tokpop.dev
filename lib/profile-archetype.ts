@@ -21,28 +21,28 @@ export function buildProfileArchetype(input: ArchetypeInput): ProfileArchetype {
     return {
       emoji: '🥷',
       title: 'Token Ninja',
-      summary: `${compactMetric(input.tokens)} observed coding tokens. ${input.currentStreak} days straight. Quietly relentless.`,
+      summary: `${compactMetric(input.tokens)} tokens moved. ${input.currentStreak} days straight. Quietly relentless.`,
     };
   }
   if (input.currentStreak >= 30) {
     return {
       emoji: '🔥',
-      title: 'Streak Architect',
-      summary: `${input.currentStreak} consecutive coding days—and the system is still warm.`,
+      title: 'Streak Machine',
+      summary: `${input.currentStreak} days straight. The system is still warm.`,
     };
   }
   if (input.deliveryPoints >= 100) {
     return {
-      emoji: '🚢',
-      title: 'Shipping Machine',
-      summary: `${input.deliveryPoints} delivery points backed by work that reached GitHub.`,
+      emoji: '🚀',
+      title: 'Ship Captain',
+      summary: `${input.deliveryPoints} delivery points. Ideas keep reaching production.`,
     };
   }
   if (input.providerCount >= 3) {
     return {
-      emoji: '🧭',
-      title: 'Workflow Polyglot',
-      summary: `Building across ${input.providerCount} coding providers without losing the thread.`,
+      emoji: '🧠',
+      title: 'Model Wrangler',
+      summary: `${input.providerCount} tools in the loadout. One builder at the controls.`,
     };
   }
   if (input.toolCalls >= 100) {
@@ -55,6 +55,6 @@ export function buildProfileArchetype(input: ArchetypeInput): ProfileArchetype {
   return {
     emoji: '⚡',
     title: 'Workflow Builder',
-    summary: 'Building an evidence-backed coding workflow, one active day at a time.',
+    summary: 'Turning ideas into momentum, one active day at a time.',
   };
 }

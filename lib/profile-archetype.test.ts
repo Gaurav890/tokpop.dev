@@ -11,8 +11,8 @@ describe('profile archetypes', () => {
   it('uses aggregate signals instead of user content', () => {
     expect(buildProfileArchetype({ ...baseline, currentStreak: 31 })).toEqual({
       emoji: '🔥',
-      title: 'Streak Architect',
-      summary: '31 consecutive coding days—and the system is still warm.',
+      title: 'Streak Machine',
+      summary: '31 days straight. The system is still warm.',
     });
   });
 });

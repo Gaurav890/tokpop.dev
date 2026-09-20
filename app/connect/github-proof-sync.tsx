@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type SyncResult = {
   events?: number;
@@ -19,7 +20,8 @@ function resultDetail(result: SyncResult) {
   return `${result.events ?? 0} public events across ${result.activeDays ?? 0} active days are ready.`;
 }
 
-export function GitHubProofSync({ username }: { username: string }) {
+export function GitHubProofSync({ username, compact = false }: { username: string; compact?: boolean }) {
+  const router = useRouter();
   const [state, setState] = useState<'syncing' | 'ready' | 'error'>('syncing');
   const [detail, setDetail] = useState('Reading your public delivery activity…');
 
@@ -29,13 +31,14 @@ export function GitHubProofSync({ username }: { username: string }) {
       if (cancelled) return;
       setState('ready');
       setDetail(resultDetail(result));
+      router.refresh();
     }).catch((error: unknown) => {
       if (cancelled) return;
       setState('error');
       setDetail(error instanceof Error ? error.message : 'GitHub activity sync failed.');
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [router]);
 
   async function retry() {
     setState('syncing');
@@ -44,15 +47,16 @@ export function GitHubProofSync({ username }: { username: string }) {
       const body = await requestGitHubProof();
       setState('ready');
       setDetail(resultDetail(body));
+      router.refresh();
     } catch (error) {
       setState('error');
       setDetail(error instanceof Error ? error.message : 'GitHub activity sync failed.');
     }
   }
 
-  return <section className={`github-proof-sync ${state}`}>
+  return <section className={`github-proof-sync ${state} ${compact ? 'compact' : ''}`}>
     <div className="github-proof-icon">GH</div>
-    <div><p className="eyebrow">GitHub connected · @{username}</p><h2>{state === 'ready' ? 'Your first proof source is ready.' : state === 'error' ? 'GitHub needs another try.' : 'Building your first proof automatically.'}</h2><p aria-live="polite">{detail}</p></div>
+    <div><p className="eyebrow">GitHub connected · @{username}</p><h2>{state === 'ready' ? 'Starter stats loaded.' : state === 'error' ? 'GitHub needs another try.' : 'Loading your starter stats.'}</h2><p aria-live="polite">{detail}</p></div>
     {state === 'error' ? <button type="button" className="secondary-link compact-link" onClick={retry}>Retry sync</button> : <span className="onboarding-source-state">{state === 'ready' ? 'Connected' : 'Syncing'}</span>}
   </section>;
 }

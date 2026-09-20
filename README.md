@@ -6,15 +6,15 @@ AI Native Profile turns attributable activity from AI coding tools and GitHub in
 
 ## Three-minute quickstart
 
-Open the hosted service, sign in with GitHub, and complete the guided source step. Public GitHub delivery evidence syncs automatically before the dashboard appears. ChatGPT and Claude Web can be added through browser-local export import or explicit MCP activity without installing the collector.
+Open the hosted service, choose **Make my card**, and sign in with GitHub. The private starter card appears immediately and public GitHub delivery activity syncs automatically. One button publishes the profile and copies the linked README Markdown.
 
-For the strongest coding proof, optionally pair supported local tools with the published collector:
+For live coding stats, choose **Power up with coding activity** on the card screen. The website creates a short-lived, account-bound command:
 
 ```bash
-npx ai-native-profile@latest connect
+npx --yes ai-native-profile@latest connect --code YOUR_CODE
 ```
 
-The command opens the hosted pairing flow at `https://ai-native-profile.vercel.app`. It reads only supported local coding-tool records and shows aggregate activity before synchronization. It is an optional profile upgrade, not an onboarding prerequisite. Use `--api-url` only when connecting to a self-hosted instance.
+The command detects supported tools together, displays the privacy boundary, asks once before the first sync, and refreshes the open card automatically. It is an optional profile upgrade, not a prerequisite for creating or sharing the starter card. The original terminal-initiated `connect` flow remains available, and `--api-url` can target a self-hosted instance.
 
 For local development:
 
@@ -36,7 +36,7 @@ The collector shows detected tools and the exact aggregate payload. Automatic ba
 
 GitHub is the product account identity. Coding providers appear inside the Connections screen and use the strongest supported evidence source—official account data where available, otherwise a consented local collector. ChatGPT and Claude Web are optional conversation sources connected through explicit MCP tools or locally parsed official exports; they are never presented as silent account access.
 
-Onboarding ends with an explicit publish-and-share step. The user can keep the profile private, publish it, copy a linked README card, copy the profile URL, or copy a launch-post draft without visiting a separate settings screen.
+Onboarding ends on the card reveal. The user can keep it private or use one combined action to publish and copy the README embed, then optionally connect coding activity without leaving the page.
 
 ## What is implemented
 

@@ -120,22 +120,22 @@ export default async function Home() {
     <section className="proof-hero">
       <div className="proof-copy">
         <div className="release-line"><span>OPEN SOURCE</span><code>anp.activity.v1</code></div>
-        <p className="eyebrow">Proof of work for AI-native developers</p>
-        <h1>Show how you build.<br/><span>Back it with evidence.</span></h1>
-        <p className="proof-intro">Create a GitHub-verified profile in 30 seconds—no installation required. Add coding-agent evidence later when you want stronger proof.</p>
+        <p className="eyebrow">Your AI coding alter ego</p>
+        <h1>Your AI build story.<br/><span>One live card.</span></h1>
+        <p className="proof-intro">Turn the tools, tokens, streaks, and shipping behind your work into a card worth putting in your GitHub README.</p>
         <div className="home-actions">
-          <Link className="primary-link" href={user ? '/dashboard' : `/api/auth/github/start?return_to=${encodeURIComponent('/connect?onboarding=1')}`}>{user ? 'Open dashboard' : 'Create profile with GitHub'} <span>→</span></Link>
-          <Link className="secondary-link" href={user ? '/connections' : '/u/demo'}>{user ? 'Manage sources' : 'See an example'}</Link>
+          <Link className="primary-link" href={user ? '/share?onboarding=1' : `/api/auth/github/start?return_to=${encodeURIComponent('/share?onboarding=1')}`}>{user ? 'Open my card' : 'Make my card'} <span>→</span></Link>
+          <Link className="secondary-link" href={user ? '/connections' : '/u/demo'}>{user ? 'Power up stats' : 'See a live card'}</Link>
         </div>
-        <div className="proof-promises"><span>No install to start</span><span>No prompts or source code</span><span>Private by default</span></div>
+        <div className="proof-promises"><span>GitHub card in 30 seconds</span><span>No prompts or source code</span><span>Private until you publish</span></div>
       </div>
       <aside className="proof-sample" aria-label="Labelled example profile summary">
-        <div className="sample-top"><span>EXAMPLE PROFILE</span><b>SAMPLE DATA</b></div>
-        <div className="sample-identity"><div><strong>@demo</strong><small>Updated 4 minutes ago</small></div><span><b>78</b>/100</span></div>
-        <div className="sample-stats"><div><strong>61</strong><span>active days</span></div><div><strong>41d</strong><span>streak</span></div><div><strong>172</strong><span>delivery pts</span></div></div>
+        <div className="sample-top"><span>AI BUILD CARD</span><b>LIVE ●</b></div>
+        <div className="sample-identity"><div><strong>@demo</strong><small>🥷 Token Ninja</small></div><span><b>2.5B</b><small>tokens</small></span></div>
+        <div className="sample-stats"><div><strong>78</strong><span>build level</span></div><div><strong>41d</strong><span>streak</span></div><div><strong>3</strong><span>tools</span></div></div>
         <div className="sample-activity" aria-hidden="true">{[0,2,1,3,0,1,4,2,2,0,3,4,1,2,4,3,0,2,1,4,3,2,4,4,1,3,2,4].map((level, index) => <i key={index} className={`sample-level-${level}`}/>)}</div>
         <div className="sample-sources"><span>Codex <b>official</b></span><span>Claude Code <b>local exact</b></span><span>Cursor <b>derived</b></span></div>
-        <div className="sample-foot"><span>Coverage shown on every metric</span><Link href="/u/demo">Open profile ↗</Link></div>
+        <div className="sample-foot"><span>Live stats · source-labelled</span><Link href="/u/demo">Make yours ↗</Link></div>
       </aside>
     </section>
     <section className="supported-strip" aria-label="Supported sources"><span>SUPPORTED</span><div>{['Codex','Claude Code','Cursor','Gemini CLI','Copilot CLI','GitHub','ChatGPT Web','Claude Web'].map((source) => <b key={source}>{source}</b>)}</div></section>
@@ -149,9 +149,9 @@ export default async function Home() {
       </div>
     </section>
     <section className="setup-rail">
-      <div><p className="eyebrow">30-second starter profile</p><h2>Share first. Strengthen the evidence later.</h2><p>Connecting local coding tools is an optional upgrade, never an onboarding requirement.</p></div>
-      <ol><li><span>1</span>Sign in with GitHub</li><li><span>2</span>Preview your private profile</li><li><span>3</span>Publish and copy your card</li></ol>
-      <Link className="primary-link" href={user ? '/share?onboarding=1' : `/api/auth/github/start?return_to=${encodeURIComponent('/connect?onboarding=1')}`}>{user ? 'Preview my profile' : 'Create free profile'} →</Link>
+      <div><p className="eyebrow">Card in 30 seconds</p><h2>Reveal it. Power it up. Share it.</h2><p>Start with GitHub. Add all supported coding tools later with one command.</p></div>
+      <ol><li><span>1</span>Connect GitHub</li><li><span>2</span>Meet your build alter ego</li><li><span>3</span>Publish and paste</li></ol>
+      <Link className="primary-link" href={user ? '/share?onboarding=1' : `/api/auth/github/start?return_to=${encodeURIComponent('/share?onboarding=1')}`}>{user ? 'Open my card' : 'Make my card'} →</Link>
     </section>
   </main>;
 }

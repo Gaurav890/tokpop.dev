@@ -49,7 +49,7 @@ function relativeSync(value: string): string {
 
 export default async function ConnectionsPage() {
   const user = await currentGitHubUser();
-  if (!user) return <main className="marketing-page"><SiteHeader/><section className="narrow-hero"><p className="eyebrow">Onboarding</p><h1>Create your profile without installing anything.</h1><p>GitHub verifies your identity and creates a private starter profile immediately. Browser and local coding sources are optional upgrades you can add during onboarding or later.</p><Link className="primary-link dashboard-signin" href={`/api/auth/github/start?return_to=${encodeURIComponent('/connect?onboarding=1')}`}>Continue with GitHub</Link></section></main>;
+  if (!user) return <main className="marketing-page"><SiteHeader/><section className="narrow-hero"><p className="eyebrow">Start with your card</p><h1>Make your private card in 30 seconds.</h1><p>GitHub creates the starter card. Then one optional command connects every supported local coding tool together.</p><Link className="primary-link dashboard-signin" href={`/api/auth/github/start?return_to=${encodeURIComponent('/share?onboarding=1')}`}>Make my card</Link></section></main>;
 
   let coverageRows: CoverageRow[];
   let approvedDevices: number;

@@ -3,6 +3,7 @@ import Link from '../ui/native-link';
 import { currentGitHubUser } from '../../lib/auth';
 import { ensureDb } from '../../db/ensure';
 import { SiteHeader } from '../ui/site-header';
+import { SiteFooter } from '../ui/site-footer';
 import { backendJson, backendOrigin } from '../../lib/server-api';
 
 export const dynamic = 'force-dynamic';
@@ -25,8 +26,11 @@ const sourceDefinitions = [
   { id: 'cursor', mark: 'CU', name: 'Cursor', group: 'Coding activity', method: 'Local connector', description: 'Reads supported local database metadata. Derived values are labelled and estimated values are not ranked.', href: '/connect', action: 'Pair connector' },
   { id: 'gemini_cli', mark: 'GE', name: 'Gemini CLI', group: 'Coding activity', method: 'Local connector', description: 'Collects aggregate CLI telemetry with prompt logging disabled.', href: '/connect', action: 'Pair connector' },
   { id: 'copilot_cli', mark: 'CP', name: 'GitHub Copilot CLI', group: 'Coding activity', method: 'Local connector', description: 'Collects supported CLI activity only; personal IDE autocomplete is not claimed.', href: '/connect', action: 'Pair connector' },
-  { id: 'chatgpt_web', mark: 'CG', name: 'ChatGPT Web', group: 'Conversation activity', method: 'Browser import or MCP observation', description: 'Imports approved export aggregates or records explicit tool calls—not silent conversation history.', href: '/connect', action: 'Choose connection' },
-  { id: 'claude_web', mark: 'CW', name: 'Claude Web', group: 'Conversation activity', method: 'Browser import or MCP observation', description: 'Imports approved export aggregates or records explicit tool calls and never affects rankings.', href: '/connect', action: 'Choose connection' },
+] as const;
+
+const experimentalSources = [
+  { id: 'chatgpt_web', mark: 'CG', name: 'ChatGPT Web', description: 'Import aggregate counts from an official export, or record only explicit MCP tool calls.' },
+  { id: 'claude_web', mark: 'CW', name: 'Claude Web', description: 'Import aggregate counts from an official export, or record only explicit MCP tool calls.' },
 ] as const;
 
 const provenanceLabels: Record<string, string> = {
@@ -78,8 +82,8 @@ export default async function ConnectionsPage() {
       <div className="connection-summary"><strong>{connectedCount}<small>/{sourceDefinitions.length}</small></strong><span>sources with evidence</span><p>{approvedDevices} approved local {approvedDevices === 1 ? 'device' : 'devices'}</p></div>
     </section>
     <section className="connection-groups">
-      {['Identity and delivery', 'Coding activity', 'Conversation activity'].map((group) => <div className="connection-group" key={group}>
-        <div className="group-heading"><h2>{group}</h2><p>{group === 'Conversation activity' ? 'Optional and excluded from competitive scores.' : group === 'Coding activity' ? 'Collected locally after device approval.' : 'Your primary account and delivery evidence.'}</p></div>
+      {['Identity and delivery', 'Coding activity'].map((group) => <div className="connection-group" key={group}>
+        <div className="group-heading"><h2>{group}</h2><p>{group === 'Coding activity' ? 'Collected locally after device approval.' : 'Your primary account and delivery evidence.'}</p></div>
         <div className="connection-cards">
           {sourceDefinitions.filter((source) => source.group === group).map((source) => {
             const record = coverage.get(source.id);
@@ -100,6 +104,15 @@ export default async function ConnectionsPage() {
         </div>
       </div>)}
     </section>
-    <section className="connection-disclaimer"><strong>No invisible account access.</strong><p>“Connected” always names the evidence path. Local coding tools use the approved connector; ChatGPT and Claude Web use explicit MCP events or locally parsed official exports.</p><Link href="/methodology">Read the methodology →</Link></section>
+    <details className="experimental-sources">
+      <summary><span><strong>Experimental conversation sources</strong><small>Optional · partial coverage · never ranked</small></span><b>Show</b></summary>
+      <div className="experimental-source-grid">{experimentalSources.map((source) => {
+        const record = coverage.get(source.id);
+        return <article key={source.id}><span className="connection-mark">{source.mark}</span><div><h3>{source.name}</h3><p>{source.description}</p><small>{record ? `${provenanceLabels[record.provenance ?? ''] ?? 'Partial'} · ${relativeSync(record.last_synced_at)}` : 'No activity connected'}</small></div><div><Link href={`/import?source=${source.id === 'chatgpt_web' ? 'chatgpt' : 'claude'}`}>Import export</Link><Link href="/integrations/mcp">MCP setup</Link></div></article>;
+      })}</div>
+      <p>These sources do not provide silent or complete account history. They appear publicly only after data exists and you enable the conversation section.</p>
+    </details>
+    <section className="connection-disclaimer"><strong>No invisible account access.</strong><p>Every connected state names the evidence path. Local coding tools use the approved collector; experimental web activity uses explicit MCP events or locally parsed official exports.</p><Link href="/settings/privacy">Privacy controls →</Link></section>
+    <SiteFooter/>
   </main>;
 }

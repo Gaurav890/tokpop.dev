@@ -26,15 +26,15 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Configure a GitHub OAuth App with callback URL `http://localhost:3000/api/auth/github/callback`, then add its client ID and secret to `.env.local`. Open `http://localhost:3000`, sign in with GitHub, open **Connections**, and pair the collector:
+Configure a GitHub OAuth App with callback URL `http://localhost:3000/api/auth/github/callback`, then add its client ID and secret to `.env.local`. Open `http://localhost:3000`, sign in with GitHub, open **My card**, and choose **Connect my AI tools**. To start from the terminal instead, run:
 
 ```bash
 ANP_API_URL=http://localhost:3000 pnpm cli connect
 ```
 
-The collector shows detected tools and the exact aggregate payload. Automatic background synchronization does not start until the user runs `anp watch`. ChatGPT and Claude Web do not require the collector: use a locally parsed official export for historical activity or an explicit MCP tool for future observed activity.
+The collector shows detected tools and the exact aggregate payload. Automatic background synchronization does not start until the user runs `anp watch`.
 
-GitHub is the product account identity. Coding providers appear inside the Connections screen and use the strongest supported evidence source—official account data where available, otherwise a consented local collector. ChatGPT and Claude Web are optional conversation sources connected through explicit MCP tools or locally parsed official exports; they are never presented as silent account access.
+GitHub is the product account identity. Coding providers appear inside the Data sources screen and use the strongest supported evidence source—official account data where available, otherwise a consented local collector. ChatGPT and Claude Web support is experimental and deliberately separated from the core flow: it only reflects explicit MCP events or locally parsed official exports, never silent account access, and never affects rankings.
 
 Onboarding ends on the card reveal. The user can keep it private or use one combined action to publish and copy the README embed, then optionally connect coding activity without leaving the page.
 

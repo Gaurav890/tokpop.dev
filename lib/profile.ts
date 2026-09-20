@@ -5,10 +5,11 @@ import { demoProfile, type PublicProfile } from './demo-profile';
 import { backendOrigin, backendResponse } from './server-api';
 import { buildProfileArchetype } from './profile-archetype';
 import { buildDailyTokenLedger } from './token-ledger';
+import { publicConversationRows } from './profile-visibility';
 
 type MetricRow = { date: string; source: string; metric_name: string; value: number; provenance: string; competitive_eligible: number };
 type CoverageRow = { source: string; completeness: string; last_synced_at: string; provenance?: string; note?: string };
-type ProfileUser = { id: string; github_login: string; display_name: string; avatar_url: string; public_enabled: number };
+type ProfileUser = { id: string; github_login: string; display_name: string; avatar_url: string; public_enabled: number; conversation_enabled: number };
 type EnrichedProfileFields = Pick<PublicProfile, 'tokenBreakdown' | 'dailyTokens' | 'activityTotals' | 'archetype'>;
 type CompatibleProfile = Omit<PublicProfile, keyof EnrichedProfileFields> & Partial<EnrichedProfileFields>;
 
@@ -76,7 +77,7 @@ export async function getPublicProfile(username: string): Promise<PublicProfile 
 export async function getPublicProfileFromDatabase(username: string): Promise<PublicProfile | null> {
   if (username === 'demo') return demoProfile;
   await ensureDb();
-  const user = await env.DB.prepare(`SELECT id, github_login, display_name, avatar_url, public_enabled FROM users WHERE lower(github_login)=lower(?) LIMIT 1`).bind(username).first<ProfileUser>();
+  const user = await env.DB.prepare(`SELECT id, github_login, display_name, avatar_url, public_enabled, conversation_enabled FROM users WHERE lower(github_login)=lower(?) LIMIT 1`).bind(username).first<ProfileUser>();
   if (!user || !user.public_enabled) return null;
   return buildProfile(user);
 }
@@ -93,7 +94,7 @@ export async function getPrivateProfile(userId: string): Promise<PublicProfile |
 
 export async function getPrivateProfileFromDatabase(userId: string): Promise<PublicProfile | null> {
   await ensureDb();
-  const user = await env.DB.prepare(`SELECT id, github_login, display_name, avatar_url, public_enabled FROM users WHERE id=? LIMIT 1`).bind(userId).first<ProfileUser>();
+  const user = await env.DB.prepare(`SELECT id, github_login, display_name, avatar_url, public_enabled, conversation_enabled FROM users WHERE id=? LIMIT 1`).bind(userId).first<ProfileUser>();
   return user ? buildProfile(user) : null;
 }
 
@@ -150,12 +151,13 @@ async function buildProfile(user: ProfileUser): Promise<PublicProfile> {
     return { date, value: Math.min(4, byDate.get(date) ?? 0) };
   });
   const latest = coverageResult.results?.map((row) => row.last_synced_at).sort().at(-1) ?? new Date().toISOString();
+  const conversationRows = publicConversationRows(metrics, Boolean(user.conversation_enabled));
   return {
     ...demoProfile, username: user.github_login, name: user.display_name, avatarUrl: user.avatar_url, verified: true, publicEnabled: Boolean(user.public_enabled), score: score.total ?? 0, scoreEligible: score.eligible, scoreReason: score.reason, scoreBreakdown: { consistency: score.consistency, workflowDepth: score.workflowDepth, providerBreadth: score.providerBreadth, delivery: score.delivery }, rank: 0,
     activeDays: activeDates.length, currentStreak: currentStreak(activeDates), longestStreak: longestStreak(activeDates), lifetimeTokens, tokenBreakdown, dailyTokens, sessions, activityTotals, archetype,
     deliveryPoints: score.deliveryPoints, providers: sources.map((source) => sourceLabel[source] ?? source), activity,
     coverage: (coverageResult.results ?? []).map((row) => ({ source: row.source, label: sourceLabel[row.source] ?? row.source, provenance: provenanceLabel[metrics.find((metric) => metric.source === row.source)?.provenance ?? ''] ?? 'Unknown', status: row.completeness === 'full' ? 'Live' : 'Partial', completeness: row.completeness, note: row.note })),
     github: { commits: sum('commits', githubRows), mergedPullRequests: sum('merged_pull_requests', githubRows), reviews: sum('reviews', githubRows), releases: sum('releases', githubRows) },
-    conversation: { sessions: sum('sessions', metrics.filter((row) => ['chatgpt_web', 'claude_web'].includes(row.source))), activeDays: new Set(metrics.filter((row) => ['chatgpt_web', 'claude_web'].includes(row.source)).map((row) => row.date)).size, coverage: 'Partial and excluded from ranking' }, updatedAt: latest,
+    conversation: { sessions: sum('sessions', conversationRows), activeDays: new Set(conversationRows.map((row) => row.date)).size, coverage: 'Partial and excluded from ranking' }, updatedAt: latest,
   };
 }

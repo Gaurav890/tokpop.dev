@@ -83,22 +83,22 @@ export function PowerUpPanel({ hasCodingEvidence }: { hasCodingEvidence: boolean
 
   return <section className={`power-up-panel ${state === 'synced' ? 'complete' : ''}`} id="power-up">
     <div className="power-up-copy">
-      <p className="eyebrow">{state === 'synced' ? 'Powered up ⚡' : 'Optional · stronger live stats'}</p>
-      <h2>{state === 'synced' ? 'Your coding activity is connected.' : 'Power up with coding activity.'}</h2>
-      <p>One command finds Codex, Claude Code, Cursor, Gemini CLI, and Copilot CLI together. You review the aggregate fields before the first sync.</p>
+      <p className="eyebrow">{state === 'synced' ? 'Connected ⚡' : 'One command · one time'}</p>
+      <h2>{state === 'synced' ? 'Your coding activity is connected.' : 'Connect my AI tools.'}</h2>
+      <p>One command finds Codex, Claude Code, Cursor, Gemini CLI, and Copilot CLI together. It shows the privacy boundary, asks once, and sends the first aggregate sync.</p>
       <div className="source-loadout" aria-label="Supported local coding tools">
         <span>Codex</span><span>Claude Code</span><span>Cursor</span><span>Gemini CLI</span><span>Copilot CLI</span>
       </div>
     </div>
     <div className="power-up-action">
-      {!pairing && state !== 'synced' ? <button type="button" className="power-button" onClick={createCommand} disabled={state === 'creating'}>{state === 'creating' ? 'Creating…' : state === 'error' ? 'Generate a fresh command' : 'Copy one command'} <span>↗</span></button> : null}
+      {!pairing && state !== 'synced' ? <button type="button" className="power-button" onClick={createCommand} disabled={state === 'creating'}>{state === 'creating' ? 'Creating…' : state === 'error' ? 'Generate a fresh command' : 'Connect my AI tools'} <span>↗</span></button> : null}
       {pairing && state !== 'synced' ? <>
         <button type="button" className="command-copy" onClick={copyCommand}><code>{command}</code><span>Copy</span></button>
         <small>Single use · expires {new Date(pairing.expiresAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</small>
       </> : null}
       {state === 'synced' ? <div className="power-up-success"><span>✓</span><strong>Live stats connected</strong></div> : null}
       {message ? <p className={`power-up-status ${state}`} aria-live="polite">{message}</p> : null}
-      <div className="more-source-links"><Link href="/import">Import chat history</Link><Link href="/integrations/mcp">Assistant actions</Link><Link href="/connections">All sources</Link></div>
+      {state === 'synced' ? <div className="more-source-links"><Link href="/connections">Manage data sources</Link></div> : null}
     </div>
     <p className="power-up-boundary"><strong>Never uploaded:</strong> prompts, responses, source code, commands, file paths, repositories, or credentials.</p>
   </section>;

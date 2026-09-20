@@ -2,6 +2,7 @@ import Link from './ui/native-link';
 import type { PublicProfile } from '../lib/demo-profile';
 import { currentGitHubUser } from '../lib/auth';
 import { SiteHeader } from './ui/site-header';
+import { SiteFooter } from './ui/site-footer';
 
 export function DashboardDemo({ profile }: { profile: PublicProfile }) {
   const displaySources = profile.coverage.filter((item) => !['chatgpt_web', 'claude_web', 'github'].includes(item.source)).slice(0, 5).map((item, index) => ({ mark: item.label.split(/\s+/).map((word) => word[0]).join('').slice(0, 2).toUpperCase(), name: item.label, detail: item.provenance, state: item.status, tone: ['lime', 'orange', 'blue', 'violet'][index % 4] }));
@@ -115,6 +116,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const user = await currentGitHubUser();
+  const cardHref = user ? '/share?onboarding=1' : `/api/auth/github/start?return_to=${encodeURIComponent('/share?onboarding=1')}`;
   return <main className="marketing-page home-page">
     <SiteHeader user={user}/>
     <section className="proof-hero">
@@ -124,8 +126,7 @@ export default async function Home() {
         <h1>Your AI build story.<br/><span>One live card.</span></h1>
         <p className="proof-intro">Turn the tools, tokens, streaks, and shipping behind your work into a card worth putting in your GitHub README.</p>
         <div className="home-actions">
-          <Link className="primary-link" href={user ? '/share?onboarding=1' : `/api/auth/github/start?return_to=${encodeURIComponent('/share?onboarding=1')}`}>{user ? 'Open my card' : 'Make my card'} <span>→</span></Link>
-          <Link className="secondary-link" href={user ? '/connections' : '/u/demo'}>{user ? 'Power up stats' : 'See a live card'}</Link>
+          <Link className="primary-link" href={cardHref}>{user ? 'Open my card' : 'Make my card'} <span>→</span></Link>
         </div>
         <div className="proof-promises"><span>GitHub card in 30 seconds</span><span>No prompts or source code</span><span>Private until you publish</span></div>
       </div>
@@ -134,24 +135,28 @@ export default async function Home() {
         <div className="sample-identity"><div><strong>@demo</strong><small>🥷 Token Ninja</small></div><span><b>2.5B</b><small>tokens</small></span></div>
         <div className="sample-stats"><div><strong>78</strong><span>build level</span></div><div><strong>41d</strong><span>streak</span></div><div><strong>3</strong><span>tools</span></div></div>
         <div className="sample-activity" aria-hidden="true">{[0,2,1,3,0,1,4,2,2,0,3,4,1,2,4,3,0,2,1,4,3,2,4,4,1,3,2,4].map((level, index) => <i key={index} className={`sample-level-${level}`}/>)}</div>
-        <div className="sample-sources"><span>Codex <b>official</b></span><span>Claude Code <b>local exact</b></span><span>Cursor <b>derived</b></span></div>
-        <div className="sample-foot"><span>Live stats · source-labelled</span><Link href="/u/demo">Make yours ↗</Link></div>
+        <div className="sample-sources"><span>Codex <strong>2.1B</strong><b>official</b></span><span>Claude Code <strong>380M</strong><b>local exact</b></span><span>Cursor <strong>activity</strong><b>derived</b></span></div>
+        <div className="sample-foot"><span>Live stats · source-labelled</span><Link href={cardHref}>Make yours ↗</Link></div>
       </aside>
     </section>
-    <section className="supported-strip" aria-label="Supported sources"><span>SUPPORTED</span><div>{['Codex','Claude Code','Cursor','Gemini CLI','Copilot CLI','GitHub','ChatGPT Web','Claude Web'].map((source) => <b key={source}>{source}</b>)}</div></section>
-    <section className="proof-value">
-      <div className="value-heading"><p className="eyebrow">What the profile answers</p><h2>The signals people actually care about.</h2></div>
-      <div className="value-grid">
-        <article><span>01</span><h3>Do you use these tools consistently?</h3><p>Active coding days and streaks, normalized across supported providers.</p></article>
-        <article><span>02</span><h3>How deep is your workflow?</h3><p>Tool calls, skills, commands, subagents, and provider breadth—not token flexing.</p></article>
-        <article><span>03</span><h3>Does the work ship?</h3><p>GitHub commits, merged pull requests, reviews, and releases shown beside activity.</p></article>
-        <article><span>04</span><h3>Can the numbers be trusted?</h3><p>Every signal includes source, coverage, freshness, and provenance.</p></article>
+    <section className="supported-strip" aria-label="Supported coding sources"><span>WORKS WITH</span><div>{['Codex','Claude Code','Cursor','Gemini CLI','Copilot CLI','GitHub'].map((source) => <b key={source}>{source}</b>)}</div></section>
+    <section className="home-outcomes">
+      <div className="value-heading"><p className="eyebrow">One profile · three wins</p><h2>Make the work behind your work visible.</h2></div>
+      <div className="outcome-grid">
+        <article><span>01</span><strong>README card</strong><h3>A live card people actually want to display.</h3><p>Your build alter ego, tokens, streak, tools, and level—updated automatically.</p></article>
+        <article><span>02</span><strong>Exact breakdown</strong><h3>Every provider. Every day. No mystery totals.</h3><p>See how much came from each tool and inspect the daily token ledger behind it.</p></article>
+        <article><span>03</span><strong>Community rank</strong><h3>Compete on consistency and shipping—not spending.</h3><p>Opt into a leaderboard where raw token volume never increases your score.</p></article>
       </div>
     </section>
     <section className="setup-rail">
-      <div><p className="eyebrow">Card in 30 seconds</p><h2>Reveal it. Power it up. Share it.</h2><p>Start with GitHub. Add all supported coding tools later with one command.</p></div>
-      <ol><li><span>1</span>Connect GitHub</li><li><span>2</span>Meet your build alter ego</li><li><span>3</span>Publish and paste</li></ol>
-      <Link className="primary-link" href={user ? '/share?onboarding=1' : `/api/auth/github/start?return_to=${encodeURIComponent('/share?onboarding=1')}`}>{user ? 'Open my card' : 'Make my card'} →</Link>
+      <div><p className="eyebrow">One guided flow</p><h2>Connect it. Reveal it. Share it.</h2><p>Start with GitHub, then one command connects every supported coding tool together.</p></div>
+      <ol><li><span>1</span>Connect GitHub</li><li><span>2</span>Connect AI tools</li><li><span>3</span>Add the card to your README</li></ol>
+      <Link className="primary-link" href={cardHref}>{user ? 'Open my card' : 'Make my card'} →</Link>
     </section>
+    <section className="community-loop">
+      <div><p className="eyebrow">Built to travel</p><h2>Your card brings the next builder in.</h2><p>Every shared card links back to a detailed profile and a simple “Make yours” path. Public profiles can then opt into the community leaderboard.</p></div>
+      <Link className="secondary-link" href="/leaderboard">Explore the leaderboard →</Link>
+    </section>
+    <SiteFooter/>
   </main>;
 }

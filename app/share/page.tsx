@@ -9,6 +9,7 @@ import { ActivationShare } from './activation-share';
 import { compactMetric } from '../../lib/profile-archetype';
 import { GitHubProofSync } from '../connect/github-proof-sync';
 import { PowerUpPanel } from './power-up-panel';
+import { SiteFooter } from '../ui/site-footer';
 
 type SettingsRow = {
   public_enabled: number;
@@ -32,18 +33,20 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
     await ensureDb();
     settings = await env.DB.prepare(`SELECT u.public_enabled,u.leaderboard_enabled,u.conversation_enabled,u.storage_mode,coalesce(c.enabled,0) AS comparison_enabled FROM users u LEFT JOIN comparison_optins c ON c.user_id=u.id WHERE u.id=?`).bind(user.userId).first<SettingsRow>();
   }
+  const hasCodingEvidence = Boolean(profile?.providers.length);
 
   return <main className="marketing-page activation-page">
     <SiteHeader user={user}/>
     <section className="activation-hero">
       <div>
-        <p className="eyebrow">{onboarding === '1' ? 'Your card is ready 🎉' : 'Your live build card'}</p>
-        <h1>Meet your AI build alter ego.</h1>
-        <p>Publish a card people actually want in their README. Start with GitHub, then power it up with real coding activity—all without exposing prompts, code, or credentials.</p>
+        <p className="eyebrow">{hasCodingEvidence ? 'Your build identity is ready 🎉' : 'Your private card is ready'}</p>
+        <h1>{hasCodingEvidence ? 'Meet your AI build alter ego.' : 'One command unlocks your real stats.'}</h1>
+        <p>{hasCodingEvidence ? 'Your tools, tokens, streak, and shipping are ready to share. Pick a look, add the card to GitHub, then choose whether to join the leaderboard.' : 'Connect every supported coding tool together, review the exact aggregate fields, and watch this page turn into your live build card.'}</p>
       </div>
       <div className="activation-step"><span>{settings?.public_enabled ? 'LIVE ●' : 'UNLOCKED'}</span><strong>{profile?.archetype.emoji} {profile?.archetype.title ?? 'Workflow Builder'}</strong><small>{compactMetric(profile?.lifetimeTokens ?? 0)} tokens · {profile?.providers.length ?? 0} tools · {profile?.currentStreak ?? 0}-day streak</small></div>
     </section>
     {onboarding === '1' ? <GitHubProofSync username={user.login} compact/> : null}
+    {!hasCodingEvidence ? <PowerUpPanel hasCodingEvidence={false}/> : null}
     <ActivationShare
       username={user.login}
       initialSettings={{
@@ -68,6 +71,7 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
         archetype: profile?.archetype ?? { emoji: '⚡', title: 'Workflow Builder', summary: 'Building an evidence-backed coding workflow, one active day at a time.' },
       }}
     />
-    <PowerUpPanel hasCodingEvidence={Boolean(profile?.providers.length)}/>
+    {hasCodingEvidence ? <PowerUpPanel hasCodingEvidence/> : null}
+    <SiteFooter/>
   </main>;
 }

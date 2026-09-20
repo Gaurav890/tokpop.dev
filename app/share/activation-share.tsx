@@ -57,7 +57,9 @@ export function ActivationShare({ username, initialSettings, profile }: { userna
     }
   }
 
-  async function publishAndCopy() {
+  async function addToGitHub() {
+    const githubTab = window.open('', '_blank');
+    if (githubTab) githubTab.opener = null;
     setPending(true);
     if (!settings.publicEnabled) {
       setStatus('Publishing your card…');
@@ -65,13 +67,28 @@ export function ActivationShare({ username, initialSettings, profile }: { userna
       const response = await fetch('/api/v1/settings', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(next) });
       const body = await response.json().catch(() => ({})) as { error?: string };
       if (!response.ok) {
+        githubTab?.close();
         setStatus(body.error ?? 'The card could not be published.');
         setPending(false);
         return;
       }
       setSettings(next);
     }
-    await writeClipboard(absoluteShareValues().markdown, 'GitHub Markdown copied. Paste it into your profile README.');
+    const copied = await writeClipboard(absoluteShareValues().markdown, 'Card copied. Opening your GitHub profile repository…');
+    if (copied && githubTab) githubTab.location.href = `https://github.com/${encodeURIComponent(username)}/${encodeURIComponent(username)}`;
+    else githubTab?.close();
+    setPending(false);
+  }
+
+  async function joinLeaderboard() {
+    setPending(true);
+    const next = { ...settings, publicEnabled: true, leaderboardEnabled: true };
+    const response = await fetch('/api/v1/settings', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(next) });
+    const body = await response.json().catch(() => ({})) as { error?: string };
+    if (response.ok) {
+      setSettings(next);
+      setStatus('You are in. Eligible profiles appear on the leaderboard automatically.');
+    } else setStatus(body.error ?? 'Leaderboard opt-in failed.');
     setPending(false);
   }
 
@@ -110,28 +127,28 @@ export function ActivationShare({ username, initialSettings, profile }: { userna
       <p className="activation-card-note">Your card stays fresh as new activity arrives. Clicking it opens the full day-by-day breakdown.</p>
     </article>
 
-    <article className="activation-share-panel">
+    <article className={`activation-share-panel ${hasCodingEvidence ? '' : 'starter-share'}`}>
       <p className="eyebrow">Add it anywhere</p>
-      <h2>Pick a vibe. Then make it yours.</h2>
-      <p className="share-panel-intro">The whole card links back to your live profile. Tokens, streaks, and tool loadout update without changing the Markdown.</p>
+      <h2>{hasCodingEvidence ? 'Pick a vibe. Add it to GitHub.' : 'Your starter card can wait.'}</h2>
+      <p className="share-panel-intro">{hasCodingEvidence ? 'The card links to your exact provider and daily breakdown. It keeps updating without changing the Markdown.' : 'Connect coding activity above for the version worth sharing. You can still publish the GitHub-only starter card.'}</p>
 
       <div className="card-vibe-picker" aria-label="Card theme">
         <button type="button" className={theme === 'dark' ? 'active' : ''} onClick={() => setTheme('dark')}><span className="vibe-swatch midnight"/>Midnight</button>
         <button type="button" className={theme === 'light' ? 'active' : ''} onClick={() => setTheme('light')}><span className="vibe-swatch daylight"/>Daylight</button>
       </div>
 
-      <button type="button" className="publish-copy-button" onClick={publishAndCopy} disabled={pending}>{pending ? 'Making it live…' : settings.publicEnabled ? 'Copy GitHub Markdown' : 'Publish & copy GitHub Markdown'} <span>→</span></button>
-      <div className="quick-share-actions">
-        <button type="button" onClick={() => copy('profile')} disabled={!settings.publicEnabled}>Copy link</button>
+      <button type="button" className="publish-copy-button" onClick={addToGitHub} disabled={pending}>{pending ? 'Getting it ready…' : hasCodingEvidence ? 'Add to GitHub README' : 'Publish starter card'} <span>→</span></button>
+      <details className="share-more"><summary>More ways to share</summary><div className="quick-share-actions">
+        <button type="button" onClick={() => copy('profile')} disabled={!settings.publicEnabled}>Copy profile link</button>
         <button type="button" onClick={() => copy('post')} disabled={!settings.publicEnabled}>Copy launch post</button>
         <button type="button" onClick={() => copy('html')} disabled={!settings.publicEnabled}>Copy HTML</button>
-      </div>
+      </div></details>
 
       {!hasCodingEvidence ? <div className="power-up-nudge"><span>⚡</span><p><strong>Want the impressive version?</strong><small>Connect your coding tools below and this card powers up automatically.</small></p><a href="#power-up">Power it up ↓</a></div> : <div className="power-up-nudge connected"><span>✓</span><p><strong>Live coding stats connected</strong><small>{profile.providers.join(' · ')}</small></p><a href="#power-up">Manage ↓</a></div>}
 
       <div className="share-trust-line"><span>🔒 Private until published</span><span>🧼 No prompts or code</span></div>
       {status ? <p className="status-line" aria-live="polite">{status}</p> : null}
-      {settings.publicEnabled ? <Link className="open-profile-link" href={profilePath}>Open my live profile ↗</Link> : null}
+      {settings.publicEnabled ? <div className="post-share-loop"><Link className="open-profile-link" href={profilePath}>Open my live profile ↗</Link>{settings.leaderboardEnabled ? <Link href="/leaderboard">View leaderboard →</Link> : <button type="button" onClick={joinLeaderboard} disabled={pending}>Join the leaderboard →</button>}</div> : null}
     </article>
   </section>;
 }

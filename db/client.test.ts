@@ -9,7 +9,7 @@ describe('PostgreSQL query compatibility', () => {
   });
 
   it('converts the legacy date and aggregate expressions', () => {
-    expect(toPostgresSql("SELECT min(coverage_start,excluded.coverage_start), max(coverage_end,excluded.coverage_end) WHERE date >= date('now','-365 days')"))
-      .toBe("SELECT LEAST(coverage_start,excluded.coverage_start), GREATEST(coverage_end,excluded.coverage_end) WHERE date >= to_char(CURRENT_DATE - INTERVAL '365 days', 'YYYY-MM-DD')");
+    expect(toPostgresSql("SELECT min(source_coverage.coverage_start,excluded.coverage_start), max(source_coverage.coverage_end,excluded.coverage_end) WHERE date >= date('now','-365 days')"))
+      .toBe("SELECT LEAST(source_coverage.coverage_start,excluded.coverage_start), GREATEST(source_coverage.coverage_end,excluded.coverage_end) WHERE date >= to_char(CURRENT_DATE - INTERVAL '365 days', 'YYYY-MM-DD')");
   });
 });

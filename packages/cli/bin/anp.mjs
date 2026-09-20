@@ -5,8 +5,9 @@ import { existsSync, readFileSync, mkdirSync, writeFileSync, rmSync, readdirSync
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
+import { resolveCodexExecutable } from '../src/codex-executable.mjs';
 
-const VERSION = '0.1.1';
+const VERSION = '0.1.2';
 const DEFAULT_API_URL = 'https://ai-native-profile.vercel.app';
 const configDir = join(homedir(), '.config', 'ai-native-profile');
 const configFile = join(configDir, 'config.json');
@@ -19,7 +20,15 @@ const paths = {
 };
 
 const sourceNames = { codex: 'Codex', claude_code: 'Claude Code', cursor: 'Cursor', gemini_cli: 'Gemini CLI', copilot_cli: 'GitHub Copilot CLI' };
-const detectedSources = () => Object.entries(paths).map(([source, candidates]) => ({ source, detected: candidates.some(existsSync) }));
+const detectedSources = () => Object.entries(paths).map(([source, candidates]) => {
+  if (source !== 'codex') {
+    const detected = candidates.some(existsSync);
+    return { source, detected, detail:detected ? 'detected' : 'not detected' };
+  }
+  const executable = resolveCodexExecutable();
+  const localData = candidates.some(existsSync);
+  return { source, detected:Boolean(executable), detail:executable ? 'detected' : localData ? 'local data found; App Server unavailable' : 'not detected' };
+});
 const loadConfig = () => { try { return JSON.parse(readFileSync(configFile, 'utf8')); } catch { return {}; } };
 const saveConfig = (value) => { mkdirSync(configDir, { recursive: true, mode: 0o700 }); writeFileSync(configFile, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 }); };
 
@@ -100,7 +109,13 @@ async function cursorAggregate() {
 }
 
 async function codexAggregate() {
-  const child = spawn('codex', ['app-server'], { stdio: ['pipe', 'pipe', process.env.ANP_DEBUG === '1' ? 'inherit' : 'ignore'] });
+  const executable = resolveCodexExecutable();
+  if (!executable) throw new Error('Codex App Server is unavailable. Install the Codex CLI or set ANP_CODEX_PATH to its executable.');
+  const child = spawn(executable, ['app-server'], { stdio: ['pipe', 'pipe', process.env.ANP_DEBUG === '1' ? 'inherit' : 'ignore'] });
+  const started = new Promise((resolve, reject) => {
+    child.once('spawn', resolve);
+    child.once('error', (error) => reject(new Error(`Could not start Codex App Server: ${error.message}`)));
+  });
   const lines = createInterface({ input: child.stdout });
   const pending = new Map();
   lines.on('line', (line) => { try { const message = JSON.parse(line); if (typeof message.id === 'number') pending.get(message.id)?.(message); } catch {} });
@@ -110,6 +125,7 @@ async function codexAggregate() {
     child.stdin.write(`${JSON.stringify({ id, method, params })}\n`);
   });
   try {
+    await started;
     await request(1, 'initialize', { clientInfo: { name:'ai_native_profile', title:'AI Native Profile', version:VERSION } });
     child.stdin.write(`${JSON.stringify({ method:'initialized', params:{} })}\n`);
     const usage = await request(2, 'account/usage/read');
@@ -125,7 +141,11 @@ async function codexAggregate() {
 
 async function createBatch() {
   let codexDaily = [];
-  try { codexDaily = await codexAggregate(); } catch (error) { if (process.env.ANP_DEBUG === '1') console.error(`Codex usage unavailable: ${error instanceof Error ? error.message : String(error)}`); }
+  const hasCodexState = paths.codex.some(existsSync);
+  if (hasCodexState || resolveCodexExecutable()) {
+    try { codexDaily = await codexAggregate(); }
+    catch (error) { console.error(`Codex skipped: ${error instanceof Error ? error.message : String(error)}`); }
+  }
   const daily = [...codexDaily, ...(claudeAggregate() ?? []), ...(await cursorAggregate()), ...genericLocalAggregate('gemini_cli', paths.gemini_cli), ...genericLocalAggregate('copilot_cli', paths.copilot_cli)];
   const dates = daily.map((day) => day.date).sort();
   const sources = [...new Set(daily.map((day) => day.source))];
@@ -142,7 +162,7 @@ async function createBatch() {
 
 function printSources() {
   console.log('AI Native Profile source check\n');
-  for (const item of detectedSources()) console.log(`${item.detected ? '●' : '○'} ${sourceNames[item.source].padEnd(20)} ${item.detected ? 'detected' : 'not detected'}`);
+  for (const item of detectedSources()) console.log(`${item.detected ? '●' : '○'} ${sourceNames[item.source].padEnd(20)} ${item.detail}`);
   console.log('\nOnly aggregate activity leaves this device. Run `anp preview` to inspect it.');
 }
 

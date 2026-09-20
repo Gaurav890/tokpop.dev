@@ -37,4 +37,4 @@ jobs:
         run: npm pack --dry-run
       - name: Publish package
         working-directory: packages/cli
-        run: npm publish --access public
+        run: npm publish --access public --provenance

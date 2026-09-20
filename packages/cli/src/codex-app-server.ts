@@ -1,10 +1,16 @@
 import { spawn } from 'node:child_process';
 import { createInterface } from 'node:readline';
+import { resolveCodexExecutable } from './codex-executable.mjs';
 
 type RpcResponse = { id?: number; result?: unknown; error?: { message?: string } };
 
-export async function readCodexAccountUsage(timeoutMs = 8_000): Promise<unknown> {
-  const child = spawn('codex', ['app-server'], { stdio: ['pipe', 'pipe', 'pipe'] });
+export async function readCodexAccountUsage(timeoutMs = 8_000, executable = resolveCodexExecutable()): Promise<unknown> {
+  if (!executable) throw new Error('Codex App Server is unavailable. Install the Codex CLI or set ANP_CODEX_PATH to its executable.');
+  const child = spawn(executable, ['app-server'], { stdio: ['pipe', 'pipe', 'pipe'] });
+  const started = new Promise<void>((resolve, reject) => {
+    child.once('spawn', resolve);
+    child.once('error', (error) => reject(new Error(`Could not start Codex App Server: ${error.message}`)));
+  });
   const lines = createInterface({ input: child.stdout });
   const pending = new Map<number, (response: RpcResponse) => void>();
   lines.on('line', (line) => {
@@ -24,7 +30,8 @@ export async function readCodexAccountUsage(timeoutMs = 8_000): Promise<unknown>
     child.stdin.write(`${JSON.stringify({ id, method, params })}\n`);
   });
   try {
-    await request(1, 'initialize', { clientInfo: { name: 'ai_native_profile', title: 'AI Native Profile', version: '0.1.0' } });
+    await started;
+    await request(1, 'initialize', { clientInfo: { name: 'ai_native_profile', title: 'AI Native Profile', version: '0.1.2' } });
     child.stdin.write(`${JSON.stringify({ method: 'initialized', params: {} })}\n`);
     return await request(2, 'account/usage/read');
   } finally {

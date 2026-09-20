@@ -96,6 +96,16 @@ Use a self-hosted deployment instead of the managed service:
 npx --yes ai-native-profile@latest connect --api-url https://your-domain.example
 ```
 
+## Troubleshooting Codex discovery
+
+The collector checks the shell `PATH` and the standard macOS ChatGPT/Codex app-bundle locations for the Codex App Server executable. If yours lives elsewhere, provide its exact path:
+
+```bash
+ANP_CODEX_PATH=/path/to/codex npx --yes ai-native-profile@latest preview
+```
+
+If the App Server is unavailable, the collector reports that Codex was skipped and continues collecting other detected sources instead of failing the entire sync.
+
 ## What the evidence means
 
 Every metric carries its source, coverage dates, freshness, and provenance. A device signature protects integrity in transit; it does not make a user-controlled computer tamper-proof. Activity demonstrates workflow adoption, not developer skill, productivity, code quality, or AI authorship.

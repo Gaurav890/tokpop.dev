@@ -26,6 +26,10 @@ export type ActivityCategory = 'coding' | 'conversation' | 'delivery';
 
 export type MetricName =
   | 'tokens'
+  | 'input_tokens'
+  | 'output_tokens'
+  | 'cache_creation_input_tokens'
+  | 'cache_read_input_tokens'
   | 'sessions'
   | 'turns'
   | 'tool_calls'
@@ -84,7 +88,7 @@ export type ActivityBatch = {
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const ISO_DATETIME = /^\d{4}-\d{2}-\d{2}T/;
-const METRIC_NAMES: MetricName[] = ['tokens', 'sessions', 'turns', 'tool_calls', 'tool_using_sessions', 'advanced_workflow_sessions', 'skill_uses', 'command_uses', 'agent_runs', 'duration_seconds', 'commits', 'merged_pull_requests', 'reviews', 'releases'];
+const METRIC_NAMES: MetricName[] = ['tokens', 'input_tokens', 'output_tokens', 'cache_creation_input_tokens', 'cache_read_input_tokens', 'sessions', 'turns', 'tool_calls', 'tool_using_sessions', 'advanced_workflow_sessions', 'skill_uses', 'command_uses', 'agent_runs', 'duration_seconds', 'commits', 'merged_pull_requests', 'reviews', 'releases'];
 const CATEGORIES: ActivityCategory[] = ['coding', 'conversation', 'delivery'];
 
 export function competitiveEligible(source: SourceSurface, provenance: Provenance): boolean {

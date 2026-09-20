@@ -46,7 +46,7 @@ npx --yes ai-native-profile@latest watch
 | Source | Collection path | Trust label |
 |---|---|---|
 | Codex | Official local App Server account usage | Official account source |
-| Claude Code | Local statistics cache | Local exact |
+| Claude Code | Deduplicated local session usage plus non-overlapping statistics-cache history | Local exact for retained records; partial lifetime coverage |
 | Cursor | Supported local database metadata | Estimated; excluded from rankings |
 | Gemini CLI | Locally retained CLI telemetry | Locally derived |
 | GitHub Copilot CLI | Locally retained CLI activity | Locally derived |
@@ -59,6 +59,7 @@ Normal synchronization may include:
 
 - Dates and provider/model identifiers
 - Token, session, turn, and tool-call counts
+- Input, output, cache-write, and cache-read token counts when a provider reports them
 - Duration, coverage, freshness, and provenance
 - Collector version and an anonymous device identifier
 

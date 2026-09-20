@@ -139,6 +139,10 @@ button,a { font:inherit; } button { cursor:pointer; } a { color:inherit; text-de
 .token-source-list>div>div span { margin-top:3px; color:#8a92a1; font-size:8px; text-transform:uppercase; letter-spacing:.05em; }
 .token-source-list>div>b { align-self:center; font:700 14px var(--font-geist-mono); }
 .token-source-list>div>b small { display:block; margin-top:4px; color:#7f8796; font:650 8px var(--font-geist-sans); text-align:right; text-transform:uppercase; letter-spacing:.04em; }
+.token-components { grid-column:1/-1; display:grid; grid-template-columns:repeat(auto-fit,minmax(105px,1fr)); gap:7px; margin:2px 0 0; padding-top:10px; border-top:1px solid #e5e8ef; }
+.token-components div { min-width:0; }
+.token-components dt { color:#8a92a1; font-size:8px; text-transform:uppercase; letter-spacing:.05em; }
+.token-components dd { margin:3px 0 0; color:#303746; font:700 10px var(--font-geist-mono); }
 .token-bar { grid-column:1/-1; height:4px; overflow:hidden; border-radius:999px; background:#e7eaf1; }
 .token-bar i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#304cff,#8294ff); }
 .activity-mini-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; margin-top:19px; overflow:hidden; border:1px solid #dce1ec; border-radius:7px; background:#dce1ec; }
@@ -165,6 +169,7 @@ button,a { font:inherit; } button { cursor:pointer; } a { color:inherit; text-de
 .daily-token-table tbody tr:nth-child(even) td,.daily-token-table tbody tr:nth-child(even) th { background:#f7f8fb; }
 .daily-token-table tbody tr:last-child th,.daily-token-table tbody tr:last-child td { border-bottom:0; }
 .daily-token-table .daily-total { color:var(--blue); font-weight:800; }
+.provenance-list em { display:block; max-width:360px; margin-top:4px; color:#7f8796; font-size:9px; font-style:normal; line-height:1.4; }
 .empty-ledger { margin:0; padding:24px; border:1px dashed #ccd3e1; border-radius:7px; color:#7b8392; font-size:11px; text-align:center; }
 
 .private-card-preview { min-height:0; }

@@ -9,6 +9,10 @@ describe('activity schema boundary', () => {
     expect(competitiveEligible('codex', 'official_account_api')).toBe(true);
   });
   it('accepts an empty signed aggregate batch', () => expect(validateActivityBatch(batch).ok).toBe(true));
+  it('accepts transparent token component metrics', () => {
+    const componentBatch = { ...batch, daily: [{ date: '2026-09-12', source: 'claude_code', category: 'coding', metrics: ['input_tokens', 'output_tokens', 'cache_creation_input_tokens', 'cache_read_input_tokens'].map((name) => ({ name, value: 1, unit: 'count', provenance: 'local_exact', source: 'claude_code', coverageStart: '2026-09-12', coverageEnd: '2026-09-12', competitiveEligible: true })) }] };
+    expect(validateActivityBatch(componentBatch).ok).toBe(true);
+  });
   it('rejects web conversation activity marked competitive', () => {
     const invalid = { ...batch, daily: [{ date: '2026-09-12', source: 'chatgpt_web', category: 'conversation', metrics: [{ name: 'sessions', value: 1, unit: 'count', provenance: 'mcp_observed', source: 'chatgpt_web', coverageStart: '2026-09-12', coverageEnd: '2026-09-12', competitiveEligible: true }] }] };
     expect(validateActivityBatch(invalid).ok).toBe(false);

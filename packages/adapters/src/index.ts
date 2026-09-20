@@ -1,4 +1,4 @@
-import type { DailyActivity, MetricName, Provenance, SourceCoverage, SourceSurface } from '@ai-native-profile/schema';
+import type { Completeness, DailyActivity, MetricName, Provenance, SourceCoverage, SourceSurface } from '@ai-native-profile/schema';
 
 export type AdapterResult = {
   source: SourceSurface;
@@ -31,14 +31,14 @@ function metric(name: MetricName, value: number, source: SourceSurface, provenan
   return { name, value, unit: name === 'duration_seconds' ? 'seconds' : 'count', source, provenance, coverageStart: date, coverageEnd: date, competitiveEligible } as const;
 }
 
-function coverage(source: SourceSurface, dates: string[], provenance: Provenance, competitiveEligible: boolean, note?: string): SourceCoverage {
+function coverage(source: SourceSurface, dates: string[], provenance: Provenance, competitiveEligible: boolean, note?: string, completeness?: Completeness): SourceCoverage {
   const sorted = [...dates].filter((date) => datePattern.test(date)).sort();
   return {
     source,
     coverageStart: sorted[0] ?? today(),
     coverageEnd: sorted.at(-1) ?? today(),
     lastSyncedAt: new Date().toISOString(),
-    completeness: provenance === 'official_account_api' || provenance === 'local_exact' ? 'full' : 'partial',
+    completeness: completeness ?? (provenance === 'official_account_api' || provenance === 'local_exact' ? 'full' : 'partial'),
     competitiveEligible,
     note,
   };
@@ -92,7 +92,75 @@ export function parseClaudeStatsCache(value: unknown): AdapterResult {
     }];
   });
   if (!daily.length) warnings.push('Claude statistics contained no dated activity.');
-  return { source: 'claude_code', daily, coverage: coverage('claude_code', daily.map((day) => day.date), 'local_exact', true), warnings };
+  return { source: 'claude_code', daily, coverage: coverage('claude_code', daily.map((day) => day.date), 'local_exact', true, 'Statistics-cache rows may omit cache-read and cache-write tokens and cannot prove complete lifetime coverage.', 'partial'), warnings };
+}
+
+type ClaudeUsage = {
+  input_tokens?: number;
+  output_tokens?: number;
+  cache_creation_input_tokens?: number;
+  cache_read_input_tokens?: number;
+};
+
+type ClaudeSessionEvent = {
+  timestamp?: string;
+  sessionId?: string;
+  session_id?: string;
+  requestId?: string;
+  message?: { id?: string; model?: string; content?: Array<{ type?: string }>; usage?: ClaudeUsage };
+};
+
+export function parseClaudeSessionLogs(text: string): AdapterResult {
+  const warnings: string[] = [];
+  const messages = new Map<string, { date: string; timestamp: string; model: string; tools: number; input: number; output: number; cacheCreation: number; cacheRead: number }>();
+  const sessions = new Map<string, string>();
+  for (const [index, line] of text.split(/\r?\n/).entries()) {
+    if (!line.trim()) continue;
+    let event: ClaudeSessionEvent;
+    try { event = JSON.parse(line) as ClaudeSessionEvent; }
+    catch { warnings.push(`Skipped malformed Claude JSONL record ${index + 1}.`); continue; }
+    const sessionId = String(event.sessionId ?? event.session_id ?? '');
+    const timestamp = typeof event.timestamp === 'string' ? event.timestamp : '';
+    const date = timestamp.slice(0, 10);
+    if (sessionId && datePattern.test(date) && (!sessions.has(sessionId) || date < sessions.get(sessionId)!)) sessions.set(sessionId, date);
+    const usage = event.message?.usage;
+    const messageId = String(event.message?.id ?? event.requestId ?? '');
+    if (!sessionId || !messageId || !usage || !datePattern.test(date)) continue;
+    const candidate = {
+      date,
+      timestamp,
+      model: event.message?.model || 'unknown',
+      tools: event.message?.content?.filter((block) => block?.type === 'tool_use').length ?? 0,
+      input: safeCount(usage.input_tokens),
+      output: safeCount(usage.output_tokens),
+      cacheCreation: safeCount(usage.cache_creation_input_tokens),
+      cacheRead: safeCount(usage.cache_read_input_tokens),
+    };
+    const key = `${sessionId}:${messageId}`;
+    const existing = messages.get(key);
+    const total = (item: typeof candidate) => item.input + item.output + item.cacheCreation + item.cacheRead;
+    if (!existing || candidate.timestamp > existing.timestamp || (candidate.timestamp === existing.timestamp && total(candidate) > total(existing))) messages.set(key, candidate);
+  }
+  const rows = new Map<string, { sessions: number; turns: number; tools: number; input: number; output: number; cacheCreation: number; cacheRead: number; models: Record<string, number> }>();
+  const row = (date: string) => {
+    const existing = rows.get(date);
+    if (existing) return existing;
+    const created = { sessions: 0, turns: 0, tools: 0, input: 0, output: 0, cacheCreation: 0, cacheRead: 0, models: {} as Record<string, number> };
+    rows.set(date, created);
+    return created;
+  };
+  for (const date of sessions.values()) row(date).sessions += 1;
+  for (const message of messages.values()) {
+    const current = row(message.date);
+    current.turns += 1; current.tools += message.tools; current.input += message.input; current.output += message.output; current.cacheCreation += message.cacheCreation; current.cacheRead += message.cacheRead;
+    current.models[message.model] = (current.models[message.model] ?? 0) + message.input + message.output + message.cacheCreation + message.cacheRead;
+  }
+  const daily = [...rows.entries()].sort(([left], [right]) => left.localeCompare(right)).map(([date, current]): DailyActivity => {
+    const tokens = current.input + current.output + current.cacheCreation + current.cacheRead;
+    const metrics: Array<[MetricName, number]> = [['sessions', current.sessions], ['turns', current.turns], ['tool_calls', current.tools], ['tokens', tokens], ['input_tokens', current.input], ['output_tokens', current.output], ['cache_creation_input_tokens', current.cacheCreation], ['cache_read_input_tokens', current.cacheRead]];
+    return { date, source: 'claude_code', category: 'coding', metrics: metrics.filter(([, count]) => count > 0).map(([name, count]) => metric(name, count, 'claude_code', 'local_exact', date)), models: current.models };
+  });
+  return { source: 'claude_code', daily, coverage: coverage('claude_code', daily.map((day) => day.date), 'local_exact', true, 'Exact for retained session records; local retention cannot prove complete lifetime coverage.', 'partial'), warnings };
 }
 
 type JsonlOptions = {

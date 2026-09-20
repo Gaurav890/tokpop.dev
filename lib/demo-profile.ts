@@ -16,14 +16,14 @@ export type PublicProfile = {
   currentStreak: number;
   longestStreak: number;
   lifetimeTokens: number;
-  tokenBreakdown: Array<{ source: string; label: string; tokens: number; provenance: string }>;
+  tokenBreakdown: Array<{ source: string; label: string; tokens: number; provenance: string; components?: { input: number; output: number; cacheCreation: number; cacheRead: number; combinedOnly: number } }>;
   dailyTokens: DailyTokenRow[];
   sessions: number;
   activityTotals: { sessions: number; turns: number; toolCalls: number; skillUses: number; commandUses: number; agentRuns: number };
   archetype: ProfileArchetype;
   deliveryPoints: number;
   providers: string[];
-  coverage: Array<{ source: string; label: string; provenance: string; status: string; completeness: string }>;
+  coverage: Array<{ source: string; label: string; provenance: string; status: string; completeness: string; note?: string }>;
   activity: Array<{ date: string; value: number }>;
   github: { commits: number; mergedPullRequests: number; reviews: number; releases: number };
   conversation: { sessions: number; activeDays: number; coverage: string };
@@ -56,7 +56,7 @@ export const demoProfile: PublicProfile = {
   lifetimeTokens: 2_480_000_000,
   tokenBreakdown: [
     { source: 'codex', label: 'Codex', tokens: 2_200_000_000, provenance: 'Official account' },
-    { source: 'claude_code', label: 'Claude Code', tokens: 280_000_000, provenance: 'Local exact' },
+    { source: 'claude_code', label: 'Claude Code', tokens: 280_000_000, provenance: 'Local exact', components: { input: 1_000_000, output: 19_000_000, cacheCreation: 40_000_000, cacheRead: 220_000_000, combinedOnly: 0 } },
   ],
   dailyTokens: demoDailyTokens,
   sessions: 684,
@@ -66,7 +66,7 @@ export const demoProfile: PublicProfile = {
   providers: ['Codex', 'Claude Code', 'Cursor'],
   coverage: [
     { source: 'codex', label: 'Codex', provenance: 'Official account', status: 'Live', completeness: 'full' },
-    { source: 'claude_code', label: 'Claude Code', provenance: 'Local exact', status: 'Live', completeness: 'full' },
+    { source: 'claude_code', label: 'Claude Code', provenance: 'Local exact', status: 'Partial', completeness: 'partial', note: 'Exact for retained session records; local retention cannot prove complete lifetime coverage.' },
     { source: 'cursor', label: 'Cursor', provenance: 'Local derived', status: 'Live', completeness: 'partial' },
     { source: 'chatgpt_web', label: 'ChatGPT Web', provenance: 'MCP observed', status: 'Partial', completeness: 'partial' },
   ],

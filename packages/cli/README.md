@@ -33,6 +33,14 @@ The command prints a short-lived verification URL and code. Open the URL, sign i
 npx --yes ai-native-profile@latest sync
 ```
 
+For the fastest setup, sign in on the website and choose **Power up with coding activity**. The site creates a one-time command like this:
+
+```bash
+npx --yes ai-native-profile@latest connect --code ABCD1234
+```
+
+That command is already associated with the signed-in profile. It detects sources, displays the privacy boundary, asks once before the first sync, and updates the open card without requiring the code to be entered again.
+
 To keep syncing every 15 minutes while the command is running:
 
 ```bash

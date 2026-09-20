@@ -61,7 +61,7 @@ export const demoProfile: PublicProfile = {
   dailyTokens: demoDailyTokens,
   sessions: 684,
   activityTotals: { sessions: 684, turns: 8_420, toolCalls: 2_310, skillUses: 410, commandUses: 82, agentRuns: 39 },
-  archetype: { emoji: '🥷', title: 'Token Ninja', summary: '2.5B observed coding tokens. 41 days straight. Quietly relentless.' },
+  archetype: { emoji: '🥷', title: 'Token Ninja', summary: '2.5B tokens moved. 41 days straight. Quietly relentless.' },
   deliveryPoints: 172,
   providers: ['Codex', 'Claude Code', 'Cursor'],
   coverage: [

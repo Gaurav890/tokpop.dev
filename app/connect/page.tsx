@@ -16,7 +16,7 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
       <p className="eyebrow">{starterProfileReady ? 'Onboarding · your starter profile is ready' : isOnboarding ? 'Onboarding · start with GitHub' : 'Choose the evidence source'}</p>
       <h1>{starterProfileReady ? 'Publish now. Add stronger proof when you want.' : isOnboarding ? 'Create your profile without installing anything.' : 'Web conversations in the browser. Coding activity from your computer.'}</h1>
       <p>{starterProfileReady ? 'GitHub already created your private starter profile. Preview and publish it now with no installation, or add one of the optional evidence sources below first.' : isOnboarding ? 'Sign in with GitHub to create a private starter profile. Additional browser and local coding sources are optional upgrades.' : 'ChatGPT and Claude Web have browser-based options. Coding tools store their evidence locally, so they use a small privacy-filtering collector.'}</p>
-      {isOnboarding && !user ? <Link className="primary-link dashboard-signin" href={`/api/auth/github/start?return_to=${encodeURIComponent('/connect?onboarding=1')}`}>Create profile with GitHub →</Link> : null}
+      {isOnboarding && !user ? <Link className="primary-link dashboard-signin" href={`/api/auth/github/start?return_to=${encodeURIComponent('/share?onboarding=1')}`}>Make my card →</Link> : null}
     </section>
 
     {isOnboarding && user ? <>

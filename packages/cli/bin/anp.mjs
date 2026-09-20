@@ -8,7 +8,7 @@ import { createInterface } from 'node:readline';
 import { resolveCodexExecutable } from '../src/codex-executable.mjs';
 import { addClaudeSessionEvent, createClaudeSessionAccumulator, finalizeClaudeSessionUsage, mergeClaudeUsage, parseClaudeStatsCache } from '../src/claude-usage.mjs';
 
-const VERSION = '0.1.3';
+const VERSION = '0.2.0';
 const DEFAULT_API_URL = 'https://ai-native-profile.vercel.app';
 const configDir = join(homedir(), '.config', 'ai-native-profile');
 const configFile = join(configDir, 'config.json');
@@ -181,9 +181,49 @@ function printSources() {
   console.log('\nOnly aggregate activity leaves this device. Run `anp preview` to inspect it.');
 }
 
+function confirmFirstSync() {
+  if (process.argv.includes('--yes')) return Promise.resolve(true);
+  if (!process.stdin.isTTY || !process.stdout.isTTY) return Promise.resolve(false);
+  const prompt = createInterface({ input:process.stdin, output:process.stdout });
+  return new Promise((resolve) => prompt.question('\nSync these aggregate activity counts now? [Y/n] ', (answer) => {
+    prompt.close();
+    resolve(!/^n(?:o)?$/i.test(answer.trim()));
+  }));
+}
+
+function printPrivacyPreview() {
+  console.log('\nMay sync: dates, provider/model IDs, token and activity counts, duration, coverage, and collector version.');
+  console.log('Never syncs: prompts, responses, source code, commands, paths, repositories, credentials, or environment variables.');
+}
+
+async function claimWebConnection(apiUrl, userCode) {
+  const response = await fetch(`${apiUrl.replace(/\/$/, '')}/api/v1/device/claim`, {
+    method:'POST',
+    headers:{ 'content-type':'application/json' },
+    body:JSON.stringify({ userCode, deviceName:process.env.USER ?? 'Developer device', collectorVersion:VERSION }),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok || !body.deviceToken || !body.deviceId) throw new Error(body.error ?? `Connection failed (${response.status}).`);
+  saveConfig({ apiUrl, deviceId:body.deviceId, deviceToken:body.deviceToken });
+  console.log('Connected to your AI Native Profile.');
+  printSources();
+  printPrivacyPreview();
+  if (await confirmFirstSync()) {
+    await sync();
+    console.log('Your card is updated. Return to the browser to see it.');
+  } else {
+    console.log('\nConnected without syncing. Run `anp preview` to inspect the payload, then `anp sync` when ready.');
+  }
+}
+
 async function connect() {
   const apiUrl = option('api-url') ?? process.env.ANP_API_URL ?? DEFAULT_API_URL;
   if (!/^https?:\/\//.test(apiUrl)) throw new Error('The API URL must start with https:// or http://.');
+  const connectionCode = option('code');
+  if (connectionCode) {
+    await claimWebConnection(apiUrl, connectionCode);
+    return;
+  }
   const response = await fetch(`${apiUrl.replace(/\/$/, '')}/api/v1/device/pair`, { method:'POST', headers:{ 'content-type':'application/json' }, body:JSON.stringify({ deviceName:process.env.USER ?? 'Developer device', collectorVersion:VERSION }) });
   if (!response.ok) throw new Error(`Pairing failed (${response.status}).`);
   const pair = await response.json();
@@ -216,7 +256,7 @@ async function sync() {
 }
 
 function help() {
-  console.log(`AI Native Profile collector ${VERSION}\n\nUsage: anp <command> [options]\n\n  connect      Pair this device with the cloud dashboard\n               --api-url <url> overrides the hosted dashboard\n  sources      Detect supported coding tools\n  preview      Print the exact aggregate payload\n  sync         Send one aggregate batch\n  watch        Sync every 15 minutes until stopped\n  doctor       Check configuration and sources\n  sessions     Explain selected-session sharing\n  share        Publish a selected sanitized session\n  unshare      Revoke a shared session\n  export       Alias for preview\n  disconnect   Remove the local platform pairing\n`);
+  console.log(`AI Native Profile collector ${VERSION}\n\nUsage: anp <command> [options]\n\n  connect      Pair this device with the cloud dashboard\n               --code <code> claims a command created by the signed-in website\n               --api-url <url> overrides the hosted dashboard\n               --yes approves the first aggregate sync without prompting\n  sources      Detect supported coding tools\n  preview      Print the exact aggregate payload\n  sync         Send one aggregate batch\n  watch        Sync every 15 minutes until stopped\n  doctor       Check configuration and sources\n  sessions     Explain selected-session sharing\n  share        Publish a selected sanitized session\n  unshare      Revoke a shared session\n  export       Alias for preview\n  disconnect   Remove the local platform pairing\n`);
 }
 
 function option(name) { const index = process.argv.indexOf(`--${name}`); return index >= 0 ? process.argv[index + 1] : undefined; }

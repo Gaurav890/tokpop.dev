@@ -12,7 +12,7 @@ describe('SVG renderers', () => {
   it('renders an unranked badge safely', () => expect(renderBadge(null)).toContain('unranked'));
   it('does not overstate locally collected evidence', () => {
     const svg = renderProfileCard(profile);
-    expect(svg).toContain('Coverage-labelled evidence');
+    expect(svg).toContain('SOURCE-LABELLED');
     expect(svg).not.toContain('Verified collection');
   });
   it('shows every provider without a hidden remainder', () => {
@@ -29,6 +29,8 @@ describe('SVG renderers', () => {
     expect(svg).toContain('1B');
     expect(svg).toContain('Claude Code');
     expect(svg).toContain('200M');
+    expect(svg).toContain('TOOL LOADOUT');
+    expect(svg).toContain('MAKE YOURS');
   });
   it('renders story cards at the requested dimensions', () => {
     const svg = renderSocialCard(profile, 'story');

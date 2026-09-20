@@ -3,11 +3,11 @@ import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.PUBLIC_APP_URL ?? 'http://localhost:3000'),
-  title: 'AI Native Profile — Show how you build. Back it with evidence.',
-  description: 'A verified profile for coding-agent activity and the work you ship, with coverage and provenance on every signal.',
+  title: 'AI Native Profile — Your AI build story, one live card',
+  description: 'Turn your coding tools, tokens, streaks, and shipping into a live card made for your GitHub README.',
   openGraph: {
-    title: 'AI Native Profile — The open proof layer for AI-native developers',
-    description: 'Evidence-based coding activity, GitHub delivery, transparent scoring, and portable developer profiles.',
+    title: 'Meet your AI build alter ego',
+    description: 'Make a live GitHub card from the coding tools, tokens, streaks, and shipping behind your work.',
     type: 'website',
     images: [{ url: '/og.png', width: 1734, height: 907, alt: 'AI Native Profile dashboard preview' }],
   },

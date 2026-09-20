@@ -7,6 +7,8 @@ import { backendJson, backendOrigin } from '../../lib/server-api';
 import { SiteHeader } from '../ui/site-header';
 import { ActivationShare } from './activation-share';
 import { compactMetric } from '../../lib/profile-archetype';
+import { GitHubProofSync } from '../connect/github-proof-sync';
+import { PowerUpPanel } from './power-up-panel';
 
 type SettingsRow = {
   public_enabled: number;
@@ -35,12 +37,13 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
     <SiteHeader user={user}/>
     <section className="activation-hero">
       <div>
-        <p className="eyebrow">{onboarding === '1' ? 'Onboarding · step 3 of 3' : 'Publish and share'}</p>
-        <h1>Turn your evidence into something people can see.</h1>
-        <p>Your GitHub-verified starter profile can be published without installing anything. Add a live card to your README now, then connect coding evidence later if you want. Publishing never exposes prompts, code, repository names, or credentials.</p>
+        <p className="eyebrow">{onboarding === '1' ? 'Your card is ready 🎉' : 'Your live build card'}</p>
+        <h1>Meet your AI build alter ego.</h1>
+        <p>Publish a card people actually want in their README. Start with GitHub, then power it up with real coding activity—all without exposing prompts, code, or credentials.</p>
       </div>
-      <div className="activation-step"><span>{settings?.public_enabled ? 'LIVE' : 'PRIVATE'}</span><strong>{profile?.archetype.emoji} {profile?.archetype.title ?? 'Workflow Builder'}</strong><small>{compactMetric(profile?.lifetimeTokens ?? 0)} tokens · {profile?.providers.length ?? 0} providers · {profile?.activeDays ?? 0} active days</small></div>
+      <div className="activation-step"><span>{settings?.public_enabled ? 'LIVE ●' : 'UNLOCKED'}</span><strong>{profile?.archetype.emoji} {profile?.archetype.title ?? 'Workflow Builder'}</strong><small>{compactMetric(profile?.lifetimeTokens ?? 0)} tokens · {profile?.providers.length ?? 0} tools · {profile?.currentStreak ?? 0}-day streak</small></div>
     </section>
+    {onboarding === '1' ? <GitHubProofSync username={user.login} compact/> : null}
     <ActivationShare
       username={user.login}
       initialSettings={{
@@ -61,8 +64,10 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
         lifetimeTokens: profile?.lifetimeTokens ?? 0,
         tokenBreakdown: profile?.tokenBreakdown.map(({ label, tokens }) => ({ label, tokens })) ?? [],
         sessions: profile?.sessions ?? 0,
+        updatedAt: profile?.updatedAt ?? new Date().toISOString(),
         archetype: profile?.archetype ?? { emoji: '⚡', title: 'Workflow Builder', summary: 'Building an evidence-backed coding workflow, one active day at a time.' },
       }}
     />
+    <PowerUpPanel hasCodingEvidence={Boolean(profile?.providers.length)}/>
   </main>;
 }

@@ -23,6 +23,7 @@ type ShareProfile = {
   lifetimeTokens: number;
   tokenBreakdown: Array<{ label: string; tokens: number }>;
   sessions: number;
+  updatedAt: string;
   archetype: { emoji: string; title: string; summary: string };
 };
 
@@ -30,77 +31,107 @@ const compact = (value: number) => new Intl.NumberFormat('en', { notation: 'comp
 
 export function ActivationShare({ username, initialSettings, profile }: { username: string; initialSettings: Settings; profile: ShareProfile }) {
   const [settings, setSettings] = useState(initialSettings);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [status, setStatus] = useState('');
   const [pending, setPending] = useState(false);
   const hasCodingEvidence = profile.providers.length > 0;
   const profilePath = `/u/${username}`;
-  const cardPath = `/api/v1/cards/${username}?theme=dark`;
-  const previewProviders = profile.providers.join(' · ') || 'GitHub starter only';
-  const previewTokenSplit = profile.tokenBreakdown.map((item) => `${item.label} ${compact(item.tokens)}`).join(' · ') || 'No token-reporting source yet';
+  const cardPath = `/api/v1/cards/${username}?theme=${theme}`;
+  const previewCardPath = `${cardPath}&v=${encodeURIComponent(profile.updatedAt)}`;
 
-  async function publish() {
-    setPending(true);
-    setStatus('Publishing your profile…');
-    const next = { ...settings, publicEnabled: true };
-    const response = await fetch('/api/v1/settings', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(next) });
-    const body = await response.json().catch(() => ({})) as { error?: string };
-    if (response.ok) {
-      setSettings(next);
-      setStatus('Profile published. Your card is ready to share.');
-    } else setStatus(body.error ?? 'The profile could not be published.');
-    setPending(false);
-  }
-
-  async function copy(kind: 'readme' | 'profile' | 'post') {
+  function absoluteShareValues() {
     const origin = window.location.origin;
     const profileUrl = `${origin}${profilePath}`;
     const cardUrl = `${origin}${cardPath}`;
-    const value = kind === 'readme'
-      ? `[![AI Native Profile](${cardUrl})](${profileUrl})`
-      : kind === 'post'
-        ? `I made my coding-agent workflow visible: ${profileUrl}\n\nCoverage and provenance are shown on every signal. Activity is evidence of workflow adoption—not a measure of developer skill.`
+    return { profileUrl, cardUrl, markdown: `[![${username}'s AI build card](${cardUrl})](${profileUrl})` };
+  }
+
+  async function writeClipboard(value: string, success: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setStatus(success);
+      return true;
+    } catch {
+      setStatus('Your profile is live. Use the copy button again to copy the card.');
+      return false;
+    }
+  }
+
+  async function publishAndCopy() {
+    setPending(true);
+    if (!settings.publicEnabled) {
+      setStatus('Publishing your card…');
+      const next = { ...settings, publicEnabled: true };
+      const response = await fetch('/api/v1/settings', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(next) });
+      const body = await response.json().catch(() => ({})) as { error?: string };
+      if (!response.ok) {
+        setStatus(body.error ?? 'The card could not be published.');
+        setPending(false);
+        return;
+      }
+      setSettings(next);
+    }
+    await writeClipboard(absoluteShareValues().markdown, 'GitHub Markdown copied. Paste it into your profile README.');
+    setPending(false);
+  }
+
+  async function copy(kind: 'profile' | 'post' | 'html') {
+    const { profileUrl, cardUrl } = absoluteShareValues();
+    const value = kind === 'post'
+      ? `${profile.archetype.emoji} ${profile.archetype.title}\n\n${compact(profile.lifetimeTokens)} AI coding tokens · ${profile.streakDays}-day streak · ${profile.providers.length} tool${profile.providers.length === 1 ? '' : 's'} in my loadout.\n\nMake yours: ${profileUrl}`
+      : kind === 'html'
+        ? `<a href="${profileUrl}"><img src="${cardUrl}" alt="${username}'s AI build card" /></a>`
         : profileUrl;
-    await navigator.clipboard.writeText(value);
-    setStatus(kind === 'readme' ? 'README Markdown copied.' : kind === 'post' ? 'Launch post copied.' : 'Profile link copied.');
+    await writeClipboard(value, kind === 'post' ? 'Launch post copied.' : kind === 'html' ? 'HTML copied.' : 'Profile link copied.');
   }
 
   return <section className="activation-grid">
     <article className="activation-preview">
-      <div className="activation-card-head"><span>LIVE README CARD</span><b>{settings.publicEnabled ? 'PUBLIC' : 'PREVIEW'}</b></div>
+      <div className="activation-card-head"><span>YOUR LIVE BUILD CARD</span><b>{settings.publicEnabled ? 'LIVE ●' : 'PRIVATE PREVIEW'}</b></div>
       {settings.publicEnabled
-        ? <Image src={cardPath} width={640} height={282} unoptimized alt={`${username}'s live profile card`}/>
-        : <div className="private-card-preview">
-          <div><span className="brand-mark">anp/</span><strong>@{username}</strong></div>
-          <p className="private-archetype"><b>{profile.archetype.emoji}</b><span><strong>{profile.archetype.title}</strong><small>{profile.archetype.summary}</small></span></p>
-          <dl><div><dt>Observed tokens</dt><dd>{compact(profile.lifetimeTokens)}</dd></div><div><dt>Workflow index</dt><dd>{profile.score ?? '—'}/100</dd></div><div><dt>Active days</dt><dd>{profile.activeDays}</dd></div><div><dt>Current streak</dt><dd>{profile.streakDays} days</dd></div></dl>
-          <p className="private-provider-list"><span>Provider token split</span><strong>{previewTokenSplit}</strong><span>All sources</span><strong>{previewProviders}</strong></p>
-          <small>Coverage-labelled evidence · private preview</small>
+        ? <Image src={previewCardPath} width={640} height={282} unoptimized alt={`${username}'s live AI build card`}/>
+        : <div className={`private-card-preview arcade-card ${theme}`}>
+          <div className="arcade-card-top"><span className="brand-mark">anp/</span><span><small>AI BUILD CARD</small><strong>@{username}</strong></span><b>PREVIEW</b></div>
+          <div className="arcade-card-body">
+            <div className="arcade-card-hero">
+              <p><span>{profile.archetype.emoji}</span><strong>{profile.archetype.title}</strong></p>
+              <b>{compact(profile.lifetimeTokens)}</b>
+              <small>AI CODING TOKENS</small>
+              <dl><div><dt>Build level</dt><dd>{profile.score ?? '—'}</dd></div><div><dt>Active days</dt><dd>{profile.activeDays}</dd></div><div><dt>Streak</dt><dd>{profile.streakDays}d</dd></div></dl>
+            </div>
+            <div className="arcade-loadout">
+              <span>TOOL LOADOUT</span>
+              {profile.tokenBreakdown.length ? profile.tokenBreakdown.map((item) => <div key={item.label}><strong>{item.label}</strong><b>{compact(item.tokens)}</b></div>) : <p>Connect coding activity to unlock your loadout.</p>}
+              <small>{profile.providers.join(' · ') || 'GitHub starter card'}</small>
+            </div>
+          </div>
+          <div className="arcade-card-foot"><span>LIVE STATS · SOURCE-LABELLED</span><b>MAKE YOURS ↗</b></div>
         </div>}
-      <p className="activation-card-note">The card stays current as new eligible activity arrives. It links back to the profile where visitors can inspect source coverage.</p>
+      <p className="activation-card-note">Your card stays fresh as new activity arrives. Clicking it opens the full day-by-day breakdown.</p>
     </article>
 
-    <article className="activation-checklist">
-      <p className="eyebrow">Share readiness</p>
-      <h2>{hasCodingEvidence ? 'This profile has coding evidence.' : 'Your starter profile is ready to publish.'}</h2>
-      <div className="readiness-list">
-        <div className="ready"><span>01</span><p><strong>GitHub identity</strong><small>Connected and verified</small></p></div>
-        <div className={hasCodingEvidence ? 'ready' : 'optional'}><span>02</span><p><strong>Coding activity</strong><small>{hasCodingEvidence ? profile.providers.join(', ') : 'Optional · connect later for stronger proof'}</small></p></div>
-        <div className={profile.scoreEligible ? 'ready' : 'optional'}><span>03</span><p><strong>Ranked score</strong><small>{profile.scoreEligible ? `${profile.score}/100 · eligible` : profile.scoreReason ?? 'Unlocks after GitHub and 30 covered days'}</small></p></div>
-        <div className={settings.publicEnabled ? 'ready' : ''}><span>04</span><p><strong>Public visibility</strong><small>{settings.publicEnabled ? 'Published' : 'Private until you confirm'}</small></p></div>
+    <article className="activation-share-panel">
+      <p className="eyebrow">Add it anywhere</p>
+      <h2>Pick a vibe. Then make it yours.</h2>
+      <p className="share-panel-intro">The whole card links back to your live profile. Tokens, streaks, and tool loadout update without changing the Markdown.</p>
+
+      <div className="card-vibe-picker" aria-label="Card theme">
+        <button type="button" className={theme === 'dark' ? 'active' : ''} onClick={() => setTheme('dark')}><span className="vibe-swatch midnight"/>Midnight</button>
+        <button type="button" className={theme === 'light' ? 'active' : ''} onClick={() => setTheme('light')}><span className="vibe-swatch daylight"/>Daylight</button>
       </div>
 
-      {!hasCodingEvidence && <div className="activation-advice"><strong>Optional profile upgrade</strong><p>Publish now or connect a local coding source later. Your starter profile proves GitHub identity and delivery activity; it does not claim coding-agent activity until evidence is connected.</p><Link href="/connect" className="secondary-link compact-link">Explore coding sources</Link></div>}
-
-      <div className="activation-actions">
-        {!settings.publicEnabled && <button type="button" className="primary-button" onClick={publish} disabled={pending}>{pending ? 'Publishing…' : hasCodingEvidence ? 'Publish my profile' : 'Publish starter profile'}</button>}
-        {settings.publicEnabled && <>
-          <button type="button" className="primary-button" onClick={() => copy('readme')}>Copy README card</button>
-          <button type="button" className="secondary-button" onClick={() => copy('profile')}>Copy profile link</button>
-          <button type="button" className="secondary-button" onClick={() => copy('post')}>Copy launch post</button>
-          <Link className="text-link" href={profilePath}>Open public profile →</Link>
-        </>}
+      <button type="button" className="publish-copy-button" onClick={publishAndCopy} disabled={pending}>{pending ? 'Making it live…' : settings.publicEnabled ? 'Copy GitHub Markdown' : 'Publish & copy GitHub Markdown'} <span>→</span></button>
+      <div className="quick-share-actions">
+        <button type="button" onClick={() => copy('profile')} disabled={!settings.publicEnabled}>Copy link</button>
+        <button type="button" onClick={() => copy('post')} disabled={!settings.publicEnabled}>Copy launch post</button>
+        <button type="button" onClick={() => copy('html')} disabled={!settings.publicEnabled}>Copy HTML</button>
       </div>
-      {status && <p className="status-line" aria-live="polite">{status}</p>}
+
+      {!hasCodingEvidence ? <div className="power-up-nudge"><span>⚡</span><p><strong>Want the impressive version?</strong><small>Connect your coding tools below and this card powers up automatically.</small></p><a href="#power-up">Power it up ↓</a></div> : <div className="power-up-nudge connected"><span>✓</span><p><strong>Live coding stats connected</strong><small>{profile.providers.join(' · ')}</small></p><a href="#power-up">Manage ↓</a></div>}
+
+      <div className="share-trust-line"><span>🔒 Private until published</span><span>🧼 No prompts or code</span></div>
+      {status ? <p className="status-line" aria-live="polite">{status}</p> : null}
+      {settings.publicEnabled ? <Link className="open-profile-link" href={profilePath}>Open my live profile ↗</Link> : null}
     </article>
   </section>;
 }

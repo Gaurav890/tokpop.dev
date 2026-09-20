@@ -2,7 +2,7 @@ import { SiteHeader } from '../ui/site-header';
 
 const rows = [
   ['Consistency', '30', '20 points for active coding days over 90 days (cap: 45); 10 for longest 90-day streak (cap: 14).'],
-  ['Workflow depth', '25', 'Tool-using session rate (10), median tool calls/session (8), and advanced workflow sessions (7).'],
+  ['Workflow depth', '25', 'Tool-using session rate (10), average tool calls per recorded session (8), and advanced workflow sessions (7).'],
   ['Provider breadth', '15', '3 points for each active supported coding provider, up to five.'],
   ['Delivery', '30', 'commits + 3× merged PRs + 2× reviews + 5× releases, logarithmically normalized at 200 points.'],
 ];

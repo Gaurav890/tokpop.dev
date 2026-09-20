@@ -20,7 +20,12 @@ type ShareProfile = {
   streakDays: number;
   deliveryPoints: number;
   providers: string[];
+  lifetimeTokens: number;
+  sessions: number;
+  archetype: { emoji: string; title: string; summary: string };
 };
+
+const compact = (value: number) => new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
 
 export function ActivationShare({ username, initialSettings, profile }: { username: string; initialSettings: Settings; profile: ShareProfile }) {
   const [settings, setSettings] = useState(initialSettings);
@@ -29,7 +34,7 @@ export function ActivationShare({ username, initialSettings, profile }: { userna
   const hasCodingEvidence = profile.providers.length > 0;
   const profilePath = `/u/${username}`;
   const cardPath = `/api/v1/cards/${username}?theme=dark`;
-  const previewProviders = profile.providers.length > 2 ? `${profile.providers.slice(0, 2).join(' · ')} · +${profile.providers.length - 2} more` : profile.providers.join(' · ') || 'GitHub starter only';
+  const previewProviders = profile.providers.join(' · ') || 'GitHub starter only';
 
   async function publish() {
     setPending(true);
@@ -61,11 +66,12 @@ export function ActivationShare({ username, initialSettings, profile }: { userna
     <article className="activation-preview">
       <div className="activation-card-head"><span>LIVE README CARD</span><b>{settings.publicEnabled ? 'PUBLIC' : 'PREVIEW'}</b></div>
       {settings.publicEnabled
-        ? <Image src={cardPath} width={640} height={210} unoptimized alt={`${username}'s live profile card`}/>
+        ? <Image src={cardPath} width={640} height={230} unoptimized alt={`${username}'s live profile card`}/>
         : <div className="private-card-preview">
           <div><span className="brand-mark">anp/</span><strong>@{username}</strong></div>
-          <p><b>{profile.score ?? '—'}</b><span>/100 workflow index</span></p>
-          <dl><div><dt>Active days</dt><dd>{profile.activeDays}</dd></div><div><dt>Current streak</dt><dd>{profile.streakDays} days</dd></div><div><dt>Sources</dt><dd>{previewProviders}</dd></div></dl>
+          <p className="private-archetype"><b>{profile.archetype.emoji}</b><span><strong>{profile.archetype.title}</strong><small>{profile.archetype.summary}</small></span></p>
+          <dl><div><dt>Observed tokens</dt><dd>{compact(profile.lifetimeTokens)}</dd></div><div><dt>Workflow index</dt><dd>{profile.score ?? '—'}/100</dd></div><div><dt>Active days</dt><dd>{profile.activeDays}</dd></div><div><dt>Current streak</dt><dd>{profile.streakDays} days</dd></div></dl>
+          <p className="private-provider-list"><span>All sources</span><strong>{previewProviders}</strong></p>
           <small>Coverage-labelled evidence · private preview</small>
         </div>}
       <p className="activation-card-note">The card stays current as new eligible activity arrives. It links back to the profile where visitors can inspect source coverage.</p>

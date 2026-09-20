@@ -3,10 +3,13 @@ import { calculateWorkflowIndex } from '@ai-native-profile/scoring';
 import { ensureDb } from '../db/ensure';
 import { demoProfile, type PublicProfile } from './demo-profile';
 import { backendOrigin, backendResponse } from './server-api';
+import { buildProfileArchetype } from './profile-archetype';
 
 type MetricRow = { date: string; source: string; metric_name: string; value: number; provenance: string; competitive_eligible: number };
 type CoverageRow = { source: string; completeness: string; last_synced_at: string; provenance?: string };
 type ProfileUser = { id: string; github_login: string; display_name: string; avatar_url: string; public_enabled: number };
+type EnrichedProfileFields = Pick<PublicProfile, 'tokenBreakdown' | 'activityTotals' | 'archetype'>;
+type CompatibleProfile = Omit<PublicProfile, keyof EnrichedProfileFields> & Partial<EnrichedProfileFields>;
 
 const sourceLabel: Record<string, string> = { codex: 'Codex', claude_code: 'Claude Code', cursor: 'Cursor', gemini_cli: 'Gemini CLI', copilot_cli: 'GitHub Copilot CLI', chatgpt_web: 'ChatGPT Web', claude_web: 'Claude Web', github: 'GitHub' };
 const provenanceLabel: Record<string, string> = { official_account_api: 'Official account', official_export: 'Official export', local_exact: 'Local exact', local_derived: 'Local derived', mcp_observed: 'MCP observed', estimated: 'Estimated' };
@@ -32,13 +35,38 @@ function currentStreak(dates: string[]): number {
   return count;
 }
 
+function enrichProfile(profile: CompatibleProfile): PublicProfile {
+  const activityTotals = profile.activityTotals ?? {
+    sessions: profile.sessions,
+    turns: 0,
+    toolCalls: 0,
+    skillUses: 0,
+    commandUses: 0,
+    agentRuns: 0,
+  };
+  const tokenBreakdown = profile.tokenBreakdown ?? (profile.lifetimeTokens > 0 ? [{
+    source: 'combined',
+    label: 'Combined coding sources',
+    tokens: profile.lifetimeTokens,
+    provenance: 'Covered source totals',
+  }] : []);
+  const archetype = profile.archetype ?? buildProfileArchetype({
+    tokens: profile.lifetimeTokens,
+    currentStreak: profile.currentStreak,
+    providerCount: profile.providers.length,
+    deliveryPoints: profile.deliveryPoints,
+    toolCalls: activityTotals.toolCalls,
+  });
+  return { ...profile, activityTotals, tokenBreakdown, archetype };
+}
+
 export async function getPublicProfile(username: string): Promise<PublicProfile | null> {
   if (username === 'demo') return demoProfile;
   if (backendOrigin()) {
     const response = await backendResponse(`/api/v1/profile/${encodeURIComponent(username)}`);
     if (response.status === 404) return null;
     if (!response.ok) throw new Error(`Profile service returned ${response.status}.`);
-    return response.json() as Promise<PublicProfile>;
+    return enrichProfile(await response.json() as CompatibleProfile);
   }
   return getPublicProfileFromDatabase(username);
 }
@@ -56,7 +84,7 @@ export async function getPrivateProfile(userId: string): Promise<PublicProfile |
     const response = await backendResponse('/api/v1/me/profile', { authenticated: true });
     if (response.status === 404) return null;
     if (!response.ok) throw new Error(`Profile service returned ${response.status}.`);
-    return response.json() as Promise<PublicProfile>;
+    return enrichProfile(await response.json() as CompatibleProfile);
   }
   return getPrivateProfileFromDatabase(userId);
 }
@@ -78,15 +106,31 @@ async function buildProfile(user: ProfileUser): Promise<PublicProfile> {
   const sum = (name: string, rows = metrics) => rows.filter((row) => row.metric_name === name).reduce((total, row) => total + row.value, 0);
   const sources = [...new Set(eligible.map((row) => row.source))];
   const sessions = sum('sessions', eligible);
+  const lifetimeTokens = sum('tokens', eligible);
+  const activityTotals = {
+    sessions,
+    turns: sum('turns', eligible),
+    toolCalls: sum('tool_calls', eligible),
+    skillUses: sum('skill_uses', eligible),
+    commandUses: sum('command_uses', eligible),
+    agentRuns: sum('agent_runs', eligible),
+  };
+  const tokenBreakdown = sources.flatMap((source) => {
+    const rows = eligible.filter((row) => row.source === source && row.metric_name === 'tokens');
+    const tokens = rows.reduce((total, row) => total + row.value, 0);
+    const provenances = [...new Set(rows.map((row) => provenanceLabel[row.provenance] ?? 'Unknown'))];
+    return tokens > 0 ? [{ source, label: sourceLabel[source] ?? source, tokens, provenance: provenances.join(' + ') }] : [];
+  }).sort((left, right) => right.tokens - left.tokens);
   const githubRows = metrics.filter((row) => row.source === 'github');
   const score = calculateWorkflowIndex({
     githubConnected: coverageResult.results?.some((row) => row.source === 'github') ?? false, coveredDays: activeDates.length, activeCodingDays90: activeDates.filter((date) => Date.parse(date) >= Date.now() - 90 * 86_400_000).length,
     longestStreak90: longestStreak(activeDates.filter((date) => Date.parse(date) >= Date.now() - 90 * 86_400_000)),
     toolUsingSessionRate: sessions ? sum('tool_using_sessions', eligible) / sessions : 0,
-    medianToolCallsPerSession: sessions ? sum('tool_calls', eligible) / sessions : 0,
+    toolCallsPerSession: sessions ? activityTotals.toolCalls / sessions : 0,
     advancedWorkflowSessionRate: sessions ? sum('advanced_workflow_sessions', eligible) / sessions : 0,
     activeCodingProviders: sources.length, commits: sum('commits', githubRows), mergedPullRequests: sum('merged_pull_requests', githubRows), reviews: sum('reviews', githubRows), releases: sum('releases', githubRows),
   });
+  const archetype = buildProfileArchetype({ tokens: lifetimeTokens, currentStreak: currentStreak(activeDates), providerCount: sources.length, deliveryPoints: score.deliveryPoints, toolCalls: activityTotals.toolCalls });
   const byDate = new Map<string, number>();
   for (const row of eligible) if (row.value > 0) byDate.set(row.date, (byDate.get(row.date) ?? 0) + 1);
   const activity = Array.from({ length: 84 }, (_, index) => {
@@ -96,7 +140,7 @@ async function buildProfile(user: ProfileUser): Promise<PublicProfile> {
   const latest = coverageResult.results?.map((row) => row.last_synced_at).sort().at(-1) ?? new Date().toISOString();
   return {
     ...demoProfile, username: user.github_login, name: user.display_name, avatarUrl: user.avatar_url, verified: true, publicEnabled: Boolean(user.public_enabled), score: score.total ?? 0, scoreEligible: score.eligible, scoreReason: score.reason, scoreBreakdown: { consistency: score.consistency, workflowDepth: score.workflowDepth, providerBreadth: score.providerBreadth, delivery: score.delivery }, rank: 0,
-    activeDays: activeDates.length, currentStreak: currentStreak(activeDates), longestStreak: longestStreak(activeDates), lifetimeTokens: sum('tokens', eligible), sessions,
+    activeDays: activeDates.length, currentStreak: currentStreak(activeDates), longestStreak: longestStreak(activeDates), lifetimeTokens, tokenBreakdown, sessions, activityTotals, archetype,
     deliveryPoints: score.deliveryPoints, providers: sources.map((source) => sourceLabel[source] ?? source), activity,
     coverage: (coverageResult.results ?? []).map((row) => ({ source: row.source, label: sourceLabel[row.source] ?? row.source, provenance: provenanceLabel[metrics.find((metric) => metric.source === row.source)?.provenance ?? ''] ?? 'Unknown', status: row.completeness === 'full' ? 'Live' : 'Partial', completeness: row.completeness })),
     github: { commits: sum('commits', githubRows), mergedPullRequests: sum('merged_pull_requests', githubRows), reviews: sum('reviews', githubRows), releases: sum('releases', githubRows) },

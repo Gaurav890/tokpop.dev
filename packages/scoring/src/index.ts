@@ -4,7 +4,7 @@ export type ScoreInput = {
   activeCodingDays90: number;
   longestStreak90: number;
   toolUsingSessionRate: number;
-  medianToolCallsPerSession: number;
+  toolCallsPerSession: number;
   advancedWorkflowSessionRate: number;
   activeCodingProviders: number;
   commits: number;
@@ -33,7 +33,7 @@ export function calculateWorkflowIndex(input: ScoreInput): ScoreBreakdown {
     10 * clamp01(input.longestStreak90 / 14);
   const workflowDepth =
     10 * clamp01(input.toolUsingSessionRate / 0.8) +
-    8 * clamp01(input.medianToolCallsPerSession / 12) +
+    8 * clamp01(input.toolCallsPerSession / 12) +
     7 * clamp01(input.advancedWorkflowSessionRate / 0.3);
   const providerBreadth = 3 * Math.min(5, Math.max(0, input.activeCodingProviders));
   const deliveryPoints =

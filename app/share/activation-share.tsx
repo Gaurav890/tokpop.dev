@@ -104,40 +104,39 @@ export function ActivationShare({ username, initialSettings, profile }: { userna
 
   return <section className="activation-grid">
     <article className="activation-preview">
-      <div className="activation-card-head"><span>YOUR LIVE BUILD CARD</span><b>{settings.publicEnabled ? 'LIVE ●' : 'PRIVATE PREVIEW'}</b></div>
+      <div className="activation-card-head"><span>YOUR README CARD</span><b>{settings.publicEnabled ? 'LIVE ●' : 'PRIVATE PREVIEW'}</b></div>
       {settings.publicEnabled
-        ? <Image src={previewCardPath} width={640} height={282} unoptimized alt={`${username}'s live AI build card`}/>
-        : <div className={`private-card-preview arcade-card ${theme}`}>
-          <div className="arcade-card-top"><span className="brand-mark">anp/</span><span><small>AI BUILD CARD</small><strong>@{username}</strong></span><b>PREVIEW</b></div>
-          <div className="arcade-card-body">
-            <div className="arcade-card-hero">
-              <p><span>{profile.archetype.emoji}</span><strong>{profile.archetype.title}</strong></p>
-              <b>{compact(profile.lifetimeTokens)}</b>
-              <small>AI CODING TOKENS</small>
-              <dl><div><dt>Build level</dt><dd>{profile.score ?? '—'}</dd></div><div><dt>Active days</dt><dd>{profile.activeDays}</dd></div><div><dt>Streak</dt><dd>{profile.streakDays}d</dd></div></dl>
-            </div>
-            <div className="arcade-loadout">
-              <span>TOOL LOADOUT</span>
-              {profile.tokenBreakdown.length ? profile.tokenBreakdown.map((item) => <div key={item.label}><strong>{item.label}</strong><b>{compact(item.tokens)}</b></div>) : <p>Connect coding activity to unlock your loadout.</p>}
-              <small>{profile.providers.join(' · ') || 'GitHub starter card'}</small>
-            </div>
+        ? <Image src={previewCardPath} width={640} height={252} unoptimized alt={`${username}'s live AI build card`}/>
+        : <div className={`private-card-preview build-pass ${theme}`}>
+          <div className="build-pass-identity">
+            <div className="build-pass-brand"><span>anp/</span><b>LIVE</b></div>
+            <strong>@{username}</strong>
+            <p><span>{profile.archetype.emoji}</span>{profile.archetype.title}</p>
+            <small>TOOL LOADOUT · CONNECTED</small>
+            <em>{profile.providers.join(' · ') || 'GitHub starter card'}</em>
           </div>
-          <div className="arcade-card-foot"><span>LIVE STATS · SOURCE-LABELLED</span><b>MAKE YOURS ↗</b></div>
+          <div className="build-pass-story">
+            <div className="build-pass-story-head"><span>YOUR AI BUILD STORY</span><b>MAKE YOURS ↗</b></div>
+            <strong>{compact(profile.lifetimeTokens)}</strong>
+            <small>OBSERVED AI CODING TOKENS</small>
+            <dl><div><dt>Build level</dt><dd>{profile.score ?? '—'}</dd></div><div><dt>Active days</dt><dd>{profile.activeDays}</dd></div><div><dt>Current streak</dt><dd>{profile.streakDays}d</dd></div></dl>
+            <div className="build-pass-loadout">{profile.tokenBreakdown.length ? profile.tokenBreakdown.map((item) => <span key={item.label}><small>{item.label}</small><b>{compact(item.tokens)}</b></span>) : <p>Connect coding activity to unlock exact tool totals.</p>}</div>
+          </div>
         </div>}
-      <p className="activation-card-note">Your card stays fresh as new activity arrives. Clicking it opens the full day-by-day breakdown.</p>
+      <p className="activation-card-note">Bright enough to stand out in a README. Live enough to keep itself current.</p>
     </article>
 
     <article className={`activation-share-panel ${hasCodingEvidence ? '' : 'starter-share'}`}>
       <p className="eyebrow">Add it anywhere</p>
-      <h2>{hasCodingEvidence ? 'Pick a vibe. Add it to GitHub.' : 'Your starter card can wait.'}</h2>
-      <p className="share-panel-intro">{hasCodingEvidence ? 'The card links to your exact provider and daily breakdown. It keeps updating without changing the Markdown.' : 'Connect coding activity above for the version worth sharing. You can still publish the GitHub-only starter card.'}</p>
+      <h2>{hasCodingEvidence ? 'Make it yours. Drop it into GitHub.' : 'Your starter card can wait.'}</h2>
+      <p className="share-panel-intro">{hasCodingEvidence ? 'Choose the color, then one click copies the live card and opens your profile README.' : 'Connect coding activity above for the version worth sharing. You can still publish the GitHub-only starter card.'}</p>
 
       <div className="card-vibe-picker" aria-label="Card theme">
-        <button type="button" className={theme === 'dark' ? 'active' : ''} onClick={() => setTheme('dark')}><span className="vibe-swatch midnight"/>Midnight</button>
-        <button type="button" className={theme === 'light' ? 'active' : ''} onClick={() => setTheme('light')}><span className="vibe-swatch daylight"/>Daylight</button>
+        <button type="button" aria-pressed={theme === 'dark'} className={theme === 'dark' ? 'active' : ''} onClick={() => setTheme('dark')}><span className="vibe-swatch punch"/><span><b>Pop</b><small>Violet + citrus</small></span></button>
+        <button type="button" aria-pressed={theme === 'light'} className={theme === 'light' ? 'active' : ''} onClick={() => setTheme('light')}><span className="vibe-swatch clean"/><span><b>Clean</b><small>Blue + mint</small></span></button>
       </div>
 
-      <button type="button" className="publish-copy-button" onClick={addToGitHub} disabled={pending}>{pending ? 'Getting it ready…' : hasCodingEvidence ? 'Add to GitHub README' : 'Publish starter card'} <span>→</span></button>
+      <button type="button" className="publish-copy-button" onClick={addToGitHub} disabled={pending}>{pending ? 'Getting it ready…' : hasCodingEvidence ? 'Copy card + open GitHub' : 'Publish starter card'} <span>→</span></button>
       <details className="share-more"><summary>More ways to share</summary><div className="quick-share-actions">
         <button type="button" onClick={() => copy('profile')} disabled={!settings.publicEnabled}>Copy profile link</button>
         <button type="button" onClick={() => copy('post')} disabled={!settings.publicEnabled}>Copy launch post</button>

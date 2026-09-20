@@ -32,6 +32,15 @@ describe('SVG renderers', () => {
     expect(svg).toContain('TOOL LOADOUT');
     expect(svg).toContain('MAKE YOURS');
   });
+  it('uses bright card palettes instead of the old black slab', () => {
+    const pop = renderProfileCard(profile, 'dark');
+    const clean = renderProfileCard(profile, 'light');
+    expect(pop).toContain('#f1ecff');
+    expect(pop).toContain('#dfff73');
+    expect(clean).toContain('#eaf4ff');
+    expect(pop).not.toContain('#101426');
+    expect(clean).not.toContain('#101426');
+  });
   it('renders story cards at the requested dimensions', () => {
     const svg = renderSocialCard(profile, 'story');
     expect(svg).toContain('width="1080" height="1920"');

@@ -104,7 +104,7 @@ export function ActivationShare({ username, initialSettings, profile }: { userna
 
   return <section className="activation-grid">
     <article className="activation-preview">
-      <div className="activation-card-head"><span>YOUR README CARD</span><b>{settings.publicEnabled ? 'LIVE ●' : 'PRIVATE PREVIEW'}</b></div>
+      <div className="activation-card-head"><span>YOUR BUILD DROP</span><b>{settings.publicEnabled ? 'LIVE ●' : 'PRIVATE PREVIEW'}</b></div>
       {settings.publicEnabled
         ? <Image src={previewCardPath} width={640} height={252} unoptimized alt={`${username}'s live AI build card`}/>
         : <div className={`private-card-preview build-pass ${theme}`}>
@@ -123,20 +123,20 @@ export function ActivationShare({ username, initialSettings, profile }: { userna
             <div className="build-pass-loadout">{profile.tokenBreakdown.length ? profile.tokenBreakdown.map((item) => <span key={item.label}><small>{item.label}</small><b>{compact(item.tokens)}</b></span>) : <p>Connect coding activity to unlock exact tool totals.</p>}</div>
           </div>
         </div>}
-      <p className="activation-card-note">Bright enough to stand out in a README. Live enough to keep itself current.</p>
+      <p className="activation-card-note">Paste it once. Your card keeps leveling up as you build.</p>
     </article>
 
     <article className={`activation-share-panel ${hasCodingEvidence ? '' : 'starter-share'}`}>
-      <p className="eyebrow">Add it anywhere</p>
-      <h2>{hasCodingEvidence ? 'Make it yours. Drop it into GitHub.' : 'Your starter card can wait.'}</h2>
-      <p className="share-panel-intro">{hasCodingEvidence ? 'Choose the color, then one click copies the live card and opens your profile README.' : 'Connect coding activity above for the version worth sharing. You can still publish the GitHub-only starter card.'}</p>
+      <p className="eyebrow">Flex mode: on</p>
+      <h2>{hasCodingEvidence ? 'Your build flex is ready.' : 'Your starter card can wait.'}</h2>
+      <p className="share-panel-intro">{hasCodingEvidence ? 'Pick a flavor. One click copies your live card and opens your GitHub README.' : 'Connect coding activity above for the version worth sharing. You can still publish the GitHub-only starter card.'}</p>
 
       <div className="card-vibe-picker" aria-label="Card theme">
-        <button type="button" aria-pressed={theme === 'dark'} className={theme === 'dark' ? 'active' : ''} onClick={() => setTheme('dark')}><span className="vibe-swatch punch"/><span><b>Pop</b><small>Violet + citrus</small></span></button>
-        <button type="button" aria-pressed={theme === 'light'} className={theme === 'light' ? 'active' : ''} onClick={() => setTheme('light')}><span className="vibe-swatch clean"/><span><b>Clean</b><small>Blue + mint</small></span></button>
+        <button type="button" aria-pressed={theme === 'dark'} className={theme === 'dark' ? 'active' : ''} onClick={() => setTheme('dark')}><span className="vibe-swatch punch"/><span><b>Hyper</b><small>Violet + bubblegum</small></span></button>
+        <button type="button" aria-pressed={theme === 'light'} className={theme === 'light' ? 'active' : ''} onClick={() => setTheme('light')}><span className="vibe-swatch clean"/><span><b>Fresh</b><small>Blue + turbo mint</small></span></button>
       </div>
 
-      <button type="button" className="publish-copy-button" onClick={addToGitHub} disabled={pending}>{pending ? 'Getting it ready…' : hasCodingEvidence ? 'Copy card + open GitHub' : 'Publish starter card'} <span>→</span></button>
+      <button type="button" className="publish-copy-button" onClick={addToGitHub} disabled={pending}>{pending ? 'Getting it ready…' : hasCodingEvidence ? 'Copy my flex card' : 'Publish starter card'} <span>→</span></button>
       <details className="share-more"><summary>More ways to share</summary><div className="quick-share-actions">
         <button type="button" onClick={() => copy('profile')} disabled={!settings.publicEnabled}>Copy profile link</button>
         <button type="button" onClick={() => copy('post')} disabled={!settings.publicEnabled}>Copy launch post</button>

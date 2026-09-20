@@ -33,74 +33,70 @@ function providerLines(providers: string[], maxCharacters = 40): string[] {
 }
 
 export function renderProfileCard(profile: ProfileCard, theme: 'light' | 'dark' = 'light'): string {
-  const punch = theme === 'dark';
-  const background = punch ? '#f1ecff' : '#eaf4ff';
-  const backgroundEnd = punch ? '#ffe8db' : '#e8fff6';
-  const foreground = '#17182a';
-  const muted = '#666d82';
-  const line = '#17182a';
-  const panel = '#fffdf8';
-  const accent = punch ? '#5b43f5' : '#2359d8';
-  const accentSoft = punch ? '#dfff73' : '#93efd5';
-  const warm = punch ? '#ff805f' : '#ffbd68';
+  const hyper = theme === 'dark';
+  const background = hyper ? '#7647ff' : '#2868f2';
+  const backgroundEnd = hyper ? '#ff5cb8' : '#56e9bd';
+  const foreground = '#18122e';
+  const muted = '#625b78';
+  const panel = hyper ? '#fff4cf' : '#f8fffd';
+  const accent = hyper ? '#7147ff' : '#205bdc';
+  const accentSoft = hyper ? '#d9ff57' : '#8ff2d2';
+  const warm = hyper ? '#ff7448' : '#ffbe4f';
+  const blue = hyper ? '#70e7ff' : '#b8d3ff';
   const score = profile.score == null ? '—' : String(profile.score);
   const providers = providerLines(profile.providers);
   const tokenRows = profile.tokenBreakdown.length ? profile.tokenBreakdown : [{ label: 'No source reports tokens', tokens: 0 }];
-  const tokenSplitText = tokenRows.slice(0, 6).map((item, index) => {
-    const column = index % 3;
-    const row = Math.floor(index / 3);
-    const x = 266 + column * 116;
-    const y = 184 + row * 29;
-    return `<rect x="${x}" y="${y}" width="108" height="23" rx="11.5" fill="${panel}" stroke="${line}" stroke-opacity=".18"/><text x="${x + 10}" y="${y + 15}" font-family="Arial,sans-serif" font-size="7.5" font-weight="700" fill="${muted}">${escapeXml(item.label)}</text><text x="${x + 99}" y="${y + 15}" text-anchor="end" font-family="ui-monospace,monospace" font-size="8" font-weight="800" fill="${foreground}">${escapeXml(compact(item.tokens))}</text>`;
+  const tokenSplitText = tokenRows.slice(0, 4).map((item, index) => {
+    const y = 93 + index * 30;
+    const rowColor = index % 2 === 0 ? accentSoft : blue;
+    return `<rect x="399" y="${y}" width="205" height="24" rx="8" fill="${rowColor}"/><text x="410" y="${y + 16}" font-family="Arial,sans-serif" font-size="8.5" font-weight="800" fill="${foreground}">${escapeXml(item.label)}</text><text x="593" y="${y + 16}" text-anchor="end" font-family="ui-monospace,monospace" font-size="9" font-weight="900" fill="${foreground}">${escapeXml(compact(item.tokens))}</text>`;
   }).join('');
-  const providerText = providers.map((providerLine, index) => `<text x="34" y="${181 + index * 14}" font-family="Arial,sans-serif" font-size="8" font-weight="650" fill="${muted}">${escapeXml(providerLine)}</text>`).join('');
+  const providerText = providers.map((providerLine, index) => `<text x="401" y="${225 + index * 11}" font-family="Arial,sans-serif" font-size="7" font-weight="750" fill="${muted}">${escapeXml(providerLine)}</text>`).join('');
   return `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="252" role="img" aria-label="AI Native Profile for ${escapeXml(profile.username)}">
-  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${background}"/><stop offset="1" stop-color="${backgroundEnd}"/></linearGradient><filter id="shadow" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#2d234b" flood-opacity=".13"/></filter></defs>
-  <rect width="640" height="252" rx="22" fill="url(#bg)"/><circle cx="604" cy="25" r="45" fill="${warm}" opacity=".72"/><circle cx="585" cy="235" r="55" fill="${accentSoft}" opacity=".8"/>
-  <rect x="18" y="18" width="213" height="216" rx="17" fill="${panel}" stroke="${line}" stroke-width="1.4" filter="url(#shadow)"/>
-  <rect x="31" y="31" width="42" height="25" rx="8" fill="${accent}"/><text x="52" y="47" text-anchor="middle" font-family="ui-monospace,monospace" font-size="8" font-weight="850" fill="#fff">anp/</text>
-  <rect x="164" y="31" width="54" height="25" rx="12.5" fill="${accentSoft}"/><circle cx="177" cy="43.5" r="3.5" fill="${foreground}"/><text x="186" y="46.5" font-family="ui-monospace,monospace" font-size="7" font-weight="850" fill="${foreground}">LIVE</text>
-  <text x="31" y="82" font-family="Arial,sans-serif" font-size="16" font-weight="800" letter-spacing="-.3" fill="${foreground}">@${escapeXml(profile.username)}</text>
-  <text x="31" y="118" font-family="Arial,sans-serif" font-size="23">${escapeXml(profile.archetype.emoji)}</text><text x="61" y="116" font-family="Arial,sans-serif" font-size="11" font-weight="850" letter-spacing=".5" fill="${foreground}">${escapeXml(profile.archetype.title.toUpperCase())}</text>
-  <line x1="31" y1="139" x2="218" y2="139" stroke="${line}" stroke-opacity=".13"/>
-  <text x="31" y="159" font-family="ui-monospace,monospace" font-size="7" font-weight="800" letter-spacing=".8" fill="${muted}">TOOL LOADOUT · CONNECTED</text>${providerText}
-  <text x="31" y="220" font-family="ui-monospace,monospace" font-size="6.8" font-weight="750" fill="${muted}">UPDATED ${escapeXml(updatedLabel(profile.updatedAt).toUpperCase())}</text>
-  <text x="257" y="40" font-family="ui-monospace,monospace" font-size="8" font-weight="850" letter-spacing="1.1" fill="${muted}">YOUR AI BUILD STORY</text><text x="618" y="40" text-anchor="end" font-family="ui-monospace,monospace" font-size="8" font-weight="850" fill="${accent}">MAKE YOURS ↗</text>
-  <text x="257" y="102" font-family="Arial,sans-serif" font-size="49" font-weight="850" letter-spacing="-2.7" fill="${accent}">${escapeXml(compact(profile.tokens))}</text><text x="257" y="121" font-family="Arial,sans-serif" font-size="9" font-weight="700" letter-spacing=".5" fill="${muted}">OBSERVED AI CODING TOKENS</text>
-  <rect x="257" y="137" width="350" height="35" rx="12" fill="${panel}" stroke="${line}" stroke-opacity=".18"/>
-  <text x="273" y="150" font-family="Arial,sans-serif" font-size="6.5" font-weight="800" letter-spacing=".6" fill="${muted}">BUILD LEVEL</text><text x="273" y="164" font-family="Arial,sans-serif" font-size="12" font-weight="850" fill="${foreground}">${score}</text>
-  <text x="385" y="150" font-family="Arial,sans-serif" font-size="6.5" font-weight="800" letter-spacing=".6" fill="${muted}">ACTIVE DAYS</text><text x="385" y="164" font-family="Arial,sans-serif" font-size="12" font-weight="850" fill="${foreground}">${profile.activeDays}</text>
-  <text x="500" y="150" font-family="Arial,sans-serif" font-size="6.5" font-weight="800" letter-spacing=".6" fill="${muted}">CURRENT STREAK</text><text x="500" y="164" font-family="Arial,sans-serif" font-size="12" font-weight="850" fill="${foreground}">${profile.streakDays} days</text>
-  ${tokenSplitText}
-  <text x="257" y="235" font-family="ui-monospace,monospace" font-size="7" font-weight="800" fill="${muted}">SOURCE-LABELLED · NO PROMPTS OR CODE</text>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${background}"/><stop offset="1" stop-color="${backgroundEnd}"/></linearGradient><pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.4" fill="#fff" opacity=".23"/></pattern><filter id="shadow" x="-10%" y="-10%" width="125%" height="135%"><feDropShadow dx="6" dy="7" stdDeviation="0" flood-color="${foreground}" flood-opacity=".92"/></filter></defs>
+  <rect width="640" height="252" rx="24" fill="url(#bg)"/><rect width="640" height="252" rx="24" fill="url(#dots)"/><path d="M0 197 L102 124 L165 252 H0Z" fill="${accentSoft}" opacity=".88"/><circle cx="601" cy="34" r="57" fill="${warm}" opacity=".94"/>
+  <rect x="14" y="13" width="612" height="226" rx="18" fill="${panel}" stroke="${foreground}" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="29" y="27" width="49" height="26" rx="7" fill="${accent}"/><text x="53.5" y="44" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" font-weight="900" fill="#fff">anp/</text>
+  <text x="88" y="44" font-family="Arial,sans-serif" font-size="13" font-weight="900" fill="${foreground}">@${escapeXml(profile.username)}</text>
+  <rect x="499" y="27" width="109" height="25" rx="12.5" fill="${accentSoft}" stroke="${foreground}" stroke-width="1.4"/><text x="553.5" y="43" text-anchor="middle" font-family="ui-monospace,monospace" font-size="7.5" font-weight="900" letter-spacing=".8" fill="${foreground}">LIVE BUILD CARD</text>
+  <text x="606" y="62" text-anchor="end" font-family="ui-monospace,monospace" font-size="6" font-weight="850" fill="${muted}">UPDATED ${escapeXml(updatedLabel(profile.updatedAt).toUpperCase())}</text>
+  <rect x="29" y="66" width="339" height="39" rx="12" fill="${accent}" transform="rotate(-1 29 66)"/><text x="42" y="91" font-family="Arial,sans-serif" font-size="17" font-weight="900" letter-spacing=".4" fill="#fff">${escapeXml(profile.archetype.emoji)}  ${escapeXml(profile.archetype.title.toUpperCase())}</text>
+  <text x="28" y="161" font-family="Arial,sans-serif" font-size="57" font-weight="950" letter-spacing="-3.7" fill="${foreground}">${escapeXml(compact(profile.tokens))}</text><text x="30" y="178" font-family="ui-monospace,monospace" font-size="7.5" font-weight="900" letter-spacing=".9" fill="${muted}">AI CODING TOKENS IN THE LOADOUT</text>
+  <rect x="29" y="192" width="104" height="29" rx="14.5" fill="${warm}" stroke="${foreground}" stroke-width="1.3"/><text x="81" y="210" text-anchor="middle" font-family="Arial,sans-serif" font-size="8.5" font-weight="900" fill="${foreground}">🔥 ${profile.streakDays} DAY STREAK</text>
+  <rect x="139" y="192" width="104" height="29" rx="14.5" fill="${blue}" stroke="${foreground}" stroke-width="1.3"/><text x="191" y="210" text-anchor="middle" font-family="Arial,sans-serif" font-size="8.5" font-weight="900" fill="${foreground}">⚡ ${profile.activeDays} ACTIVE DAYS</text>
+  <rect x="249" y="192" width="119" height="29" rx="14.5" fill="${accentSoft}" stroke="${foreground}" stroke-width="1.3"/><text x="308.5" y="210" text-anchor="middle" font-family="Arial,sans-serif" font-size="8.5" font-weight="900" fill="${foreground}">🎮 LEVEL ${score} / 100</text>
+  <line x1="384" y1="68" x2="384" y2="220" stroke="${foreground}" stroke-opacity=".18"/>
+  <text x="400" y="80" font-family="ui-monospace,monospace" font-size="7.5" font-weight="900" letter-spacing="1" fill="${muted}">POWER BY PROVIDER</text>${tokenSplitText}
+  <text x="400" y="212" font-family="ui-monospace,monospace" font-size="6.5" font-weight="900" letter-spacing=".8" fill="${muted}">ALL CONNECTED</text>${providerText}
+  <text x="30" y="234" font-family="ui-monospace,monospace" font-size="6.3" font-weight="850" fill="${muted}">SOURCE-LABELLED · NO PROMPTS OR CODE</text>
   </svg>`;
 }
 
 export function renderBadge(score: number | null): string {
   const value = score == null ? 'unranked' : String(score);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="172" height="32" role="img" aria-label="AI build level ${value}"><rect x="1" y="1" width="170" height="30" rx="15" fill="#fffdf8" stroke="#17182a" stroke-width="2"/><circle cx="17" cy="16" r="9" fill="#dfff73"/><text x="17" y="19" text-anchor="middle" font-family="Arial,sans-serif" font-size="10">⚡</text><text x="34" y="20" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#17182a">AI build level</text><rect x="128" y="4" width="40" height="24" rx="12" fill="#5b43f5"/><text x="148" y="20" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="800" fill="#fff">${value}</text></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="178" height="34" role="img" aria-label="AI build level ${value}"><rect width="178" height="34" rx="17" fill="#7147ff"/><rect x="3" y="3" width="172" height="28" rx="14" fill="#d9ff57"/><text x="17" y="22" text-anchor="middle" font-family="Arial,sans-serif" font-size="12">⚡</text><text x="33" y="21" font-family="Arial,sans-serif" font-size="10" font-weight="900" fill="#18122e">BUILD LEVEL</text><rect x="130" y="5" width="43" height="24" rx="12" fill="#7147ff"/><text x="151.5" y="21" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="900" fill="#fff">${value}</text></svg>`;
 }
 
 export function renderSocialCard(profile: ProfileCard, format: 'og' | 'square' | 'story', theme: 'light' | 'dark' = 'dark'): string {
   const [width, height] = format === 'og' ? [1200, 630] : format === 'square' ? [1080, 1080] : [1080, 1920];
   const punch = theme === 'dark';
-  const background = punch ? '#f1ecff' : '#eaf4ff';
-  const backgroundEnd = punch ? '#ffe8db' : '#e8fff6';
-  const foreground = '#17182a';
-  const muted = '#626a80';
-  const accent = punch ? '#5b43f5' : '#2359d8';
-  const warm = punch ? '#ff805f' : '#ffbd68';
-  const lime = punch ? '#dfff73' : '#93efd5';
+  const background = punch ? '#7647ff' : '#2868f2';
+  const backgroundEnd = punch ? '#ff5cb8' : '#56e9bd';
+  const foreground = '#18122e';
+  const muted = '#625b78';
+  const accent = punch ? '#7147ff' : '#205bdc';
+  const warm = punch ? '#ff7448' : '#ffbe4f';
+  const lime = punch ? '#d9ff57' : '#8ff2d2';
   const score = profile.score == null ? '—' : String(profile.score);
   const tokenSplit = profile.tokenBreakdown.map((item) => `${item.label} ${compact(item.tokens)}`).join(' · ') || 'No source reports tokens';
   const centerY = Math.round(height * .48);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" role="img" aria-label="AI Native Profile for ${escapeXml(profile.username)}">
-  <defs><linearGradient id="socialBg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${background}"/><stop offset="1" stop-color="${backgroundEnd}"/></linearGradient></defs><rect width="${width}" height="${height}" fill="url(#socialBg)"/><circle cx="${Math.round(width * .88)}" cy="${Math.round(height * .13)}" r="${Math.round(width * .18)}" fill="${warm}" opacity=".78"/><circle cx="${Math.round(width * .9)}" cy="${Math.round(height * .86)}" r="${Math.round(width * .14)}" fill="${lime}" opacity=".85"/>
-  <rect x="${Math.round(width * .07)}" y="${Math.round(height * .06)}" width="${Math.round(width * .86)}" height="${Math.round(height * .88)}" rx="${Math.round(width * .025)}" fill="#fffdf8" stroke="#17182a" stroke-width="3"/>
+  <defs><linearGradient id="socialBg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${background}"/><stop offset="1" stop-color="${backgroundEnd}"/></linearGradient><pattern id="socialDots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="3" fill="#fff" opacity=".2"/></pattern></defs><rect width="${width}" height="${height}" fill="url(#socialBg)"/><rect width="${width}" height="${height}" fill="url(#socialDots)"/><circle cx="${Math.round(width * .88)}" cy="${Math.round(height * .13)}" r="${Math.round(width * .18)}" fill="${warm}" opacity=".92"/><circle cx="${Math.round(width * .9)}" cy="${Math.round(height * .86)}" r="${Math.round(width * .14)}" fill="${lime}" opacity=".95"/>
+  <rect x="${Math.round(width * .07)}" y="${Math.round(height * .06)}" width="${Math.round(width * .86)}" height="${Math.round(height * .88)}" rx="${Math.round(width * .025)}" fill="#fff4cf" stroke="${foreground}" stroke-width="5"/>
   <rect x="${Math.round(width * .1)}" y="${Math.round(height * .1)}" width="74" height="58" rx="18" fill="${accent}"/><text x="${Math.round(width * .1) + 37}" y="${Math.round(height * .1) + 37}" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="17" font-weight="800" fill="#ffffff">anp/</text>
-  <text x="${Math.round(width * .1) + 96}" y="${Math.round(height * .1) + 24}" font-family="Arial,sans-serif" font-size="18" font-weight="800" letter-spacing="2" fill="${muted}">AI BUILD STORY</text><text x="${Math.round(width * .1) + 96}" y="${Math.round(height * .1) + 54}" font-family="Arial,sans-serif" font-size="26" font-weight="800" fill="${foreground}">@${escapeXml(profile.username)}</text>
-  <text x="${Math.round(width * .08)}" y="${centerY - 90}" font-family="Arial,sans-serif" font-size="30" fill="${foreground}">${escapeXml(profile.archetype.emoji)} ${escapeXml(profile.archetype.title)}</text>
-  <text x="${Math.round(width * .08)}" y="${centerY}" font-family="Arial,sans-serif" font-size="${format === 'story' ? 220 : 170}" font-weight="700" letter-spacing="-10" fill="${accent}">${escapeXml(compact(profile.tokens))}</text><text x="${Math.round(width * .08)}" y="${centerY + 58}" font-family="Arial,sans-serif" font-size="25" fill="${muted}">AI CODING TOKENS</text>
+  <text x="${Math.round(width * .1) + 96}" y="${Math.round(height * .1) + 24}" font-family="Arial,sans-serif" font-size="18" font-weight="900" letter-spacing="2" fill="${muted}">MY AI BUILD DROP</text><text x="${Math.round(width * .1) + 96}" y="${Math.round(height * .1) + 54}" font-family="Arial,sans-serif" font-size="26" font-weight="900" fill="${foreground}">@${escapeXml(profile.username)}</text>
+  <rect x="${Math.round(width * .08)}" y="${centerY - 142}" width="${Math.round(width * .48)}" height="70" rx="22" fill="${accent}" transform="rotate(-1 ${Math.round(width * .08)} ${centerY - 142})"/><text x="${Math.round(width * .1)}" y="${centerY - 95}" font-family="Arial,sans-serif" font-size="30" font-weight="900" fill="#fff">${escapeXml(profile.archetype.emoji)} ${escapeXml(profile.archetype.title.toUpperCase())}</text>
+  <text x="${Math.round(width * .08)}" y="${centerY}" font-family="Arial,sans-serif" font-size="${format === 'story' ? 220 : 170}" font-weight="800" letter-spacing="-10" fill="${accent}">${escapeXml(compact(profile.tokens))}</text><text x="${Math.round(width * .08)}" y="${centerY + 58}" font-family="Arial,sans-serif" font-size="25" font-weight="900" fill="${muted}">AI CODING TOKENS IN MY LOADOUT</text>
   <text x="${Math.round(width * .68)}" y="${centerY - 18}" font-family="Arial,sans-serif" font-size="64" font-weight="700" fill="${foreground}">${score}</text><text x="${Math.round(width * .68)}" y="${centerY + 22}" font-family="Arial,sans-serif" font-size="19" fill="${muted}">BUILD LEVEL</text>
   <text x="${Math.round(width * .08)}" y="${height - Math.round(height * .18)}" font-family="Arial,sans-serif" font-size="24" fill="${foreground}">${profile.activeDays} active days  ·  ${profile.streakDays} day streak</text><text x="${Math.round(width * .08)}" y="${height - Math.round(height * .14)}" font-family="Arial,sans-serif" font-size="19" fill="${foreground}">TOOL LOADOUT · ${escapeXml(tokenSplit)}</text><text x="${Math.round(width * .08)}" y="${height - Math.round(height * .1)}" font-family="Arial,sans-serif" font-size="19" fill="${muted}">${escapeXml(profile.providers.join(' · ') || 'GitHub starter card')} · MAKE YOURS</text>
   </svg>`;

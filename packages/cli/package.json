@@ -1,11 +1,11 @@
 {
   "name": "ai-native-profile",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Privacy-first collector for AI Native Profile",
   "license": "MIT",
   "type": "module",
   "bin": { "anp": "bin/anp.mjs", "ai-native-profile": "bin/anp.mjs" },
-  "files": ["bin", "src/codex-app-server.ts", "src/codex-executable.mjs", "src/claude-usage.mjs", "README.md"],
+  "files": ["bin", "src/background-sync.mjs", "src/codex-app-server.ts", "src/codex-executable.mjs", "src/claude-usage.mjs", "src/file-discovery.mjs", "README.md"],
   "engines": { "node": ">=22.13.0" },
   "repository": {
     "type": "git",

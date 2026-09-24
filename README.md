@@ -14,7 +14,7 @@ For live coding stats, choose **Power up with coding activity** on the card scre
 npx --yes ai-native-profile@latest connect --code YOUR_CODE
 ```
 
-The command detects supported tools together, displays the privacy boundary, asks once before the first sync, and refreshes the open card automatically. It is an optional profile upgrade, not a prerequisite for creating or sharing the starter card. The original terminal-initiated `connect` flow remains available, and `--api-url` can target a self-hosted instance.
+The command detects supported tools together, displays the privacy boundary, asks before the first sync, and then offers persistent 15-minute updates. Automatic updates use the operating system's user-level scheduler and are installed only after explicit consent. They continue after Terminal closes and can be disabled with `anp watch --uninstall` or `anp disconnect`. The collector is an optional profile upgrade, not a prerequisite for creating or sharing the starter card. The original terminal-initiated `connect` flow remains available, and `--api-url` can target a self-hosted instance.
 
 For local development:
 
@@ -32,7 +32,7 @@ Configure a GitHub OAuth App with callback URL `http://localhost:3000/api/auth/g
 ANP_API_URL=http://localhost:3000 pnpm cli connect
 ```
 
-The collector shows detected tools and the exact aggregate payload. Automatic background synchronization does not start until the user runs `anp watch`.
+The collector shows detected tools and the exact aggregate payload. Automatic background synchronization starts only after the user approves it during connection or later runs `anp watch --install`.
 
 GitHub is the product account identity. Coding providers appear inside the Data sources screen and use the strongest supported evidence source—official account data where available, otherwise a consented local collector. ChatGPT and Claude Web support is experimental and deliberately separated from the core flow: it only reflects explicit MCP events or locally parsed official exports, never silent account access, and never affects rankings.
 

@@ -27,7 +27,7 @@ Pair this computer with your cloud profile:
 npx --yes ai-native-profile@latest connect
 ```
 
-The command prints a short-lived verification URL and code. Open the URL, sign in with GitHub, and approve the device. Then run the first sync:
+The command prints a short-lived verification URL and code. Open the URL, sign in with GitHub, and approve the device. The collector then shows the privacy boundary and asks before the first sync. You can also run a one-off sync later:
 
 ```bash
 npx --yes ai-native-profile@latest sync
@@ -39,22 +39,22 @@ For the fastest setup, sign in on the website and choose **Power up with coding 
 npx --yes ai-native-profile@latest connect --code ABCD1234
 ```
 
-That command is already associated with the signed-in profile. It detects sources, displays the privacy boundary, asks once before the first sync, and updates the open card without requiring the code to be entered again.
+That command is already associated with the signed-in profile. It detects sources, displays the privacy boundary, asks before the first sync, and updates the open card without requiring the code to be entered again. After that first sync it offers automatic 15-minute refreshes; approving them installs a visible user-level macOS LaunchAgent or Linux systemd timer.
 
-To keep syncing every 15 minutes while the command is running:
+Enable persistent 15-minute updates later:
 
 ```bash
-npx --yes ai-native-profile@latest watch
+npx --yes ai-native-profile@latest watch --install
 ```
 
-`watch` runs in the foreground and stops when the process stops. The collector never installs a hidden background service.
+Check their status with `doctor`, or disable them with `watch --uninstall`. Plain `watch` remains available for a foreground-only loop that stops with the process. The scheduled collector is copied under `~/.config/ai-native-profile/collector`; no provider credentials or source data are copied.
 
 ## Supported coding sources
 
 | Source | Collection path | Trust label |
 |---|---|---|
 | Codex | Official local App Server account usage | Official account source |
-| Claude Code | Deduplicated local session usage plus non-overlapping statistics-cache history | Local exact for retained records; partial lifetime coverage |
+| Claude Code | Deduplicated local session usage plus non-overlapping statistics-cache history | Local exact for retained records; estimated daily splits for cache-inclusive statistics history; partial lifetime coverage |
 | Cursor | Supported local database metadata | Estimated; excluded from rankings |
 | Gemini CLI | Locally retained CLI telemetry | Locally derived |
 | GitHub Copilot CLI | Locally retained CLI activity | Locally derived |
@@ -91,13 +91,15 @@ Run `preview` whenever you want to inspect the exact aggregate payload. Pairing 
 | `sources` | Detect supported local coding tools |
 | `preview` | Print the exact aggregate payload without sending it |
 | `sync` | Send one approved aggregate batch |
-| `watch` | Sync immediately, then every 15 minutes until stopped |
-| `doctor` | Check local sources and pairing status |
+| `watch` | Sync every 15 minutes in the foreground |
+| `watch --install` | Enable persistent 15-minute updates after Terminal closes |
+| `watch --uninstall` | Disable persistent updates |
+| `doctor` | Check local sources, pairing, and automatic-sync status |
 | `sessions` | List deliberately published session stories |
 | `share` | Preview or publish a manually supplied sanitized story |
 | `unshare` | Revoke a published story |
 | `export` | Alias for `preview` |
-| `disconnect` | Remove the local platform pairing |
+| `disconnect` | Disable automatic updates and remove the local platform pairing |
 
 Use a self-hosted deployment instead of the managed service:
 

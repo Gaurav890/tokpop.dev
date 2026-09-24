@@ -11,6 +11,16 @@ describe('provider adapters', () => {
     expect(result.daily[0].metrics.find((metric) => metric.name === 'tokens')?.value).toBe(120);
     expect(result.coverage.completeness).toBe('partial');
   });
+  it('includes Claude cache tokens while keeping stats-cache token rows non-competitive', () => {
+    const result = parseClaudeStatsCache({
+      dailyActivity: [{ date: '2026-09-10', messageCount: 8, sessionCount: 2 }],
+      dailyModelTokens: [{ date: '2026-09-10', tokensByModel: { sonnet: 300 } }],
+      modelUsage: { sonnet: { inputTokens: 100, outputTokens: 200, cacheCreationInputTokens: 400, cacheReadInputTokens: 5_000 } },
+    });
+    const metrics = Object.fromEntries(result.daily[0].metrics.map((item) => [item.name, item]));
+    expect(metrics.tokens).toMatchObject({ value: 5_700, provenance: 'estimated', competitiveEligible: false });
+    expect(metrics.cache_read_input_tokens.value).toBe(5_000);
+  });
   it('deduplicates Claude session records and counts cache tokens', () => {
     const first = { timestamp: '2026-09-10T10:00:00Z', sessionId: 's1', message: { id: 'm1', model: 'sonnet', content: [{ type: 'tool_use' }], usage: { input_tokens: 2, output_tokens: 3, cache_creation_input_tokens: 5, cache_read_input_tokens: 7 } } };
     const latest = { ...first, timestamp: '2026-09-10T10:00:01Z', message: { ...first.message, usage: { ...first.message.usage, output_tokens: 4 } } };

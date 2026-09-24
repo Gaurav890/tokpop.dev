@@ -10,6 +10,16 @@ export type AdapterResult = {
 type ClaudeStats = {
   dailyActivity?: Array<{ date?: string; messageCount?: number; sessionCount?: number; toolCallCount?: number }>;
   dailyModelTokens?: Array<{ date?: string; tokensByModel?: Record<string, number> }>;
+  modelUsage?: Record<string, {
+    inputTokens?: number;
+    outputTokens?: number;
+    cacheCreationInputTokens?: number;
+    cacheReadInputTokens?: number;
+    input_tokens?: number;
+    output_tokens?: number;
+    cache_creation_input_tokens?: number;
+    cache_read_input_tokens?: number;
+  }>;
 };
 
 type CodexUsage = {
@@ -67,32 +77,93 @@ export function parseCodexUsage(value: unknown): AdapterResult {
 export function parseClaudeStatsCache(value: unknown): AdapterResult {
   const input = (value ?? {}) as ClaudeStats;
   const warnings: string[] = [];
-  const tokenByDate = new Map<string, Record<string, number>>();
+  const activityByDate = new Map((input.dailyActivity ?? []).filter((row) => row.date && datePattern.test(row.date)).map((row) => [row.date!, row]));
+  const weightsByModel = new Map<string, Map<string, number>>();
   for (const row of input.dailyModelTokens ?? []) {
-    if (row.date && datePattern.test(row.date)) tokenByDate.set(row.date, row.tokensByModel ?? {});
-  }
-  const daily = (input.dailyActivity ?? []).flatMap((row): DailyActivity[] => {
-    if (!row.date || !datePattern.test(row.date)) {
-      warnings.push('Skipped a Claude activity row with an invalid date.');
-      return [];
+    if (!row.date || !datePattern.test(row.date)) continue;
+    for (const [model, count] of Object.entries(row.tokensByModel ?? {})) {
+      const weights = weightsByModel.get(model) ?? new Map<string, number>();
+      weights.set(row.date, safeCount(count));
+      weightsByModel.set(model, weights);
     }
-    const models = tokenByDate.get(row.date) ?? {};
-    const tokens = Object.values(models).reduce((sum, count) => sum + safeCount(count), 0);
-    return [{
-      date: row.date,
+  }
+  const activityWeights = new Map([...activityByDate].map(([date, row]) => [date, Math.max(1, safeCount(row.messageCount))]));
+  const components = new Map<string, { input: number; output: number; cacheCreation: number; cacheRead: number; combined: number; estimated: boolean; models: Record<string, number> }>();
+  const component = (date: string) => {
+    const existing = components.get(date);
+    if (existing) return existing;
+    const created = { input: 0, output: 0, cacheCreation: 0, cacheRead: 0, combined: 0, estimated: false, models: {} as Record<string, number> };
+    components.set(date, created);
+    return created;
+  };
+  const allocate = (total: number, weights: Map<string, number>) => {
+    const eligible = [...weights].filter(([, weight]) => weight > 0);
+    if (!eligible.length || total <= 0) return new Map<string, number>();
+    const weightTotal = eligible.reduce((sum, [, weight]) => sum + weight, 0);
+    const rows = eligible.map(([date, weight]) => {
+      const exact = total * weight / weightTotal;
+      return { date, count: Math.floor(exact), fraction: exact - Math.floor(exact) };
+    });
+    let remainder = Math.round(total) - rows.reduce((sum, row) => sum + row.count, 0);
+    rows.sort((left, right) => right.fraction - left.fraction || left.date.localeCompare(right.date));
+    for (let index = 0; remainder > 0; index = (index + 1) % rows.length, remainder -= 1) rows[index].count += 1;
+    return new Map(rows.map((row) => [row.date, row.count]));
+  };
+  const seenModels = new Set<string>();
+  for (const [model, usage] of Object.entries(input.modelUsage ?? {})) {
+    seenModels.add(model);
+    const weights = weightsByModel.get(model)?.size ? weightsByModel.get(model)! : activityWeights;
+    const values = {
+      input: safeCount(usage.inputTokens ?? usage.input_tokens),
+      output: safeCount(usage.outputTokens ?? usage.output_tokens),
+      cacheCreation: safeCount(usage.cacheCreationInputTokens ?? usage.cache_creation_input_tokens),
+      cacheRead: safeCount(usage.cacheReadInputTokens ?? usage.cache_read_input_tokens),
+    };
+    const allocations = {
+      input: allocate(values.input, weights),
+      output: allocate(values.output, weights),
+      cacheCreation: allocate(values.cacheCreation, weights),
+      cacheRead: allocate(values.cacheRead, weights),
+      combined: values.input + values.output > 0 ? new Map<string, number>() : new Map(weights),
+    };
+    for (const [name, allocation] of Object.entries(allocations) as Array<[keyof typeof allocations, Map<string, number>]>) {
+      for (const [date, count] of allocation) {
+        const current = component(date);
+        current[name] += count;
+        current.estimated = true;
+        current.models[model] = (current.models[model] ?? 0) + count;
+      }
+    }
+  }
+  for (const [model, weights] of weightsByModel) {
+    if (seenModels.has(model)) continue;
+    for (const [date, count] of weights) {
+      const current = component(date);
+      current.combined += count;
+      current.models[model] = (current.models[model] ?? 0) + count;
+    }
+  }
+  const dates = new Set([...activityByDate.keys(), ...components.keys()]);
+  const daily = [...dates].sort().map((date): DailyActivity => {
+    const row = activityByDate.get(date) ?? {};
+    const current = component(date);
+    const tokens = current.input + current.output + current.cacheCreation + current.cacheRead + current.combined;
+    const tokenProvenance: Provenance = current.estimated ? 'estimated' : 'local_exact';
+    const tokenMetric = (name: MetricName, count: number) => metric(name, count, 'claude_code', tokenProvenance, date, tokenProvenance !== 'estimated');
+    return {
+      date,
       source: 'claude_code',
       category: 'coding',
       metrics: [
-        metric('sessions', safeCount(row.sessionCount), 'claude_code', 'local_exact', row.date),
-        metric('turns', safeCount(row.messageCount), 'claude_code', 'local_exact', row.date),
-        metric('tool_calls', safeCount(row.toolCallCount), 'claude_code', 'local_exact', row.date),
-        ...(tokens ? [metric('tokens', tokens, 'claude_code', 'local_exact', row.date)] : []),
-      ],
-      models,
-    }];
+        metric('sessions', safeCount(row.sessionCount), 'claude_code', 'local_exact', date),
+        metric('turns', safeCount(row.messageCount), 'claude_code', 'local_exact', date),
+        metric('tool_calls', safeCount(row.toolCallCount), 'claude_code', 'local_exact', date),
+        ...(tokens ? [tokenMetric('tokens', tokens), tokenMetric('input_tokens', current.input), tokenMetric('output_tokens', current.output), tokenMetric('cache_creation_input_tokens', current.cacheCreation), tokenMetric('cache_read_input_tokens', current.cacheRead)].filter((item) => item.value > 0) : []),
+      ], models: current.models,
+    };
   });
   if (!daily.length) warnings.push('Claude statistics contained no dated activity.');
-  return { source: 'claude_code', daily, coverage: coverage('claude_code', daily.map((day) => day.date), 'local_exact', true, 'Statistics-cache rows may omit cache-read and cache-write tokens and cannot prove complete lifetime coverage.', 'partial'), warnings };
+  return { source: 'claude_code', daily, coverage: coverage('claude_code', daily.map((day) => day.date), 'local_exact', true, 'Cache-inclusive covered-period totals are preserved; stats-cache daily token splits are estimated and excluded from rankings. Lifetime coverage may still be partial.', 'partial'), warnings };
 }
 
 type ClaudeUsage = {

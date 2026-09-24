@@ -6,6 +6,7 @@ import { backendOrigin, backendResponse } from './server-api';
 import { buildProfileArchetype } from './profile-archetype';
 import { buildDailyTokenLedger } from './token-ledger';
 import { publicConversationRows } from './profile-visibility';
+import { resolveTokenMetrics } from './profile-metrics';
 
 type MetricRow = { date: string; source: string; metric_name: string; value: number; provenance: string; competitive_eligible: number };
 type CoverageRow = { source: string; completeness: string; last_synced_at: string; provenance?: string; note?: string };
@@ -101,15 +102,15 @@ export async function getPrivateProfileFromDatabase(userId: string): Promise<Pub
 async function buildProfile(user: ProfileUser): Promise<PublicProfile> {
   const metricResult = await env.DB.prepare(`SELECT date, source, metric_name, value, provenance, competitive_eligible FROM daily_metrics WHERE user_id=? AND date >= date('now','-365 days') ORDER BY date`).bind(user.id).all<MetricRow>();
   const coverageResult = await env.DB.prepare(`SELECT source, completeness, last_synced_at, note FROM source_coverage WHERE user_id=? ORDER BY source`).bind(user.id).all<CoverageRow>();
-  const rawMetrics = metricResult.results ?? [];
-  const officialCodexTokenDates = new Set(rawMetrics.filter((row) => row.source === 'codex' && row.metric_name === 'tokens' && row.provenance === 'official_account_api').map((row) => row.date));
-  const metrics = rawMetrics.filter((row) => !(row.source === 'codex' && row.metric_name === 'tokens' && row.provenance !== 'official_account_api' && officialCodexTokenDates.has(row.date)));
+  const metrics = metricResult.results ?? [];
   const eligible = metrics.filter((row) => row.competitive_eligible && !['github', 'chatgpt_web', 'claude_web'].includes(row.source));
+  const tokenMetrics = resolveTokenMetrics(metrics.filter((row) => !['github', 'chatgpt_web', 'claude_web'].includes(row.source)));
   const activeDates = [...new Set(eligible.filter((row) => row.value > 0).map((row) => row.date))];
   const sum = (name: string, rows = metrics) => rows.filter((row) => row.metric_name === name).reduce((total, row) => total + row.value, 0);
-  const sources = [...new Set(eligible.map((row) => row.source))];
+  const competitiveSources = [...new Set(eligible.map((row) => row.source))];
+  const sources = [...new Set([...competitiveSources, ...tokenMetrics.map((row) => row.source)])];
   const sessions = sum('sessions', eligible);
-  const lifetimeTokens = sum('tokens', eligible);
+  const lifetimeTokens = sum('tokens', tokenMetrics);
   const activityTotals = {
     sessions,
     turns: sum('turns', eligible),
@@ -119,21 +120,21 @@ async function buildProfile(user: ProfileUser): Promise<PublicProfile> {
     agentRuns: sum('agent_runs', eligible),
   };
   const tokenBreakdown = sources.flatMap((source) => {
-    const rows = eligible.filter((row) => row.source === source && row.metric_name === 'tokens');
+    const rows = tokenMetrics.filter((row) => row.source === source && row.metric_name === 'tokens');
     const tokens = rows.reduce((total, row) => total + row.value, 0);
     const provenances = [...new Set(rows.map((row) => provenanceLabel[row.provenance] ?? 'Unknown'))];
     const components = {
-      input: sum('input_tokens', eligible.filter((row) => row.source === source)),
-      output: sum('output_tokens', eligible.filter((row) => row.source === source)),
-      cacheCreation: sum('cache_creation_input_tokens', eligible.filter((row) => row.source === source)),
-      cacheRead: sum('cache_read_input_tokens', eligible.filter((row) => row.source === source)),
+      input: sum('input_tokens', tokenMetrics.filter((row) => row.source === source)),
+      output: sum('output_tokens', tokenMetrics.filter((row) => row.source === source)),
+      cacheCreation: sum('cache_creation_input_tokens', tokenMetrics.filter((row) => row.source === source)),
+      cacheRead: sum('cache_read_input_tokens', tokenMetrics.filter((row) => row.source === source)),
       combinedOnly: 0,
     };
     const classified = components.input + components.output + components.cacheCreation + components.cacheRead;
     components.combinedOnly = Math.max(0, tokens - classified);
     return tokens > 0 ? [{ source, label: sourceLabel[source] ?? source, tokens, provenance: provenances.join(' + '), components }] : [];
   }).sort((left, right) => right.tokens - left.tokens);
-  const dailyTokens = buildDailyTokenLedger(eligible.filter((row) => row.metric_name === 'tokens'));
+  const dailyTokens = buildDailyTokenLedger(tokenMetrics.filter((row) => row.metric_name === 'tokens'));
   const githubRows = metrics.filter((row) => row.source === 'github');
   const score = calculateWorkflowIndex({
     githubConnected: coverageResult.results?.some((row) => row.source === 'github') ?? false, coveredDays: activeDates.length, activeCodingDays90: activeDates.filter((date) => Date.parse(date) >= Date.now() - 90 * 86_400_000).length,
@@ -141,7 +142,7 @@ async function buildProfile(user: ProfileUser): Promise<PublicProfile> {
     toolUsingSessionRate: sessions ? sum('tool_using_sessions', eligible) / sessions : 0,
     toolCallsPerSession: sessions ? activityTotals.toolCalls / sessions : 0,
     advancedWorkflowSessionRate: sessions ? sum('advanced_workflow_sessions', eligible) / sessions : 0,
-    activeCodingProviders: sources.length, commits: sum('commits', githubRows), mergedPullRequests: sum('merged_pull_requests', githubRows), reviews: sum('reviews', githubRows), releases: sum('releases', githubRows),
+    activeCodingProviders: competitiveSources.length, commits: sum('commits', githubRows), mergedPullRequests: sum('merged_pull_requests', githubRows), reviews: sum('reviews', githubRows), releases: sum('releases', githubRows),
   });
   const archetype = buildProfileArchetype({ tokens: lifetimeTokens, currentStreak: currentStreak(activeDates), providerCount: sources.length, deliveryPoints: score.deliveryPoints, toolCalls: activityTotals.toolCalls });
   const byDate = new Map<string, number>();

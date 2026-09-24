@@ -1,15 +1,19 @@
 #!/usr/bin/env node
 import { createHmac, randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
-import { createReadStream, existsSync, readFileSync, mkdirSync, writeFileSync, rmSync, readdirSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, readFileSync, mkdirSync, writeFileSync, rmSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { createInterface } from 'node:readline';
+import { fileURLToPath } from 'node:url';
+import { backgroundSyncStatus, installBackgroundSync, uninstallBackgroundSync } from '../src/background-sync.mjs';
 import { resolveCodexExecutable } from '../src/codex-executable.mjs';
 import { addClaudeSessionEvent, createClaudeSessionAccumulator, finalizeClaudeSessionUsage, mergeClaudeUsage, parseClaudeStatsCache } from '../src/claude-usage.mjs';
+import { discoverLocalDataFiles } from '../src/file-discovery.mjs';
 
-const VERSION = '0.2.0';
+const VERSION = '0.2.1';
 const DEFAULT_API_URL = 'https://ai-native-profile.vercel.app';
+const packageRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const configDir = join(homedir(), '.config', 'ai-native-profile');
 const configFile = join(configDir, 'config.json');
 const paths = {
@@ -50,12 +54,13 @@ async function claudeAggregate() {
   const accumulator = createClaudeSessionAccumulator();
   let malformedLines = 0;
   const projectRoots = paths.claude_code.filter((path) => !path.endsWith('stats-cache.json'));
-  for (const sessionFile of localFiles(projectRoots).filter((path) => /\.jsonl$/i.test(path))) {
+  const discovery = discoverLocalDataFiles(projectRoots);
+  for (const sessionFile of discovery.files.filter((path) => /\.jsonl$/i.test(path))) {
     try {
       const lines = createInterface({ input:createReadStream(sessionFile, { encoding:'utf8' }), crlfDelay:Infinity });
       for await (const line of lines) {
         if (!line.trim()) continue;
-        try { addClaudeSessionEvent(accumulator, JSON.parse(line)); }
+        try { addClaudeSessionEvent(accumulator, JSON.parse(line), { sessionId:basename(sessionFile, '.jsonl') }); }
         catch { malformedLines += 1; }
       }
     } catch { malformedLines += 1; }
@@ -64,24 +69,14 @@ async function claudeAggregate() {
   const daily = mergeClaudeUsage(session.daily, legacy.daily);
   if (!daily.length) return null;
   const notes = ['Exact retained session records include input, output, cache-write, and cache-read tokens; local retention cannot prove complete lifetime coverage.'];
-  if (legacy.daily.length) notes.push('Older stats-cache days include combined base input/output tokens only.');
-  if (legacy.undatedCacheTokens) notes.push(`${Math.round(legacy.undatedCacheTokens)} older cache tokens lack day-level attribution and are excluded from dated totals.`);
+  if (legacy.estimatedDates) notes.push(`${legacy.estimatedDates} stats-cache day${legacy.estimatedDates === 1 ? '' : 's'} include cache and base token components allocated by reported daily model activity; covered-period totals are preserved while those daily splits are estimated.`);
+  if (discovery.truncated) notes.push('Local history exceeded the 10,000-file safety limit; the result is partial.');
   if (malformedLines) notes.push(`${malformedLines} malformed local record${malformedLines === 1 ? ' was' : 's were'} skipped.`);
   return { daily, completeness:'partial', note:notes.join(' ') };
 }
 
-function localFiles(candidates, limit = 300) {
-  const files = [];
-  const visit = (path) => {
-    if (files.length >= limit || !existsSync(path)) return;
-    let info; try { info = statSync(path); } catch { return; }
-    if (info.isFile()) { if (/\.(jsonl|json)$/i.test(path)) files.push(path); return; }
-    if (!info.isDirectory()) return;
-    let entries = []; try { entries = readdirSync(path); } catch { return; }
-    for (const entry of entries) visit(join(path, entry));
-  };
-  for (const path of candidates) visit(path);
-  return files;
+function localFiles(candidates) {
+  return discoverLocalDataFiles(candidates).files;
 }
 
 function genericLocalAggregate(source, candidates) {
@@ -191,9 +186,48 @@ function confirmFirstSync() {
   }));
 }
 
+function confirmAutomaticSync() {
+  if (process.argv.includes('--yes')) return Promise.resolve(true);
+  if (!process.stdin.isTTY || !process.stdout.isTTY) return Promise.resolve(false);
+  const prompt = createInterface({ input:process.stdin, output:process.stdout });
+  return new Promise((resolve) => prompt.question('\nKeep this profile updated automatically every 15 minutes? [Y/n] ', (answer) => {
+    prompt.close();
+    resolve(!/^n(?:o)?$/i.test(answer.trim()));
+  }));
+}
+
 function printPrivacyPreview() {
   console.log('\nMay sync: dates, provider/model IDs, token and activity counts, duration, coverage, and collector version.');
   console.log('Never syncs: prompts, responses, source code, commands, paths, repositories, credentials, or environment variables.');
+}
+
+function enableAutomaticSync() {
+  const result = installBackgroundSync({ sourceRoot:packageRoot });
+  if (!result.installed) {
+    console.log(`\n${result.reason} Run \`anp watch\` when you want foreground updates.`);
+    return false;
+  }
+  saveConfig({ ...loadConfig(), backgroundSync: { enabled:true, platform:result.platform, intervalSeconds:result.intervalSeconds, installedAt:new Date().toISOString() } });
+  console.log('\nAutomatic sync is on. This computer will refresh your aggregates every 15 minutes, including after Terminal closes.');
+  return true;
+}
+
+async function finishConnection(connectedMessage) {
+  console.log(connectedMessage);
+  printSources();
+  printPrivacyPreview();
+  if (!(await confirmFirstSync())) {
+    console.log('\nConnected without syncing. Run `anp preview` to inspect the payload, then `anp sync` when ready.');
+    return;
+  }
+  await sync();
+  console.log('Your card is updated. Return to the browser to see it.');
+  if (await confirmAutomaticSync()) {
+    try { enableAutomaticSync(); }
+    catch (error) { console.error(`\nAutomatic sync could not be enabled: ${error instanceof Error ? error.message : String(error)}\nRun \`anp watch\` for foreground updates.`); }
+  } else {
+    console.log('\nAutomatic sync is off. Run `anp watch --install` later to enable it.');
+  }
 }
 
 async function claimWebConnection(apiUrl, userCode) {
@@ -205,15 +239,7 @@ async function claimWebConnection(apiUrl, userCode) {
   const body = await response.json().catch(() => ({}));
   if (!response.ok || !body.deviceToken || !body.deviceId) throw new Error(body.error ?? `Connection failed (${response.status}).`);
   saveConfig({ apiUrl, deviceId:body.deviceId, deviceToken:body.deviceToken });
-  console.log('Connected to your AI Native Profile.');
-  printSources();
-  printPrivacyPreview();
-  if (await confirmFirstSync()) {
-    await sync();
-    console.log('Your card is updated. Return to the browser to see it.');
-  } else {
-    console.log('\nConnected without syncing. Run `anp preview` to inspect the payload, then `anp sync` when ready.');
-  }
+  await finishConnection('Connected to your AI Native Profile.');
 }
 
 async function connect() {
@@ -238,7 +264,7 @@ async function connect() {
     const tokenBody = await tokenResponse.json().catch(() => ({}));
     if (tokenResponse.ok && tokenBody.deviceToken) {
       saveConfig({ apiUrl, deviceId:pair.deviceId, deviceToken:tokenBody.deviceToken });
-      console.log('Connected. Automatic sync remains off until you run `anp watch`.');
+      await finishConnection('Connected to your AI Native Profile.');
       return;
     }
     throw new Error(tokenBody.error ?? `Pairing failed (${tokenResponse.status}).`);
@@ -256,7 +282,7 @@ async function sync() {
 }
 
 function help() {
-  console.log(`AI Native Profile collector ${VERSION}\n\nUsage: anp <command> [options]\n\n  connect      Pair this device with the cloud dashboard\n               --code <code> claims a command created by the signed-in website\n               --api-url <url> overrides the hosted dashboard\n               --yes approves the first aggregate sync without prompting\n  sources      Detect supported coding tools\n  preview      Print the exact aggregate payload\n  sync         Send one aggregate batch\n  watch        Sync every 15 minutes until stopped\n  doctor       Check configuration and sources\n  sessions     Explain selected-session sharing\n  share        Publish a selected sanitized session\n  unshare      Revoke a shared session\n  export       Alias for preview\n  disconnect   Remove the local platform pairing\n`);
+  console.log(`AI Native Profile collector ${VERSION}\n\nUsage: anp <command> [options]\n\n  connect      Pair this device with the cloud dashboard\n               --code <code> claims a command created by the signed-in website\n               --api-url <url> overrides the hosted dashboard\n               --yes approves the first sync and automatic updates without prompting\n  sources      Detect supported coding tools\n  preview      Print the exact aggregate payload\n  sync         Send one aggregate batch\n  watch        Sync every 15 minutes until stopped\n               --install enables persistent 15-minute updates\n               --uninstall disables persistent updates\n  doctor       Check configuration, sources, and automatic sync\n  sessions     Explain selected-session sharing\n  share        Publish a selected sanitized session\n  unshare      Revoke a shared session\n  export       Alias for preview\n  disconnect   Disable automatic sync and remove the local pairing\n`);
 }
 
 function option(name) { const index = process.argv.indexOf(`--${name}`); return index >= 0 ? process.argv[index + 1] : undefined; }
@@ -279,11 +305,13 @@ try {
   else if (command === 'preview' || command === 'export') console.log(JSON.stringify(await createBatch(), null, 2));
   else if (command === 'connect') await connect();
   else if (command === 'sync') await sync();
+  else if (command === 'watch' && process.argv.includes('--install')) { if (!loadConfig().deviceToken) throw new Error('Connect this device first.'); enableAutomaticSync(); }
+  else if (command === 'watch' && process.argv.includes('--uninstall')) { uninstallBackgroundSync(); saveConfig({ ...loadConfig(), backgroundSync:{ enabled:false, disabledAt:new Date().toISOString() } }); console.log('Automatic sync is off.'); }
   else if (command === 'watch') { await sync(); console.log('Watching every 15 minutes. Press Ctrl+C to stop.'); setInterval(() => sync().catch((error) => console.error(error.message)), 15 * 60 * 1000); }
-  else if (command === 'doctor') { printSources(); const config = loadConfig(); console.log(`\nCloud pairing: ${config.deviceId ? 'configured' : 'not configured'}`); }
+  else if (command === 'doctor') { printSources(); const config = loadConfig(); const automatic = backgroundSyncStatus(); console.log(`\nCloud pairing: ${config.deviceId ? 'configured' : 'not configured'}`); console.log(`Automatic sync: ${automatic.installed ? 'on (every 15 minutes)' : automatic.supported ? 'off' : 'unsupported on this operating system'}`); }
   else if (command === 'sessions') await listSessions();
   else if (command === 'share') await shareSession();
   else if (command === 'unshare') await unshareSession();
-  else if (command === 'disconnect') { rmSync(configFile, { force:true }); console.log('Removed the local platform pairing. Provider sign-ins and source data were not changed.'); }
+  else if (command === 'disconnect') { uninstallBackgroundSync(); rmSync(configFile, { force:true }); console.log('Disabled automatic sync and removed the local platform pairing. Provider sign-ins and source data were not changed.'); }
   else { console.error(`Unknown command: ${command}\n`); help(); process.exitCode = 1; }
 } catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }

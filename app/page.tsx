@@ -1,4 +1,5 @@
 import Link from './ui/native-link';
+import Image from 'next/image';
 import type { PublicProfile } from '../lib/demo-profile';
 import { currentGitHubUser } from '../lib/auth';
 import { SiteHeader } from './ui/site-header';
@@ -119,43 +120,51 @@ export default async function Home() {
   const cardHref = user ? '/share?onboarding=1' : `/api/auth/github/start?return_to=${encodeURIComponent('/share?onboarding=1')}`;
   return <main className="marketing-page home-page">
     <SiteHeader user={user}/>
-    <section className="proof-hero">
-      <div className="proof-copy">
-        <div className="release-line"><span>OPEN SOURCE</span><code>anp.activity.v1</code></div>
+    <section className="home-stage">
+      <div className="home-stage-copy">
         <p className="eyebrow">Your AI coding alter ego</p>
-        <h1>Your AI build story.<br/><span>One live card.</span></h1>
-        <p className="proof-intro">Turn the tools, tokens, streaks, and shipping behind your work into a card worth putting in your GitHub README.</p>
-        <div className="home-actions">
-          <Link className="primary-link" href={cardHref}>{user ? 'Open my card' : 'Make my card'} <span>→</span></Link>
-        </div>
-        <div className="proof-promises"><span>GitHub card in 30 seconds</span><span>No prompts or source code</span><span>Private until you publish</span></div>
+        <h1>Meet the card your<br/><span>README was missing.</span></h1>
+        <p>Your tokens, tools, streak, and shipping—turned into one live flex card that keeps leveling up while you build.</p>
       </div>
-      <aside className="proof-sample" aria-label="Labelled example profile summary">
-        <div className="sample-top"><span>AI BUILD CARD</span><b>LIVE ●</b></div>
-        <div className="sample-identity"><div><strong>@demo</strong><small>🥷 Token Ninja</small></div><span><b>2.5B</b><small>tokens</small></span></div>
-        <div className="sample-stats"><div><strong>78</strong><span>build level</span></div><div><strong>41d</strong><span>streak</span></div><div><strong>3</strong><span>tools</span></div></div>
-        <div className="sample-activity" aria-hidden="true">{[0,2,1,3,0,1,4,2,2,0,3,4,1,2,4,3,0,2,1,4,3,2,4,4,1,3,2,4].map((level, index) => <i key={index} className={`sample-level-${level}`}/>)}</div>
-        <div className="sample-sources"><span>Codex <strong>2.1B</strong><b>official</b></span><span>Claude Code <strong>380M</strong><b>local exact</b></span><span>Cursor <strong>activity</strong><b>derived</b></span></div>
-        <div className="sample-foot"><span>Live stats · source-labelled</span><Link href={cardHref}>Make yours ↗</Link></div>
+      <aside className="home-alter-ego" aria-label="Example build alter ego">
+        <span>UNLOCKED ●</span>
+        <strong>🥷 Token Ninja</strong>
+        <small>2.5B tokens · 3 tools · 41-day streak</small>
+      </aside>
+
+      <div className="home-card-drop">
+        <div className="home-card-head"><span>LIVE DEMO · CLICK TO MAKE YOURS</span><b>FLEX MODE ON ⚡</b></div>
+        <Link href={cardHref} aria-label="Make your own live AI build card">
+          <Image src="/api/v1/cards/demo?theme=dark" width={640} height={252} unoptimized priority alt="Example live AI build card"/>
+        </Link>
+        <p>Paste it once. Your stats keep moving. Every click can bring the next builder in.</p>
+      </div>
+
+      <aside className="home-conversion-card">
+        <p className="eyebrow">Start free</p>
+        <h2>Your flex card in 30 seconds.</h2>
+        <p className="home-conversion-intro">See your starter card immediately. Add stronger proof only when you want it.</p>
+        <Link className="home-conversion-button" href={cardHref}>{user ? 'Open my card' : 'Make my card'} <span>→</span></Link>
+        <div className="home-conversion-trust"><span>🔒 Private until published</span><span>🧼 No prompts or code</span></div>
+        <ol>
+          <li><span>01</span><div><strong>Claim it with GitHub</strong><small>Your private starter card appears instantly.</small></div></li>
+          <li><span>02</span><div><strong>Power up your stats</strong><small>One command finds supported coding tools.</small></div></li>
+          <li><span>03</span><div><strong>Copy. Paste. Flex.</strong><small>Your live README card updates automatically.</small></div></li>
+        </ol>
       </aside>
     </section>
     <section className="supported-strip" aria-label="Supported coding sources"><span>WORKS WITH</span><div>{['Codex','Claude Code','Cursor','Gemini CLI','Copilot CLI','GitHub'].map((source) => <b key={source}>{source}</b>)}</div></section>
-    <section className="home-outcomes">
-      <div className="value-heading"><p className="eyebrow">One profile · three wins</p><h2>Make the work behind your work visible.</h2></div>
-      <div className="outcome-grid">
-        <article><span>01</span><strong>README card</strong><h3>A live card people actually want to display.</h3><p>Your build alter ego, tokens, streak, tools, and level—updated automatically.</p></article>
-        <article><span>02</span><strong>Exact breakdown</strong><h3>Every provider. Every day. No mystery totals.</h3><p>See how much came from each tool and inspect the daily token ledger behind it.</p></article>
-        <article><span>03</span><strong>Community rank</strong><h3>Compete on consistency and shipping—not spending.</h3><p>Opt into a leaderboard where raw token volume never increases your score.</p></article>
+    <section className="home-flex-reasons">
+      <div className="home-flex-heading"><p className="eyebrow">More than a badge</p><h2>Show the build. Show the receipts. Keep it fun.</h2></div>
+      <div className="home-flex-grid">
+        <article><span>🔥</span><small>THE FLEX</small><h3>A live card worth putting in your README.</h3><p>Your alter ego, tools, tokens, streak, and level in one collectible drop.</p></article>
+        <article><span>🔎</span><small>THE RECEIPTS</small><h3>Every provider and every day, clearly broken down.</h3><p>No mystery total: inspect exactly which tool contributed what.</p></article>
+        <article><span>🏆</span><small>THE GAME</small><h3>Climb through consistency—not token spending.</h3><p>Join the leaderboard when you are ready. Raw token volume never raises your level.</p></article>
       </div>
     </section>
-    <section className="setup-rail">
-      <div><p className="eyebrow">One guided flow</p><h2>Connect it. Reveal it. Share it.</h2><p>Start with GitHub, then one command connects every supported coding tool together.</p></div>
-      <ol><li><span>1</span>Connect GitHub</li><li><span>2</span>Connect AI tools</li><li><span>3</span>Add the card to your README</li></ol>
-      <Link className="primary-link" href={cardHref}>{user ? 'Open my card' : 'Make my card'} →</Link>
-    </section>
-    <section className="community-loop">
-      <div><p className="eyebrow">Built to travel</p><h2>Your card brings the next builder in.</h2><p>Every shared card opens a focused “Make yours” flow, with the original builder’s full profile one click away. Public profiles can then opt into the community leaderboard.</p></div>
-      <Link className="secondary-link" href="/leaderboard">Explore the leaderboard →</Link>
+    <section className="home-final-conversion">
+      <div><span aria-hidden="true">⚡</span><p className="eyebrow">Ready player one</p><h2>What&apos;s your build alter ego?</h2></div>
+      <Link className="home-conversion-button" href={cardHref}>{user ? 'Go to my card' : 'Reveal my card'} <span>→</span></Link>
     </section>
     <SiteFooter/>
   </main>;

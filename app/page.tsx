@@ -154,7 +154,7 @@ export default async function Home() {
       <Link className="primary-link" href={cardHref}>{user ? 'Open my card' : 'Make my card'} →</Link>
     </section>
     <section className="community-loop">
-      <div><p className="eyebrow">Built to travel</p><h2>Your card brings the next builder in.</h2><p>Every shared card links back to a detailed profile and a simple “Make yours” path. Public profiles can then opt into the community leaderboard.</p></div>
+      <div><p className="eyebrow">Built to travel</p><h2>Your card brings the next builder in.</h2><p>Every shared card opens a focused “Make yours” flow, with the original builder’s full profile one click away. Public profiles can then opt into the community leaderboard.</p></div>
       <Link className="secondary-link" href="/leaderboard">Explore the leaderboard →</Link>
     </section>
     <SiteFooter/>

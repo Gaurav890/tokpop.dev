@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ensureDb } from '../../../db/ensure';
 import { authenticateMcp, containsSecret, hasScope } from '../../../lib/mcp';
 import { trustedOrigin } from '../../../lib/oauth';
+import { cardFunnelPath } from '../../../lib/card-cache';
 
 type RpcRequest = { jsonrpc?: string; id?: string | number | null; method?: string; params?: { name?: string; arguments?: Record<string, unknown> } };
 
@@ -14,7 +15,7 @@ const tools = [
   { name: 'get_profile', description: 'Read the connected user’s AI Native Profile summary and public profile URL.', inputSchema: { type: 'object', properties: {}, additionalProperties: false } },
   { name: 'record_session', description: 'Record one provider-observed conversation session. This never affects competitive scores.', inputSchema: { type: 'object', properties: { occurredAt: { type: 'string', description: 'Optional ISO-8601 timestamp.' } }, additionalProperties: false } },
   { name: 'publish_session', description: 'Publish a deliberately selected, sanitized session summary. Unlisted by default.', inputSchema: { type: 'object', required: ['title', 'summary'], properties: { title: { type: 'string', maxLength: 120 }, summary: { type: 'string', maxLength: 2000 }, tags: { type: 'array', maxItems: 8, items: { type: 'string', maxLength: 30 } }, visibility: { type: 'string', enum: ['unlisted', 'public'] }, expiresAt: { type: 'string' } }, additionalProperties: false } },
-  { name: 'create_share_card', description: 'Create stable card and profile links for the connected GitHub identity.', inputSchema: { type: 'object', properties: { theme: { type: 'string', enum: ['dark', 'light'] } }, additionalProperties: false } },
+  { name: 'create_share_card', description: 'Create a stable card, a make-yours funnel, and a profile link for the connected GitHub identity.', inputSchema: { type: 'object', properties: { theme: { type: 'string', enum: ['dark', 'light'] } }, additionalProperties: false } },
 ];
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ provider: string }> }) {
@@ -67,7 +68,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return jsonRpc(rpc.id, textResult({ published: true, visibility, url: `${trustedOrigin(request)}/stories/${id}`, expiresAt }));
   }
   const theme = input.theme === 'light' ? 'light' : 'dark';
-  return jsonRpc(rpc.id, textResult({ profileUrl: `${trustedOrigin(request)}/u/${identity.login}`, cardUrl: `${trustedOrigin(request)}/api/v1/cards/${identity.login}?theme=${theme}`, markdown: `![AI Native Profile](${trustedOrigin(request)}/api/v1/cards/${identity.login}?theme=${theme})` }));
+  const origin = trustedOrigin(request);
+  const cardUrl = `${origin}/api/v1/cards/${identity.login}?theme=${theme}`;
+  const funnelUrl = `${origin}${cardFunnelPath(identity.login)}`;
+  return jsonRpc(rpc.id, textResult({ profileUrl: `${origin}/u/${identity.login}`, funnelUrl, cardUrl, markdown: `[![AI Native Profile](${cardUrl})](${funnelUrl})` }));
 }
 
 export async function GET() {

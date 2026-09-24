@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from '../ui/native-link';
+import { cardFunnelPath } from '../../lib/card-cache';
 
 type Settings = {
   publicEnabled: boolean;
@@ -36,14 +37,16 @@ export function ActivationShare({ username, initialSettings, profile }: { userna
   const [pending, setPending] = useState(false);
   const hasCodingEvidence = profile.providers.length > 0;
   const profilePath = `/u/${username}`;
+  const funnelPath = cardFunnelPath(username);
   const cardPath = `/api/v1/cards/${username}?theme=${theme}`;
   const previewCardPath = `${cardPath}&v=${encodeURIComponent(profile.updatedAt)}`;
 
   function absoluteShareValues() {
     const origin = window.location.origin;
     const profileUrl = `${origin}${profilePath}`;
+    const funnelUrl = `${origin}${funnelPath}`;
     const cardUrl = `${origin}${cardPath}`;
-    return { profileUrl, cardUrl, markdown: `[![${username}'s AI build card](${cardUrl})](${profileUrl})` };
+    return { profileUrl, funnelUrl, cardUrl, markdown: `[![${username}'s AI build card](${cardUrl})](${funnelUrl})` };
   }
 
   async function writeClipboard(value: string, success: string) {
@@ -93,11 +96,11 @@ export function ActivationShare({ username, initialSettings, profile }: { userna
   }
 
   async function copy(kind: 'profile' | 'post' | 'html') {
-    const { profileUrl, cardUrl } = absoluteShareValues();
+    const { profileUrl, funnelUrl, cardUrl } = absoluteShareValues();
     const value = kind === 'post'
-      ? `${profile.archetype.emoji} ${profile.archetype.title}\n\n${compact(profile.lifetimeTokens)} AI coding tokens · ${profile.streakDays}-day streak · ${profile.providers.length} tool${profile.providers.length === 1 ? '' : 's'} in my loadout.\n\nMake yours: ${profileUrl}`
+      ? `${profile.archetype.emoji} ${profile.archetype.title}\n\n${compact(profile.lifetimeTokens)} AI coding tokens · ${profile.streakDays}-day streak · ${profile.providers.length} tool${profile.providers.length === 1 ? '' : 's'} in my loadout.\n\nMake yours: ${funnelUrl}\nMy full breakdown: ${profileUrl}`
       : kind === 'html'
-        ? `<a href="${profileUrl}"><img src="${cardUrl}" alt="${username}'s AI build card" /></a>`
+        ? `<a href="${funnelUrl}"><img src="${cardUrl}" alt="${username}'s AI build card — click to make yours" /></a>`
         : profileUrl;
     await writeClipboard(value, kind === 'post' ? 'Launch post copied.' : kind === 'html' ? 'HTML copied.' : 'Profile link copied.');
   }

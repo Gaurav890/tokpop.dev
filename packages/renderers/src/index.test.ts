@@ -30,7 +30,7 @@ describe('SVG renderers', () => {
     expect(svg).toContain('Claude Code');
     expect(svg).toContain('200M');
     expect(svg).toContain('POWER BY PROVIDER');
-    expect(svg).toContain('LIVE BUILD CARD');
+    expect(svg).toContain('CLICK · MAKE YOURS');
   });
   it('uses bright card palettes instead of the old black slab', () => {
     const pop = renderProfileCard(profile, 'dark');

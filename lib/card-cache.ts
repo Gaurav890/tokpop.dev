@@ -15,3 +15,7 @@ export function stableCardPath(username: string, theme: CardTheme): string {
 export function previewCardPath(username: string, theme: CardTheme, updatedAt: string): string {
   return `${stableCardPath(username, theme)}&v=${encodeURIComponent(updatedAt)}`;
 }
+
+export function cardFunnelPath(username: string): string {
+  return `/make/${encodeURIComponent(username)}`;
+}

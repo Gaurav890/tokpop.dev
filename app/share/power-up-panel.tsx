@@ -15,7 +15,7 @@ type Device = {
   lastSeenAt: string | null;
 };
 
-const CONNECTOR_VERSION = '0.2.0';
+const CONNECTOR_VERSION = '0.2.1';
 
 export function PowerUpPanel({ hasCodingEvidence }: { hasCodingEvidence: boolean }) {
   const router = useRouter();
@@ -40,7 +40,7 @@ export function PowerUpPanel({ hasCodingEvidence }: { hasCodingEvidence: boolean
       const device = body.devices?.find((item) => item.id === pairing.deviceId);
       if (device?.lastSeenAt) {
         setState('synced');
-        setMessage('Activity connected. Your card has been powered up.');
+        setMessage('Activity connected. Approve automatic updates in Terminal to keep it fresh.');
         router.refresh();
       }
     };
@@ -69,9 +69,9 @@ export function PowerUpPanel({ hasCodingEvidence }: { hasCodingEvidence: boolean
     setState('waiting');
     try {
       await navigator.clipboard.writeText(nextCommand);
-      setMessage('Command copied. Paste it into Terminal—the card will refresh after the first sync.');
+      setMessage('Command copied. Paste it into Terminal, approve the first sync, then turn on automatic updates.');
     } catch {
-      setMessage('Copy the command below into Terminal. The card will refresh after the first sync.');
+      setMessage('Copy the command below into Terminal, approve the first sync, then turn on automatic updates.');
     }
   }
 
@@ -85,7 +85,7 @@ export function PowerUpPanel({ hasCodingEvidence }: { hasCodingEvidence: boolean
     <div className="power-up-copy">
       <p className="eyebrow">{state === 'synced' ? 'Connected ⚡' : 'One command · one time'}</p>
       <h2>{state === 'synced' ? 'Your coding activity is connected.' : 'Connect my AI tools.'}</h2>
-      <p>One command finds Codex, Claude Code, Cursor, Gemini CLI, and Copilot CLI together. It shows the privacy boundary, asks once, and sends the first aggregate sync.</p>
+      <p>One command finds Codex, Claude Code, Cursor, Gemini CLI, and Copilot CLI together. It previews the privacy boundary, sends the first aggregate sync, then asks whether to refresh every 15 minutes.</p>
       <div className="source-loadout" aria-label="Supported local coding tools">
         <span>Codex</span><span>Claude Code</span><span>Cursor</span><span>Gemini CLI</span><span>Copilot CLI</span>
       </div>
@@ -96,7 +96,7 @@ export function PowerUpPanel({ hasCodingEvidence }: { hasCodingEvidence: boolean
         <button type="button" className="command-copy" onClick={copyCommand}><code>{command}</code><span>Copy</span></button>
         <small>Single use · expires {new Date(pairing.expiresAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</small>
       </> : null}
-      {state === 'synced' ? <div className="power-up-success"><span>✓</span><strong>Live stats connected</strong></div> : null}
+      {state === 'synced' ? <div className="power-up-success"><span>✓</span><strong>Coding stats connected</strong></div> : null}
       {message ? <p className={`power-up-status ${state}`} aria-live="polite">{message}</p> : null}
       {state === 'synced' ? <div className="more-source-links"><Link href="/connections">Manage data sources</Link></div> : null}
     </div>

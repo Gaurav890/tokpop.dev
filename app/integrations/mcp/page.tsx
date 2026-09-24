@@ -12,12 +12,12 @@ export default async function McpPage({ searchParams }: { searchParams: Promise<
   const chatgptEndpoint = `${origin}/mcp/chatgpt`;
   const claudeEndpoint = `${origin}/mcp/claude`;
 
-  return <main className="marketing-page">
+  return <main className="marketing-page mcp-page">
     <SiteHeader user={user}/>
     <section className="narrow-hero">
-      <p className="eyebrow">{isOnboarding ? 'Onboarding · add an AI source' : 'Remote MCP · explicit activity'}</p>
-      <h1>Connect future conversations you choose to record.</h1>
-      <p>MCP connects an assistant to AI Native Profile. It does not grant us access to your provider account, old conversations, or activity where you do not invoke a tool.</p>
+      <p className="eyebrow">{isOnboarding ? 'Power-up · add a conversation source' : 'MCP · only when you say so'}</p>
+      <h1>Connect the moments you choose.</h1>
+      <p>MCP lets an assistant call profile tools when you ask. It never unlocks your provider account, old conversations, or background activity.</p>
     </section>
     <section className="integration-grid">
       <article id="chatgpt">

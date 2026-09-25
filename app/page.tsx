@@ -5,6 +5,24 @@ import { currentGitHubUser } from '../lib/auth';
 import { SiteHeader } from './ui/site-header';
 import { SiteFooter } from './ui/site-footer';
 
+const supportedSources = [
+  { id: 'codex', label: 'Codex' },
+  { id: 'claude', label: 'Claude Code' },
+  { id: 'cursor', label: 'Cursor' },
+  { id: 'gemini', label: 'Gemini CLI' },
+  { id: 'copilot', label: 'Copilot CLI' },
+  { id: 'github', label: 'GitHub' },
+] as const;
+
+function SourceLogo({ source }: { source: typeof supportedSources[number]['id'] }) {
+  if (source === 'codex') return <svg viewBox="0 0 32 32" aria-hidden="true"><g fill="none" stroke="currentColor" strokeWidth="2.25"><ellipse cx="16" cy="9.5" rx="5.5" ry="8"/><ellipse cx="16" cy="22.5" rx="5.5" ry="8"/><ellipse cx="10.4" cy="12.8" rx="5.5" ry="8" transform="rotate(-60 10.4 12.8)"/><ellipse cx="21.6" cy="19.2" rx="5.5" ry="8" transform="rotate(-60 21.6 19.2)"/><ellipse cx="21.6" cy="12.8" rx="5.5" ry="8" transform="rotate(60 21.6 12.8)"/><ellipse cx="10.4" cy="19.2" rx="5.5" ry="8" transform="rotate(60 10.4 19.2)"/></g></svg>;
+  if (source === 'claude') return <svg viewBox="0 0 32 32" aria-hidden="true"><g fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2.7"><path d="M16 3v26M3 16h26M6.8 6.8l18.4 18.4M25.2 6.8L6.8 25.2"/><path d="M10.6 3.9l10.8 24.2M28.1 10.6L3.9 21.4M21.4 3.9L10.6 28.1M28.1 21.4L3.9 10.6"/></g></svg>;
+  if (source === 'cursor') return <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M5 3.5 27 16 16 18.7 10.2 29z"/><path fill="none" stroke="white" strokeLinejoin="round" strokeWidth="2" d="m8.5 7 14.7 8.4-8.6 2.1-4.4 7.7z"/></svg>;
+  if (source === 'gemini') return <svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="gemini-gradient" x1="4" y1="28" x2="28" y2="4"><stop stopColor="#3676f8"/><stop offset=".52" stopColor="#8a69ee"/><stop offset="1" stopColor="#ed70a8"/></linearGradient></defs><path fill="url(#gemini-gradient)" d="M16 2c.9 7.8 6.2 13.1 14 14-7.8.9-13.1 6.2-14 14C15.1 22.2 9.8 16.9 2 16c7.8-.9 13.1-6.2 14-14Z"/></svg>;
+  if (source === 'copilot') return <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M8.2 8.7 5 5.3l1.8-1.8 4 3.1A15 15 0 0 1 16 5.7c1.9 0 3.7.3 5.2.9l4-3.1L27 5.3l-3.2 3.4c2 1.7 3.2 4 3.2 6.7v5.1c0 4.5-4.9 8.1-11 8.1s-11-3.6-11-8.1v-5.1c0-2.7 1.2-5 3.2-6.7Z"/><path fill="#fff" d="M8.2 15.2c0-3 3.5-5.3 7.8-5.3s7.8 2.3 7.8 5.3v4.6c0 3-3.5 5.3-7.8 5.3s-7.8-2.3-7.8-5.3v-4.6Z"/><circle cx="12.7" cy="17" r="1.7"/><circle cx="19.3" cy="17" r="1.7"/><path fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" d="M12.3 21c2.5 1.5 4.9 1.5 7.4 0"/></svg>;
+  return <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" fillRule="evenodd" d="M16 3.2A12.8 12.8 0 0 0 12 28c.6.1.8-.3.8-.6v-2.5c-3.4.7-4.1-1.4-4.1-1.4-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.4-5.5-6.1 0-1.3.5-2.4 1.2-3.3-.1-.3-.5-1.6.1-3.3 0 0 1-.3 3.5 1.3a12 12 0 0 1 6.4 0c2.4-1.6 3.5-1.3 3.5-1.3.6 1.7.2 3 .1 3.3.8.9 1.2 2 1.2 3.3 0 4.8-2.9 5.8-5.6 6.1.4.4.8 1.1.8 2.2v3.9c0 .4.2.7.8.6A12.8 12.8 0 0 0 16 3.2Z" clipRule="evenodd"/></svg>;
+}
+
 export function DashboardDemo({ profile }: { profile: PublicProfile }) {
   const displaySources = profile.coverage.filter((item) => !['chatgpt_web', 'claude_web', 'github'].includes(item.source)).slice(0, 5).map((item, index) => ({ mark: item.label.split(/\s+/).map((word) => word[0]).join('').slice(0, 2).toUpperCase(), name: item.label, detail: item.provenance, state: item.status, tone: ['lime', 'orange', 'blue', 'violet'][index % 4] }));
   const breakdown = [['Consistency', profile.scoreBreakdown.consistency, 30], ['Workflow depth', profile.scoreBreakdown.workflowDepth, 25], ['Provider breadth', profile.scoreBreakdown.providerBreadth, 15], ['Delivery', profile.scoreBreakdown.delivery, 30]] as const;
@@ -153,7 +171,10 @@ export default async function Home() {
         </ol>
       </aside>
     </section>
-    <section className="supported-strip" aria-label="Supported coding sources"><span>WORKS WITH</span><div>{['Codex','Claude Code','Cursor','Gemini CLI','Copilot CLI','GitHub'].map((source) => <b key={source}>{source}</b>)}</div></section>
+    <section className="supported-strip" aria-label="Supported coding sources">
+      <span>WORKS WITH</span>
+      <ul>{supportedSources.map((source) => <li key={source.id} className={`source-logo source-logo-${source.id}`}><span className="source-logo-mark"><SourceLogo source={source.id}/></span><strong>{source.label}</strong></li>)}</ul>
+    </section>
     <section className="home-flex-reasons">
       <div className="home-flex-heading"><p className="eyebrow">More than a badge</p><h2>Show the build. Show the receipts. Keep it fun.</h2></div>
       <div className="home-flex-grid">

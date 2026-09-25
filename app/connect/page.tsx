@@ -12,8 +12,8 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
   return <main className="marketing-page connect-page">
     <SiteHeader user={user}/>
     <section className="narrow-hero connect-hero">
-      <p className="eyebrow">{code ? 'Secure device approval' : isOnboarding ? 'Your card starts with GitHub' : 'Local coding activity'}</p>
-      <h1>{code ? 'Approve this computer.' : user ? 'Connect from your card.' : 'Make your card first.'}</h1>
+      <p className="eyebrow">{code ? 'Secure power-up' : isOnboarding ? 'Your card starts with GitHub' : 'Local coding activity'}</p>
+      <h1>{code ? 'Approve this power-up.' : user ? 'Load your tools from the card.' : 'Claim your card first.'}</h1>
       <p>{code ? 'This one-time code pairs the collector running on your computer. Approval never grants access to prompts, code, repositories, commands, or credentials.' : user ? 'Your card creates a single-use command that discovers all supported coding tools together and refreshes automatically after the first sync.' : 'Sign in with GitHub to create your private card, then connect every supported coding tool with one command.'}</p>
       {isOnboarding && !user ? <Link className="primary-link dashboard-signin" href={`/api/auth/github/start?return_to=${encodeURIComponent('/share?onboarding=1')}`}>Make my card →</Link> : null}
     </section>

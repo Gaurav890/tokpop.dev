@@ -7,7 +7,7 @@
 | Cursor | Supported local session database | Locally derived | Yes, except estimates | Schema-dependent; derived fields are labelled |
 | Gemini CLI | Local telemetry | Locally derived | Yes | Prompt logging must remain disabled |
 | GitHub Copilot CLI | Local CLI activity logs | Locally derived | Yes | No claim of personal IDE autocomplete coverage |
-| GitHub | OAuth public events | Official account | Yes | Repository names are not stored; private aggregates require optional GitHub App |
+| GitHub | OAuth contribution graph | Official account | Yes | Exact 90-day account totals; repository names are not stored; private contribution coverage is shown but not scored twice |
 | ChatGPT Web | Browser-local official export / explicit MCP calls | Official export / MCP observed | No | An account sign-in does not expose history; custom MCP availability depends on plan and workspace policy |
 | Claude Web | Browser-local official export / explicit MCP calls | Official export / MCP observed | No | An account sign-in does not expose history; custom connectors require a supported plan |
 

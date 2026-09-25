@@ -8,9 +8,8 @@ export type ScoreInput = {
   advancedWorkflowSessionRate: number;
   activeCodingProviders: number;
   commits: number;
-  mergedPullRequests: number;
+  pullRequests: number;
   reviews: number;
-  releases: number;
 };
 
 export type ScoreBreakdown = {
@@ -38,9 +37,8 @@ export function calculateWorkflowIndex(input: ScoreInput): ScoreBreakdown {
   const providerBreadth = 3 * Math.min(5, Math.max(0, input.activeCodingProviders));
   const deliveryPoints =
     Math.max(0, input.commits) +
-    3 * Math.max(0, input.mergedPullRequests) +
-    2 * Math.max(0, input.reviews) +
-    5 * Math.max(0, input.releases);
+    3 * Math.max(0, input.pullRequests) +
+    2 * Math.max(0, input.reviews);
   const delivery = 30 * clamp01(Math.log1p(deliveryPoints) / Math.log1p(200));
 
   const base = {

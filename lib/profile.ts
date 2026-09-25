@@ -7,6 +7,7 @@ import { buildProfileArchetype } from './profile-archetype';
 import { buildDailyTokenLedger } from './token-ledger';
 import { publicConversationRows } from './profile-visibility';
 import { resolveTokenMetrics } from './profile-metrics';
+import { githubContributionSchema } from './github-contributions';
 
 type MetricRow = { date: string; source: string; metric_name: string; value: number; provenance: string; competitive_eligible: number };
 type CoverageRow = { source: string; completeness: string; last_synced_at: string; provenance?: string; note?: string };
@@ -135,14 +136,21 @@ async function buildProfile(user: ProfileUser): Promise<PublicProfile> {
     return tokens > 0 ? [{ source, label: sourceLabel[source] ?? source, tokens, provenance: provenances.join(' + '), components }] : [];
   }).sort((left, right) => right.tokens - left.tokens);
   const dailyTokens = buildDailyTokenLedger(tokenMetrics.filter((row) => row.metric_name === 'tokens'));
-  const githubRows = metrics.filter((row) => row.source === 'github');
+  const githubCoverage = coverageResult.results?.find((row) => row.source === 'github');
+  const githubVerifiedWindow = githubCoverage?.note?.startsWith(githubContributionSchema) ?? false;
+  const githubRows = githubVerifiedWindow
+    ? metrics.filter((row) => row.source === 'github' && Date.parse(row.date) >= Date.now() - 90 * 86_400_000)
+    : [];
+  const githubCommits = sum('commits', githubRows);
+  const githubPullRequests = sum('pull_requests', githubRows);
+  const githubReviews = sum('reviews', githubRows);
   const score = calculateWorkflowIndex({
     githubConnected: coverageResult.results?.some((row) => row.source === 'github') ?? false, coveredDays: activeDates.length, activeCodingDays90: activeDates.filter((date) => Date.parse(date) >= Date.now() - 90 * 86_400_000).length,
     longestStreak90: longestStreak(activeDates.filter((date) => Date.parse(date) >= Date.now() - 90 * 86_400_000)),
     toolUsingSessionRate: sessions ? sum('tool_using_sessions', eligible) / sessions : 0,
     toolCallsPerSession: sessions ? activityTotals.toolCalls / sessions : 0,
     advancedWorkflowSessionRate: sessions ? sum('advanced_workflow_sessions', eligible) / sessions : 0,
-    activeCodingProviders: competitiveSources.length, commits: sum('commits', githubRows), mergedPullRequests: sum('merged_pull_requests', githubRows), reviews: sum('reviews', githubRows), releases: sum('releases', githubRows),
+    activeCodingProviders: competitiveSources.length, commits: githubCommits, pullRequests: githubPullRequests, reviews: githubReviews,
   });
   const archetype = buildProfileArchetype({ tokens: lifetimeTokens, currentStreak: currentStreak(activeDates), providerCount: sources.length, deliveryPoints: score.deliveryPoints, toolCalls: activityTotals.toolCalls });
   const byDate = new Map<string, number>();
@@ -158,7 +166,7 @@ async function buildProfile(user: ProfileUser): Promise<PublicProfile> {
     activeDays: activeDates.length, currentStreak: currentStreak(activeDates), longestStreak: longestStreak(activeDates), lifetimeTokens, tokenBreakdown, dailyTokens, sessions, activityTotals, archetype,
     deliveryPoints: score.deliveryPoints, providers: sources.map((source) => sourceLabel[source] ?? source), activity,
     coverage: (coverageResult.results ?? []).map((row) => ({ source: row.source, label: sourceLabel[row.source] ?? row.source, provenance: provenanceLabel[metrics.find((metric) => metric.source === row.source)?.provenance ?? ''] ?? 'Unknown', status: row.completeness === 'full' ? 'Live' : 'Partial', completeness: row.completeness, note: row.note })),
-    github: { commits: sum('commits', githubRows), mergedPullRequests: sum('merged_pull_requests', githubRows), reviews: sum('reviews', githubRows), releases: sum('releases', githubRows) },
+    github: { commits: githubCommits, pullRequests: githubPullRequests, reviews: githubReviews, privateContributions: sum('private_contributions', githubRows), verifiedWindow: githubVerifiedWindow },
     conversation: { sessions: sum('sessions', conversationRows), activeDays: new Set(conversationRows.map((row) => row.date)).size, coverage: 'Partial and excluded from ranking' }, updatedAt: latest,
   };
 }

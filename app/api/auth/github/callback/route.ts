@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ensureDb } from '../../../../../db/ensure';
 import { sessionCookieName, signSession } from '../../../../../lib/auth';
 import { hmac, sealJson, secureEqual } from '../../../../../lib/crypto';
+import { collectGitHubContributions, storeGitHubContributions } from '../../../../../lib/github-contributions';
 
 type GitHubUser = { id: number; login: string; name: string | null; avatar_url: string };
 
@@ -40,6 +41,11 @@ export async function GET(request: NextRequest) {
     ON CONFLICT(github_id) DO UPDATE SET github_login=excluded.github_login, display_name=excluded.display_name, avatar_url=excluded.avatar_url, github_token_ciphertext=excluded.github_token_ciphertext, updated_at=excluded.updated_at`)
     .bind(userId, String(github.id), github.login, github.name ?? github.login, github.avatar_url, encryptedToken, now, now).run();
   if (request.cookies.get('anp_auth_storage')?.value === '1') await env.DB.prepare(`INSERT INTO github_storage (user_id,scopes) VALUES (?,?) ON CONFLICT(user_id) DO UPDATE SET scopes=excluded.scopes`).bind(userId, tokenBody.scope ?? '').run();
+  try {
+    await storeGitHubContributions(userId, await collectGitHubContributions(tokenBody.access_token, github.login));
+  } catch (error) {
+    console.warn('Initial GitHub contribution sync failed.', error);
+  }
 
   const session = await signSession({ userId, login: github.login, name: github.name ?? github.login, avatarUrl: github.avatar_url, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 });
   const returnTo = request.cookies.get('anp_auth_return')?.value;

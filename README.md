@@ -1,94 +1,176 @@
 # AI Native Profile
 
-**The open proof layer for AI-native developers.**
+## Your AI build deserves a trading card. 🥷
 
-AI Native Profile turns attributable activity from AI coding tools and GitHub into a private cloud dashboard, an opt-in public profile, and dynamic README cards. Every metric carries coverage and provenance. The platform never pretends to see activity a provider does not expose.
+Turn your coding-tool usage into a live GitHub README card—with token totals by tool, daily breakdowns, streaks, and a build alter ego. **Connect. Copy. Paste. Flex.**
 
-## Three-minute quickstart
+**[Make my card →](https://ai-native-profile.vercel.app/share)** · [▶ Watch the 22-second demo](https://ai-native-profile.vercel.app/media/launch-demo.mp4) · [⭐ Star this repo](https://github.com/Gaurav890/ai-native-profile)
 
-Open the hosted service, choose **Make my card**, and sign in with GitHub. The private starter card appears immediately and public GitHub delivery activity syncs automatically. One button publishes the profile and copies the linked README Markdown.
+[![AI Native Profile demo: a colorful Token Ninja card with provider token totals, active days, and a streak. Click to make your own card.](public/media/launch-poster.jpg)](https://ai-native-profile.vercel.app/share)
 
-For live coding stats, choose **Power up with coding activity** on the card screen. The website creates a short-lived, account-bound command:
+*Demo data, not a real account's stats. Click the poster to make yours. [Watch the video](https://ai-native-profile.vercel.app/media/launch-demo.mp4) or [get the MP4](public/media/launch-demo.mp4).*
+
+[![npm version](https://img.shields.io/npm/v/ai-native-profile?color=7147ff)](https://www.npmjs.com/package/ai-native-profile)
+[![GitHub stars](https://img.shields.io/github/stars/Gaurav890/ai-native-profile?style=flat&label=Star%20this%20repo&color=d9ff57)](https://github.com/Gaurav890/ai-native-profile)
+[![License: MIT](https://img.shields.io/badge/License-MIT-70e7ff)](LICENSE)
+
+Private until you publish. No prompts or source code in normal sync. No global install required.
+
+## Make yours in three steps
+
+1. **[Claim your card](https://ai-native-profile.vercel.app/share).** Sign in with GitHub. Your private starter card is ready without installing anything.
+2. **Power up your stats.** On the card screen, copy your personalized connection command into Terminal. It detects supported coding tools; you approve the first sync and choose whether to enable automatic updates. Requires [Node.js](https://nodejs.org/) **22.13+**. The optional collector is downloaded and run through npm—not installed globally.
+3. **Copy. Paste. Flex.** Pick a look, publish, and copy your card into your GitHub profile README. The image links to the make-your-own flow so visitors can create theirs, too. Joining the leaderboard is a separate opt-in.
+
+Just exploring? You can publish the GitHub-only starter card and add coding stats later.
+
+## What you get
+
+| The fun part | What is actually behind it |
+| --- | --- |
+| 🃏 A live README card | Your build alter ego, tool totals, active days, and streak—not a static screenshot. |
+| 🔎 Token receipts | Per-provider totals and day-by-day breakdowns, with coverage and estimated data labelled. |
+| 🔥 Your build rhythm | Activity history and streaks across supported coding tools. |
+| 🚀 GitHub activity | Contribution totals for the latest 90-day window, separate from coding-token usage. |
+| 🏆 An optional leaderboard | A public scoring formula. Spending more tokens does **not** increase your score. |
+
+## Which tools work?
+
+**Codex · Claude Code · Cursor · Gemini CLI · GitHub Copilot CLI**, plus GitHub activity.
+
+The collector uses supported account data or records retained on your computer. Coverage varies by tool, version, and available history; detecting a tool does not guarantee a complete lifetime total. Claude Code includes reported input, output, cache-write, and cache-read tokens; some historical daily allocations are estimates.
+
+See the [provider capability matrix](docs/providers.md) for collection methods, limitations, and scoring eligibility.
+
+## The questions you probably have
+
+### Do I need to keep running a command?
+
+Not if you enable automatic updates. After the first sync, the collector offers a **15-minute background schedule on macOS or Linux**. It continues after Terminal closes, while your computer is awake and connected. This requires your approval; pairing alone does not turn it on.
+
+The README image reflects synced data, but GitHub's image cache can delay visible updates. It is not a real-time counter.
+
+<details>
+<summary>Show manual sync, status, and stop commands</summary>
+
+Run these from any folder. You do not need to clone this repository.
 
 ```bash
-npx --yes ai-native-profile@latest connect --code YOUR_CODE
+# Check pairing, sources, and automatic updates
+npm exec --yes --package=ai-native-profile@latest -- ai-native-profile doctor
+
+# Sync once
+npm exec --yes --package=ai-native-profile@latest -- ai-native-profile sync
+
+# Enable persistent updates
+npm exec --yes --package=ai-native-profile@latest -- ai-native-profile watch --install
+
+# Disable persistent updates
+npm exec --yes --package=ai-native-profile@latest -- ai-native-profile watch --uninstall
+
+# Disable updates and remove the local pairing
+npm exec --yes --package=ai-native-profile@latest -- ai-native-profile disconnect
 ```
 
-The command detects supported tools together, displays the privacy boundary, asks before the first sync, and then offers persistent 15-minute updates. Automatic updates use the operating system's user-level scheduler and are installed only after explicit consent. They continue after Terminal closes and can be disabled with `anp watch --uninstall` or `anp disconnect`. The collector is an optional profile upgrade, not a prerequisite for creating or sharing the starter card. The original terminal-initiated `connect` flow remains available, and `--api-url` can target a self-hosted instance.
+Full usage and troubleshooting: [collector README](packages/cli/README.md).
 
-For local development:
+</details>
+
+### What leaves my computer?
+
+Normal sync sends **aggregate activity**: dates, provider/model identifiers, usage counts, and coverage information. It does **not** send prompts, responses, source code, shell commands, repository names, file paths, cookies, or provider credentials.
+
+Want to inspect the payload before connecting?
+
+```bash
+npm exec --yes --package=ai-native-profile@latest -- ai-native-profile preview
+```
+
+Your dashboard starts private. Publishing your profile, joining the leaderboard, and sharing an individual session are separate choices. [Read the privacy boundary →](docs/privacy.md)
+
+### Why might my token total differ from another tool?
+
+Providers count usage differently, cached tokens matter, and local history can be missing. Counts represent the **covered records**, not a guaranteed lifetime or billing total. Check the provider breakdown and coverage dates before comparing numbers; estimated values are labelled, not presented as exact.
+
+If something looks wrong, [report it](https://github.com/Gaurav890/ai-native-profile/issues/new) with the collector version, operating system, affected tool, and a redacted error. **Do not attach raw conversations, credentials, or unredacted logs.**
+
+### Is the score a measure of developer skill?
+
+No. The 0–100 Workflow Index measures eligible activity across consistency, workflow depth, provider breadth, and GitHub delivery. It does not measure code quality, productivity, or whether a specific commit was written with AI. Raw token volume and estimated metrics do not affect rankings. [See the formula →](docs/methodology.md)
+
+### Does it read my browser chat history?
+
+No. Experimental ChatGPT Web and Claude Web support is separate from the main coding flow. It only covers approved, locally parsed exports or explicitly invoked MCP activity—not silent history access—and does not affect rankings.
+
+## Like the idea? Help it spread. ⭐
+
+**Use the Star button at the top of this repository** to support the project and find it again. Then put your own card in your README—that is the best demo someone else can discover.
+
+[Make my card](https://ai-native-profile.vercel.app/share) · [Report a bug or suggest a feature](https://github.com/Gaurav890/ai-native-profile/issues/new)
+
+## Build with us
+
+Bug reports, clearer docs, and fixes for provider coverage are welcome. Open an issue with a reproducible example or send a focused pull request. Collector fixtures must be redacted: see the [fixture rules](docs/fixtures.md) and [adapter guide](docs/adapter-guide.md).
+
+<details>
+<summary>Local development and checks</summary>
+
+Requires Node.js 22.13+, pnpm 9.15.9, PostgreSQL, and a GitHub OAuth App.
 
 ```bash
 git clone https://github.com/Gaurav890/ai-native-profile.git
 cd ai-native-profile
 pnpm install
 cp .env.example .env.local
+```
+
+Set `DATABASE_URL`, `SESSION_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, and `PUBLIC_APP_URL=http://localhost:3000` in `.env.local`. Configure the OAuth callback as `http://localhost:3000/api/auth/github/callback`. Leave `BACKEND_URL` unset for a single local server.
+
+```bash
+pnpm db:migrate
 pnpm dev
 ```
 
-Configure a GitHub OAuth App with callback URL `http://localhost:3000/api/auth/github/callback`, then add its client ID and secret to `.env.local`. Open `http://localhost:3000`, sign in with GitHub, open **My card**, and choose **Connect my AI tools**. To start from the terminal instead, run:
+Open `http://localhost:3000`. To pair the local collector with your local server:
 
 ```bash
 ANP_API_URL=http://localhost:3000 pnpm cli connect
 ```
 
-The collector shows detected tools and the exact aggregate payload. Automatic background synchronization starts only after the user approves it during connection or later runs `anp watch --install`.
-
-GitHub is the product account identity. Coding providers appear inside the Data sources screen and use the strongest supported evidence source—official account data where available, otherwise a consented local collector. ChatGPT and Claude Web support is experimental and deliberately separated from the core flow: it only reflects explicit MCP events or locally parsed official exports, never silent account access, and never affects rankings.
-
-Onboarding ends on the card reveal. The user can keep it private or use one combined action to publish and copy the README embed, then optionally connect coding activity without leaving the page.
-
-## What is implemented
-
-- Private cloud dashboard and source coverage UI
-- GitHub-verified public profiles at `/u/{github_username}`
-- Dynamic light/dark SVG README cards
-- Open `anp.activity.v1` TypeScript and JSON schemas
-- Transparent 0–100 AI Workflow Index implementation
-- Signed, idempotent device batches with replay protection
-- Codex account-usage client plus local collectors for Claude Code, Cursor, Gemini CLI, and GitHub Copilot CLI
-- GitHub public delivery aggregation without repository names
-- OAuth 2.1/PKCE remote MCP endpoints for ChatGPT and Claude
-- Browser-only ChatGPT/Claude export parsing with aggregate-only commit
-- Device revocation, data export, visibility controls, and deletion
-- PostgreSQL structured storage with encrypted, one-time device-token delivery
-
-## Repository map
-
-```text
-app                   Next.js cloud surface and API routes
-packages/cli          Pairing, discovery, filtering, sync, diagnostics
-packages/adapters     Provider collectors and export aggregation
-packages/schema       Versioned activity contract and JSON Schema
-packages/scoring      Public scoring implementation
-packages/renderers    README/social asset renderers
-db                    PostgreSQL schema, compatibility client, and migrations
-docs                  Methodology, privacy, providers, threat model, self-hosting
-```
-
-The production topology uses Vercel for the public web surface, Railway for the API origin, and Railway Postgres for canonical structured data. The root app is deployable to both services: Vercel proxies API, MCP, and OAuth routes and fetches server-rendered data through the Railway API, while Railway is the only application service with database access. See the [deployment guide](docs/deployment.md).
-
-## Trust statement
-
-Normal sync accepts counts and identifiers—not prompts, responses, source code, tool arguments or outputs, shell commands, repository names, file paths, conversation titles, email addresses, cookies, credentials, or environment variables. Device signatures prove continuity and integrity in transit; they do not make a user-controlled machine tamper-proof.
-
-Read [the privacy boundary](docs/privacy.md), [threat model](docs/threat-model.md), [provider matrix](docs/providers.md), and [scoring methodology](docs/methodology.md) before deploying.
-
-Launch work is tracked in the [launch readiness and growth plan](docs/launch-plan.md). Maintainers should follow the [collector release runbook](docs/cli-release.md) before advertising the npm command.
-
-## Development
+Before submitting a change:
 
 ```bash
 pnpm test
 pnpm typecheck
 pnpm lint
 pnpm build
-pnpm db:generate
-pnpm db:migrate
 ```
 
-Provider fixtures must be redacted and conform to [`docs/fixtures.md`](docs/fixtures.md). New collectors should follow the [adapter guide](docs/adapter-guide.md).
+Use `pnpm db:generate` and `pnpm db:migrate` when changing the database schema. Never commit `.env.local` or credentials.
+
+</details>
+
+<details>
+<summary>Repository map and deeper docs</summary>
+
+```text
+app                   Web experience and API routes
+packages/cli          Pairing, discovery, sync, and diagnostics
+packages/adapters     Provider collectors and export aggregation
+packages/schema       Versioned activity contract
+packages/scoring      Transparent scoring implementation
+packages/renderers    README and social card renderers
+db                    PostgreSQL schema and migrations
+docs                  Privacy, methodology, deployment, and guides
+public/media          README poster and launch video
+```
+
+[Self-hosting](docs/self-hosting.md) · [Deployment](docs/deployment.md) · [Threat model](docs/threat-model.md) · [Collector releases](docs/cli-release.md) · [Roadmap](docs/roadmap.md)
+
+The hosted architecture uses Vercel for the web surface and Railway for the API and PostgreSQL. Device signatures protect continuity and integrity in transit; they do not make a user-controlled computer tamper-proof.
+
+</details>
 
 ## License
 
-MIT. Provider names are compatibility labels; AI Native Profile is provider-neutral and is not endorsed by those providers.
+[MIT](LICENSE). Provider names describe compatibility, not endorsement. AI Native Profile is provider-neutral.

@@ -9,7 +9,9 @@ The competitive score is deterministic, ranges from 0 to 100, and uses only elig
 | Provider breadth | 15 | 3 points per active supported coding provider, maximum five |
 | Delivery | 30 | `30 × ln(1 + deliveryPoints) / ln(201)`, capped at 30 |
 
-`deliveryPoints = commits + 3×mergedPullRequests + 2×reviews + 5×releases`
+`deliveryPoints = commits + 3×pullRequests + 2×reviews`
+
+GitHub delivery uses account-level contribution totals from GitHub's contribution graph for the exact latest 90-day window. Private contribution coverage is displayed separately and is never added twice.
 
 ChatGPT Web, Claude Web, MCP observations, official export imports, manual records, estimated values, and raw token volume never affect the score or ranking. The reference implementation is in `packages/scoring` and is covered by tests.
 

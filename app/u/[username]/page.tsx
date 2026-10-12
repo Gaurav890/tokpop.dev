@@ -46,7 +46,6 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
     { icon: '🏁', value: `${profile.currentStreak}d`, label: 'current streak', visible: profile.currentStreak > 0 },
     { icon: '🧰', value: profile.providers.length, label: 'tool loadout', visible: profile.providers.length > 0 },
   ].filter((item) => item.visible);
-  const deliveryTotal = profile.github.commits + profile.github.mergedPullRequests + profile.github.reviews + profile.github.releases;
   const updatedLabel = new Date(profile.updatedAt).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' });
 
   return <main className="profile-page">
@@ -90,7 +89,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
       {profile.activeDays > 0 ? <article className="public-card wide rhythm-card"><div className="section-title"><div><p className="eyebrow">🔥 12-WEEK BUILD STREAK</p><h2>Momentum, in pixels</h2></div><span className="proof-chip">{profile.verified ? 'Source-labelled' : 'Example data'}</span></div><div className="public-heatmap">{profile.activity.map((day) => <span key={day.date} className={`heat level-${day.value}`} title={`${day.date}: level ${day.value}`}/>)}</div><div className="provider-row" aria-label="All connected coding providers">{profile.providers.map((provider) => <span key={provider}>{provider}</span>)}</div></article> : null}
 
-      {deliveryTotal > 0 ? <article className="public-card shipping-card"><p className="eyebrow">🚀 GITHUB · 90 DAYS</p><h2>Shipping receipts</h2><dl className="delivery-list"><div><dt>Commits</dt><dd>{profile.github.commits}</dd></div><div><dt>Merged PRs</dt><dd>{profile.github.mergedPullRequests}</dd></div><div><dt>Reviews</dt><dd>{profile.github.reviews}</dd></div><div><dt>Releases</dt><dd>{profile.github.releases}</dd></div></dl><p className="fine-print">Correlated by time window. No claim that a specific commit was AI-generated.</p></article> : null}
+      {profile.github.verifiedWindow ? <article className="public-card shipping-card"><p className="eyebrow">🚀 GITHUB · EXACT 90-DAY WINDOW</p><h2>Contribution receipts</h2><dl className="delivery-list"><div><dt>Commit contributions</dt><dd>{profile.github.commits}</dd></div><div><dt>Pull requests opened</dt><dd>{profile.github.pullRequests}</dd></div><div><dt>PR reviews</dt><dd>{profile.github.reviews}</dd></div><div><dt>Private contributions</dt><dd>{profile.github.privateContributions}</dd></div></dl><p className="fine-print">Account totals from GitHub’s contribution graph. Private contributions show coverage context and are never scored a second time.</p></article> : null}
 
       {profile.conversation.sessions > 0 ? <article className="public-card conversation-card"><div><p className="eyebrow">💬 SIDE QUEST</p><h2>Conversation activity</h2><p>{profile.conversation.sessions} deliberately observed or imported sessions across {profile.conversation.activeDays} days.</p></div><span className="excluded-label">Never ranked</span><p className="fine-print">{profile.conversation.coverage}. This does not represent complete provider history.</p></article> : null}
 

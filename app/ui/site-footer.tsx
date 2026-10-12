@@ -2,7 +2,7 @@ import Link from './native-link';
 
 export function SiteFooter() {
   return <footer className="site-footer">
-    <div className="footer-brand"><span className="brand-mark">anp/</span><span><strong>AI Native Profile</strong><small>Make your AI build story visible.</small></span></div>
+    <div className="footer-brand"><span className="brand-mark">tokpop.dev</span><span><strong>tokpop.dev</strong><small>Make your AI build story visible.</small></span></div>
     <nav aria-label="Footer navigation">
       <Link href="/leaderboard">Leaderboard</Link>
       <Link href="/methodology">How scoring works</Link>

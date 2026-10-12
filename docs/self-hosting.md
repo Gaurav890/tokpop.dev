@@ -1,6 +1,6 @@
 # Self-hosting
 
-AI Native Profile is a standard Next.js application backed by PostgreSQL. It can run on one Node.js host, or as a split Vercel and Railway deployment.
+tokpop.dev is a standard Next.js application backed by PostgreSQL. It can run on one Node.js host, or as a split Vercel and Railway deployment.
 
 ## Single-host setup
 

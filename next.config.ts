@@ -1,8 +1,20 @@
 import type { NextConfig } from 'next';
+import { LEGACY_PUBLIC_ORIGIN, publicAppOrigin } from './lib/public-origin';
 
 const backendUrl = process.env.BACKEND_URL?.replace(/\/$/, '');
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    if (!process.env.PUBLIC_APP_URL) return [];
+    const origin = publicAppOrigin(process.env.PUBLIC_APP_URL);
+    if (origin === LEGACY_PUBLIC_ORIGIN) return [];
+    return [{
+      source: '/api/auth/github/start',
+      has: [{ type: 'host' as const, value: 'ai-native-profile.vercel.app' }],
+      destination: `${origin}/api/auth/github/start`,
+      permanent: false,
+    }];
+  },
   images: {
     remotePatterns: [{ protocol: 'https', hostname: 'avatars.githubusercontent.com' }],
   },

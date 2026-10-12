@@ -12,7 +12,7 @@ const jsonRpc = (id: RpcRequest['id'], result: unknown, status = 200) => NextRes
 const jsonRpcError = (id: RpcRequest['id'], code: number, message: string, status = 200) => NextResponse.json({ jsonrpc: '2.0', id: id ?? null, error: { code, message } }, { status });
 
 const tools = [
-  { name: 'get_profile', description: 'Read the connected user’s AI Native Profile summary and public profile URL.', inputSchema: { type: 'object', properties: {}, additionalProperties: false } },
+  { name: 'get_profile', description: 'Read the connected user’s tokpop.dev summary and public profile URL.', inputSchema: { type: 'object', properties: {}, additionalProperties: false } },
   { name: 'record_session', description: 'Record one provider-observed conversation session. This never affects competitive scores.', inputSchema: { type: 'object', properties: { occurredAt: { type: 'string', description: 'Optional ISO-8601 timestamp.' } }, additionalProperties: false } },
   { name: 'publish_session', description: 'Publish a deliberately selected, sanitized session summary. Unlisted by default.', inputSchema: { type: 'object', required: ['title', 'summary'], properties: { title: { type: 'string', maxLength: 120 }, summary: { type: 'string', maxLength: 2000 }, tags: { type: 'array', maxItems: 8, items: { type: 'string', maxLength: 30 } }, visibility: { type: 'string', enum: ['unlisted', 'public'] }, expiresAt: { type: 'string' } }, additionalProperties: false } },
   { name: 'create_share_card', description: 'Create a stable card, a make-yours funnel, and a profile link for the connected GitHub identity.', inputSchema: { type: 'object', properties: { theme: { type: 'string', enum: ['dark', 'light'] } }, additionalProperties: false } },
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
   const rpc = await request.json().catch(() => null) as RpcRequest | null;
   if (!rpc || rpc.jsonrpc !== '2.0' || !rpc.method) return jsonRpcError(rpc?.id, -32600, 'Invalid JSON-RPC request.', 400);
-  if (rpc.method === 'initialize') return jsonRpc(rpc.id, { protocolVersion: '2025-06-18', capabilities: { tools: { listChanged: false } }, serverInfo: { name: 'AI Native Profile', version: '0.1.0' } });
+  if (rpc.method === 'initialize') return jsonRpc(rpc.id, { protocolVersion: '2025-06-18', capabilities: { tools: { listChanged: false } }, serverInfo: { name: 'tokpop.dev', version: '0.1.0' } });
   if (rpc.method === 'notifications/initialized') return new NextResponse(null, { status: 202 });
   if (rpc.method === 'tools/list') return jsonRpc(rpc.id, { tools });
   if (rpc.method !== 'tools/call') return jsonRpcError(rpc.id, -32601, 'Method not found.');
@@ -71,9 +71,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const origin = trustedOrigin(request);
   const cardUrl = `${origin}/api/v1/cards/${identity.login}?theme=${theme}`;
   const funnelUrl = `${origin}${cardFunnelPath(identity.login)}`;
-  return jsonRpc(rpc.id, textResult({ profileUrl: `${origin}/u/${identity.login}`, funnelUrl, cardUrl, markdown: `[![AI Native Profile](${cardUrl})](${funnelUrl})` }));
+  return jsonRpc(rpc.id, textResult({ profileUrl: `${origin}/u/${identity.login}`, funnelUrl, cardUrl, markdown: `[![tokpop.dev](${cardUrl})](${funnelUrl})` }));
 }
 
 export async function GET() {
-  return NextResponse.json({ name: 'AI Native Profile MCP', transport: 'Streamable HTTP', providers: ['chatgpt', 'claude'] });
+  return NextResponse.json({ name: 'tokpop.dev MCP', transport: 'Streamable HTTP', providers: ['chatgpt', 'claude'] });
 }

@@ -1,9 +1,11 @@
-# AI Native Profile Collector
+# tokpop.dev Collector
+
+tokpop.dev is the new product name. The published package and executable remain `ai-native-profile`; no reinstall is required for existing devices.
 
 [![npm version](https://img.shields.io/npm/v/ai-native-profile.svg)](https://www.npmjs.com/package/ai-native-profile)
 [![license](https://img.shields.io/npm/l/ai-native-profile.svg)](https://github.com/Gaurav890/ai-native-profile/blob/main/LICENSE)
 
-Connect local AI coding activity to a private [AI Native Profile](https://ai-native-profile.vercel.app), then choose what to publish on your profile or GitHub README.
+Connect local AI coding activity to a private [tokpop.dev](https://tokpop.dev), then choose what to publish on your profile or GitHub README.
 
 The collector runs directly with `npx`; no global installation is required. It discovers supported tools, builds aggregate activity locally, lets you inspect the exact payload, and syncs only after you pair and approve the device.
 
@@ -125,7 +127,7 @@ Conversation imports, MCP observations, manual stories, and estimated metrics ne
 
 ## Links
 
-- [Create a profile](https://ai-native-profile.vercel.app)
+- [Create a profile](https://tokpop.dev)
 - [Source code and issue tracker](https://github.com/Gaurav890/ai-native-profile)
 - [Privacy boundary](https://github.com/Gaurav890/ai-native-profile/blob/main/docs/privacy.md)
 - [Provider capability matrix](https://github.com/Gaurav890/ai-native-profile/blob/main/docs/providers.md)
@@ -133,4 +135,4 @@ Conversation imports, MCP observations, manual stories, and estimated metrics ne
 
 ## License
 
-MIT. Provider names are compatibility labels. AI Native Profile is provider-neutral and is not endorsed by the providers it supports.
+MIT. Provider names are compatibility labels. tokpop.dev is provider-neutral and is not endorsed by the providers it supports.

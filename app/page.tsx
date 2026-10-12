@@ -29,9 +29,9 @@ export function DashboardDemo({ profile }: { profile: PublicProfile }) {
   return (
     <main className="shell">
       <aside className="sidebar">
-        <a className="brand" href="#top" aria-label="AI Native Profile home">
-          <span className="brand-mark">anp/</span>
-          <span>AI Native Profile</span>
+        <a className="brand" href="#top" aria-label="tokpop.dev home">
+          <span className="brand-mark">tokpop.dev</span>
+          <span>tokpop.dev</span>
         </a>
 
         <nav className="nav" aria-label="Primary navigation">
@@ -140,9 +140,9 @@ export default async function Home() {
     <SiteHeader user={user}/>
     <section className="home-stage">
       <div className="home-stage-copy">
-        <p className="eyebrow">Your AI coding alter ego</p>
-        <h1>Meet the card your<br/><span>README was missing.</span></h1>
-        <p>Your tokens, tools, streak, and shipping—turned into one live flex card that keeps leveling up while you build.</p>
+        <p className="eyebrow">Track. Share. Flex.</p>
+        <h1>Your AI activity.<br/><span>With personality.</span></h1>
+        <p>Your tools, tokens, and daily streaks—in one place. Track your AI workflow, then turn it into a live card worth showing off.</p>
       </div>
       <aside className="home-alter-ego" aria-label="Example build alter ego">
         <span>UNLOCKED ●</span>

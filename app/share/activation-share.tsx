@@ -30,7 +30,7 @@ type ShareProfile = {
 
 const compact = (value: number) => new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
 
-export function ActivationShare({ username, initialSettings, profile }: { username: string; initialSettings: Settings; profile: ShareProfile }) {
+export function ActivationShare({ username, initialSettings, profile, publicOrigin }: { username: string; initialSettings: Settings; profile: ShareProfile; publicOrigin?: string }) {
   const [settings, setSettings] = useState(initialSettings);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [status, setStatus] = useState('');
@@ -42,11 +42,11 @@ export function ActivationShare({ username, initialSettings, profile }: { userna
   const previewCardPath = `${cardPath}&v=${encodeURIComponent(profile.updatedAt)}`;
 
   function absoluteShareValues() {
-    const origin = window.location.origin;
+    const origin = publicOrigin ?? window.location.origin;
     const profileUrl = `${origin}${profilePath}`;
     const funnelUrl = `${origin}${funnelPath}`;
     const cardUrl = `${origin}${cardPath}`;
-    return { profileUrl, funnelUrl, cardUrl, markdown: `[![${username}'s AI build card](${cardUrl})](${funnelUrl})` };
+    return { profileUrl, funnelUrl, cardUrl, markdown: `[![${username}'s tokpop.dev — AI workflow stats](${cardUrl})](${funnelUrl})` };
   }
 
   async function writeClipboard(value: string, success: string) {
@@ -112,7 +112,7 @@ export function ActivationShare({ username, initialSettings, profile }: { userna
         ? <Image src={previewCardPath} width={640} height={252} unoptimized alt={`${username}'s live AI build card`}/>
         : <div className={`private-card-preview build-pass ${theme}`}>
           <div className="build-pass-identity">
-            <div className="build-pass-brand"><span>anp/</span><b>LIVE</b></div>
+            <div className="build-pass-brand"><span>tokpop.dev</span><b>LIVE</b></div>
             <strong>@{username}</strong>
             <p><span>{profile.archetype.emoji}</span>{profile.archetype.title}</p>
             <small>TOOL LOADOUT · CONNECTED</small>

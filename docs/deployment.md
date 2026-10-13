@@ -1,5 +1,7 @@
 # Vercel + Railway deployment
 
+For the existing production app's move to **tokpop.dev**, use the [domain cutover checklist](domain-setup.md) instead of creating new services.
+
 The recommended production layout is:
 
 ```text

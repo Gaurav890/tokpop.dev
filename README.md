@@ -1,14 +1,14 @@
-# AI Native Profile
+# tokpop.dev
 
-## Your AI build deserves a trading card. 🥷
+## Your AI activity. With personality. 🥷
 
-Turn your coding-tool usage into a live GitHub README card—with token totals by tool, daily breakdowns, streaks, and a build alter ego. **Connect. Copy. Paste. Flex.**
+Track your AI workflow across coding tools: tokens by provider, daily breakdowns, and streaks. Turn it into a live GitHub README card worth showing off. **Track. Share. Flex.**
 
-**[Make my card →](https://ai-native-profile.vercel.app/share)** · [▶ Watch the 22-second demo](https://ai-native-profile.vercel.app/media/launch-demo.mp4) · [⭐ Star this repo](https://github.com/Gaurav890/ai-native-profile)
+**[Make my card →](https://tokpop.dev/share)** · [▶ Watch the 22-second demo](https://tokpop.dev/media/launch-demo.mp4) · [⭐ Star this repo](https://github.com/Gaurav890/ai-native-profile)
 
-[![AI Native Profile demo: a colorful Token Ninja card with provider token totals, active days, and a streak. Click to make your own card.](public/media/launch-poster.jpg)](https://ai-native-profile.vercel.app/share)
+[![tokpop.dev — Your AI activity. With personality. Track your tools, tokens, and streaks. Click to make your own card.](public/media/tokpop-preview.svg)](https://tokpop.dev/share)
 
-*Demo data, not a real account's stats. Click the poster to make yours. [Watch the video](https://ai-native-profile.vercel.app/media/launch-demo.mp4) or [get the MP4](public/media/launch-demo.mp4).*
+*Click the poster to make yours. The [22-second walkthrough](https://tokpop.dev/media/launch-demo.mp4) uses demo data and was recorded before the tokpop.dev rename; [get the MP4](public/media/launch-demo.mp4).*
 
 [![npm version](https://img.shields.io/npm/v/ai-native-profile?color=7147ff)](https://www.npmjs.com/package/ai-native-profile)
 [![GitHub stars](https://img.shields.io/github/stars/Gaurav890/ai-native-profile?style=flat&label=Star%20this%20repo&color=d9ff57)](https://github.com/Gaurav890/ai-native-profile)
@@ -16,9 +16,11 @@ Turn your coding-tool usage into a live GitHub README card—with token totals b
 
 Private until you publish. No prompts or source code in normal sync. No global install required.
 
+Previously named AI Native Profile. The npm package remains `ai-native-profile` so existing collectors keep working. Moving the hosted app? Follow the [domain cutover checklist](docs/domain-setup.md).
+
 ## Make yours in three steps
 
-1. **[Claim your card](https://ai-native-profile.vercel.app/share).** Sign in with GitHub. Your private starter card is ready without installing anything.
+1. **[Claim your card](https://tokpop.dev/share).** Sign in with GitHub. Your private starter card is ready without installing anything.
 2. **Power up your stats.** On the card screen, copy your personalized connection command into Terminal. It detects supported coding tools; you approve the first sync and choose whether to enable automatic updates. Requires [Node.js](https://nodejs.org/) **22.13+**. The optional collector is downloaded and run through npm—not installed globally.
 3. **Copy. Paste. Flex.** Pick a look, publish, and copy your card into your GitHub profile README. The image links to the make-your-own flow so visitors can create theirs, too. Joining the leaderboard is a separate opt-in.
 
@@ -106,7 +108,7 @@ No. Experimental ChatGPT Web and Claude Web support is separate from the main co
 
 **Use the Star button at the top of this repository** to support the project and find it again. Then put your own card in your README—that is the best demo someone else can discover.
 
-[Make my card](https://ai-native-profile.vercel.app/share) · [Report a bug or suggest a feature](https://github.com/Gaurav890/ai-native-profile/issues/new)
+[Make my card](https://tokpop.dev/share) · [Report a bug or suggest a feature](https://github.com/Gaurav890/ai-native-profile/issues/new)
 
 ## Build with us
 
@@ -173,4 +175,4 @@ The hosted architecture uses Vercel for the web surface and Railway for the API 
 
 ## License
 
-[MIT](LICENSE). Provider names describe compatibility, not endorsement. AI Native Profile is provider-neutral.
+[MIT](LICENSE). Provider names describe compatibility, not endorsement. tokpop.dev is provider-neutral.

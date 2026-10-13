@@ -10,6 +10,7 @@ import { compactMetric } from '../../lib/profile-archetype';
 import { GitHubProofSync } from '../connect/github-proof-sync';
 import { PowerUpPanel } from './power-up-panel';
 import { SiteFooter } from '../ui/site-footer';
+import { publicAppOrigin } from '../../lib/public-origin';
 
 type SettingsRow = {
   public_enabled: number;
@@ -34,6 +35,7 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
     settings = await env.DB.prepare(`SELECT u.public_enabled,u.leaderboard_enabled,u.conversation_enabled,u.storage_mode,coalesce(c.enabled,0) AS comparison_enabled FROM users u LEFT JOIN comparison_optins c ON c.user_id=u.id WHERE u.id=?`).bind(user.userId).first<SettingsRow>();
   }
   const hasCodingEvidence = Boolean(profile?.providers.length);
+  const publicOrigin = env.PUBLIC_APP_URL ? publicAppOrigin(env.PUBLIC_APP_URL) : undefined;
 
   return <main className="marketing-page activation-page">
     <SiteHeader user={user}/>
@@ -46,8 +48,9 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
       <div className="activation-step"><span>{settings?.public_enabled ? 'LIVE ●' : 'UNLOCKED'}</span><strong>{profile?.archetype.emoji} {profile?.archetype.title ?? 'Workflow Builder'}</strong><small>{compactMetric(profile?.lifetimeTokens ?? 0)} tokens · {profile?.providers.length ?? 0} tools · {profile?.currentStreak ?? 0}-day streak</small></div>
     </section>
     {onboarding === '1' ? <GitHubProofSync username={user.login} compact/> : null}
-    {!hasCodingEvidence ? <PowerUpPanel hasCodingEvidence={false}/> : null}
+    {!hasCodingEvidence ? <PowerUpPanel hasCodingEvidence={false} publicOrigin={publicOrigin}/> : null}
     <ActivationShare
+      publicOrigin={publicOrigin}
       username={user.login}
       initialSettings={{
         publicEnabled: Boolean(settings?.public_enabled),
@@ -71,7 +74,7 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
         archetype: profile?.archetype ?? { emoji: '⚡', title: 'Workflow Builder', summary: 'Building an evidence-backed coding workflow, one active day at a time.' },
       }}
     />
-    {hasCodingEvidence ? <PowerUpPanel hasCodingEvidence/> : null}
+    {hasCodingEvidence ? <PowerUpPanel hasCodingEvidence publicOrigin={publicOrigin}/> : null}
     <SiteFooter/>
   </main>;
 }

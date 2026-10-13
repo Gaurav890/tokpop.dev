@@ -1,17 +1,20 @@
 import type { Metadata } from 'next';
+import { publicAppOrigin } from '../lib/public-origin';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.PUBLIC_APP_URL ?? 'http://localhost:3000'),
-  title: 'AI Native Profile — Your AI build story, one live card',
-  description: 'Turn your coding tools, tokens, streaks, and shipping into a live card made for your GitHub README.',
+  metadataBase: new URL(publicAppOrigin(process.env.PUBLIC_APP_URL)),
+  title: 'tokpop.dev — Your AI activity. With personality.',
+  description: 'Track your AI coding tools, tokens, and daily streaks in one place. Turn your workflow into a live card worth sharing.',
+  icons: { icon: '/favicon.svg' },
   openGraph: {
-    title: 'Meet your AI build alter ego',
-    description: 'Make a live GitHub card from the coding tools, tokens, streaks, and shipping behind your work.',
+    siteName: 'tokpop.dev',
+    title: 'tokpop.dev — Your AI activity. With personality.',
+    description: 'Your tools. Your tokens. Your streaks. One place to track them, one card to show them off.',
     type: 'website',
-    images: [{ url: '/og.png', width: 1734, height: 907, alt: 'AI Native Profile dashboard preview' }],
+    images: [{ url: '/brand-preview', width: 1200, height: 630, alt: 'tokpop.dev — Your AI activity. With personality.' }],
   },
-  twitter: { card: 'summary_large_image', images: ['/og.png'] },
+  twitter: { card: 'summary_large_image', images: ['/brand-preview'] },
 };
 
 export default function RootLayout({

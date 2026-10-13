@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">tokpop.dev — Your AI activity. With personality.</title>
+  <desc id="desc">Track your AI coding tools, tokens, and daily streaks. Make your live card at tokpop.dev.</desc>
+  <rect width="1200" height="630" rx="32" fill="#7147ff"/>
+  <rect x="54" y="54" width="1092" height="534" rx="32" fill="#d9ff57"/>
+  <rect x="42" y="42" width="1092" height="534" rx="32" fill="#fff4cf" stroke="#18122e" stroke-width="4"/>
+  <g font-family="Arial, sans-serif" font-weight="800">
+    <text x="90" y="139" font-size="56" fill="#7147ff">tokpop.dev</text>
+    <rect x="776" y="91" width="308" height="53" rx="26" fill="#d9ff57"/>
+    <text x="930" y="125" font-size="21" text-anchor="middle" fill="#18122e">TRACK. SHARE. FLEX.</text>
+    <text x="90" y="267" font-size="78" letter-spacing="-3" fill="#18122e">Your AI activity.</text>
+    <text x="90" y="355" font-size="78" letter-spacing="-3" fill="#7147ff">With personality.</text>
+    <rect x="90" y="409" width="236" height="64" rx="18" fill="#70e7ff" stroke="#18122e" stroke-width="2"/>
+    <rect x="344" y="409" width="236" height="64" rx="18" fill="#ff95cf" stroke="#18122e" stroke-width="2"/>
+    <rect x="598" y="409" width="236" height="64" rx="18" fill="#d9ff57" stroke="#18122e" stroke-width="2"/>
+    <g font-size="24" text-anchor="middle" fill="#18122e"><text x="208" y="450">Tools + tokens</text><text x="462" y="450">Daily streaks</text><text x="716" y="450">Your live card</text></g>
+    <text x="90" y="532" font-size="22" fill="#625b78">tokpop.dev · Make yours →</text>
+  </g>
+</svg>

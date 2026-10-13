@@ -10,6 +10,15 @@ describe('SVG renderers', () => {
     expect(svg).toContain('&lt;script&gt;');
   });
   it('renders an unranked badge safely', () => expect(renderBadge(null)).toContain('unranked'));
+  it('brands both themes and all social formats consistently', () => {
+    for (const theme of ['dark', 'light'] as const) {
+      for (const svg of [renderProfileCard(profile, theme), ...(['og', 'square', 'story'] as const).map((format) => renderSocialCard(profile, format, theme))]) {
+        expect(svg).toContain('tokpop.dev for demo');
+        expect(svg).toContain('>tokpop.dev</text>');
+        expect(svg).not.toContain('anp/');
+      }
+    }
+  });
   it('does not overstate locally collected evidence', () => {
     const svg = renderProfileCard(profile);
     expect(svg).toContain('SOURCE-LABELLED');

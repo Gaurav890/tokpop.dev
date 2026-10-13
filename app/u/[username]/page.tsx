@@ -7,6 +7,7 @@ import Link from '../../ui/native-link';
 import Image from 'next/image';
 import { currentGitHubUser } from '../../../lib/auth';
 import { SiteFooter } from '../../ui/site-footer';
+import { publicAppOrigin } from '../../../lib/public-origin';
 
 function compact(value: number) { return new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value); }
 function exact(value: number) { return new Intl.NumberFormat('en-US').format(value); }
@@ -16,8 +17,8 @@ function percent(value: number, total: number) { const result = total ? value / 
 export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
   const { username } = await params;
   const profile = await getPublicProfile(username);
-  if (!profile) return { title: 'Profile not found — AI Native Profile' };
-  return { title: `${profile.name} (@${profile.username}) — AI Native Profile`, description: `${profile.scoreEligible ? `Build level ${profile.score}` : 'Live AI build card'} · ${profile.activeDays} active coding days · ${profile.providers.join(', ')}`, openGraph: { images: [{ url: `/api/v1/cards/${profile.username}?theme=dark&format=og`, width: 1200, height: 630 }] }, twitter: { card: 'summary_large_image', images: [`/api/v1/cards/${profile.username}?theme=dark&format=og`] } };
+  if (!profile) return { title: 'Profile not found — tokpop.dev' };
+  return { title: `${profile.name} (@${profile.username}) — tokpop.dev`, description: `${profile.scoreEligible ? `Build level ${profile.score}` : 'Live AI build card'} · ${profile.activeDays} active coding days · ${profile.providers.join(', ')}`, openGraph: { images: [{ url: `/api/v1/cards/${profile.username}?theme=dark&format=og`, width: 1200, height: 630 }] }, twitter: { card: 'summary_large_image', images: [`/api/v1/cards/${profile.username}?theme=dark&format=og`] } };
 }
 
 export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
@@ -99,7 +100,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       <details className="profile-proof-details wide" id="build-level"><summary><span><strong>🧪 Open the build-level recipe</strong><small>Scoring formula and source details</small></span><b>SHOW THE MATH ↓</b></summary><div className="proof-details-grid"><article className="score-ledger"><div className="section-title"><div><p className="eyebrow">BUILD LEVEL BREAKDOWN</p><h2>Four signals under the hood</h2></div><span className="proof-chip">Tokens excluded</span></div><div className="score-part-list">{scoreParts.map(([label, value, max]) => <div key={label}><div><span>{label}</span><strong>{value}/{max}</strong></div><span className="score-part-track"><i style={{ width: `${Math.min(100, value / max * 100)}%` }}/></span></div>)}</div><p className="fine-print">Raw token volume never raises the build level. <Link href="/methodology">See the complete formula →</Link></p></article><article><p className="eyebrow">SOURCE DETAILS</p><h2>Where every stat came from</h2><div className="provenance-list">{profile.coverage.map((item) => <div key={item.source}><span className={`status-dot ${item.status.toLowerCase()}`}/><span><strong>{item.label}</strong><small>{item.provenance} · {item.completeness}</small>{item.note ? <em>{item.note}</em> : null}</span></div>)}</div></article></div></details>
     </section>
 
-    <ShareBox username={profile.username} updatedAt={profile.updatedAt}/>
+    <ShareBox username={profile.username} updatedAt={profile.updatedAt} publicOrigin={process.env.PUBLIC_APP_URL ? publicAppOrigin(process.env.PUBLIC_APP_URL) : undefined}/>
     <aside className="disclaimer"><strong>Workflow adoption ≠ developer competence.</strong><span>This profile shows attributable tool use and delivery signals. It is not a measure of code quality, judgment, or employability.</span></aside>
     <section className="profile-conversion"><div><p className="eyebrow">YOUR TURN</p><h2>Unlock your build alter ego.</h2><p>Connect GitHub, add coding activity with one command, and drop the live flex card into your README.</p></div><div><Link className="primary-link" href={user ? '/share' : `/api/auth/github/start?return_to=${encodeURIComponent('/share?onboarding=1')}`}>{user ? 'Open my card' : 'Make my card'} →</Link></div></section>
     <SiteFooter/>

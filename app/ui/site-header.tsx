@@ -3,7 +3,7 @@ import Link from './native-link';
 
 export function SiteHeader({ user }: { user?: GitHubSession | null }) {
   return <header className="site-header">
-    <Link className="brand dark-brand" href="/"><span className="brand-mark">anp/</span><span>AI Native Profile</span></Link>
+    <Link className="brand dark-brand" href="/"><span className="brand-mark">tokpop.dev</span><span>tokpop.dev</span></Link>
     <nav aria-label="Primary navigation">{user ? <Link href="/share">My card</Link> : null}<Link href="/leaderboard">Leaderboard</Link></nav>
     {user ? <details className="account-menu">
       <summary aria-label={`Open account menu for ${user.login}`}><span className="account-avatar">{user.login.slice(0, 2).toUpperCase()}</span><span><strong>@{user.login}</strong><small>Account</small></span><b aria-hidden="true">⌄</b></summary>

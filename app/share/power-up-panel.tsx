@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from '../ui/native-link';
+import { collectorConnectCommand, CONNECTOR_VERSION } from '../../lib/collector-command';
 
 type Pairing = {
   deviceId: string;
   userCode: string;
   expiresAt: string;
+  apiOrigin: string;
 };
 
 type Device = {
@@ -15,14 +17,12 @@ type Device = {
   lastSeenAt: string | null;
 };
 
-const CONNECTOR_VERSION = '0.2.1';
-
-export function PowerUpPanel({ hasCodingEvidence }: { hasCodingEvidence: boolean }) {
+export function PowerUpPanel({ hasCodingEvidence, publicOrigin }: { hasCodingEvidence: boolean; publicOrigin?: string }) {
   const router = useRouter();
   const [pairing, setPairing] = useState<Pairing | null>(null);
   const [state, setState] = useState<'idle' | 'creating' | 'waiting' | 'synced' | 'error'>(hasCodingEvidence ? 'synced' : 'idle');
   const [message, setMessage] = useState(hasCodingEvidence ? 'Coding activity is connected.' : '');
-  const command = pairing ? `npx --yes ai-native-profile@${CONNECTOR_VERSION} connect --code ${pairing.userCode}` : '';
+  const command = pairing ? collectorConnectCommand(pairing.userCode, pairing.apiOrigin) : '';
 
   useEffect(() => {
     if (!pairing || state !== 'waiting') return;
@@ -63,8 +63,8 @@ export function PowerUpPanel({ hasCodingEvidence }: { hasCodingEvidence: boolean
       setMessage(body.error ?? 'The connection command could not be created.');
       return;
     }
-    const nextPairing = { deviceId: body.deviceId, userCode: body.userCode, expiresAt: body.expiresAt };
-    const nextCommand = `npx --yes ai-native-profile@${CONNECTOR_VERSION} connect --code ${nextPairing.userCode}`;
+    const nextPairing = { deviceId: body.deviceId, userCode: body.userCode, expiresAt: body.expiresAt, apiOrigin: publicOrigin ?? window.location.origin };
+    const nextCommand = collectorConnectCommand(nextPairing.userCode, nextPairing.apiOrigin);
     setPairing(nextPairing);
     setState('waiting');
     try {

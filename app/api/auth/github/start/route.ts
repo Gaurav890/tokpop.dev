@@ -1,6 +1,7 @@
 import { runtimeEnv as env } from '@/lib/runtime-env';
 import { NextRequest, NextResponse } from 'next/server';
 import { hmac, randomToken } from '../../../../../lib/crypto';
+import { authReturnPath } from '../../../../../lib/auth-return-path';
 
 export async function GET(request: NextRequest) {
   const clientId = env.GITHUB_CLIENT_ID ?? process.env.GITHUB_CLIENT_ID;
@@ -21,8 +22,8 @@ export async function GET(request: NextRequest) {
   authorize.searchParams.set('redirect_uri', `${publicOrigin}/api/auth/github/callback`);
   const response = NextResponse.redirect(authorize);
   response.cookies.set('anp_oauth_state', signedState, { httpOnly: true, sameSite: 'lax', secure: request.nextUrl.protocol === 'https:', path: '/', maxAge: 600 });
-  const returnTo = request.nextUrl.searchParams.get('return_to');
-  if (returnTo?.startsWith('/') && !returnTo.startsWith('//')) response.cookies.set('anp_auth_return', returnTo, { httpOnly: true, sameSite: 'lax', secure: request.nextUrl.protocol === 'https:', path: '/', maxAge: 600 });
+  const returnTo = authReturnPath(request.nextUrl.searchParams.get('return_to'), publicOrigin);
+  response.cookies.set('anp_auth_return', returnTo, { httpOnly: true, sameSite: 'lax', secure: request.nextUrl.protocol === 'https:', path: '/', maxAge: 600 });
   if (storageAuthorization) response.cookies.set('anp_auth_storage', '1', { httpOnly: true, sameSite: 'lax', secure: request.nextUrl.protocol === 'https:', path: '/', maxAge: 600 });
   return response;
 }

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ensureDb } from '../../../../../db/ensure';
 import { sessionCookieName, signSession } from '../../../../../lib/auth';
 import { hmac, sealJson, secureEqual } from '../../../../../lib/crypto';
+import { authReturnPath } from '../../../../../lib/auth-return-path';
 
 type GitHubUser = { id: number; login: string; name: string | null; avatar_url: string };
 
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
 
   const session = await signSession({ userId, login: github.login, name: github.name ?? github.login, avatarUrl: github.avatar_url, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 });
   const returnTo = request.cookies.get('anp_auth_return')?.value;
-  const safeReturnTo = returnTo?.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/dashboard';
+  const safeReturnTo = authReturnPath(returnTo, env.PUBLIC_APP_URL ?? request.nextUrl.origin);
   const response = NextResponse.redirect(new URL(safeReturnTo, env.PUBLIC_APP_URL ?? request.nextUrl.origin));
   response.cookies.set(sessionCookieName, session, { httpOnly: true, sameSite: 'lax', secure: request.nextUrl.protocol === 'https:', path: '/', maxAge: 60 * 60 * 24 * 30 });
   response.cookies.delete('anp_oauth_state');

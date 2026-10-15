@@ -9,6 +9,12 @@ export function codexExecutableCandidates({ env = process.env, platform = proces
   const names = platform === 'win32' ? ['codex.exe', 'codex.cmd', 'codex.bat', 'codex'] : ['codex'];
   const pathCandidates = String(env.PATH ?? '').split(delimiter).filter(Boolean).flatMap((directory) => names.map((name) => join(directory, name)));
   const appCandidates = platform === 'darwin' ? [
+    '/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex',
+    '/Applications/Codex.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex',
+    join(home, 'Applications', 'ChatGPT.app', 'Contents', 'Resources', 'codex-cli', 'CodexCLI.app', 'Contents', 'MacOS', 'codex'),
+    join(home, 'Applications', 'Codex.app', 'Contents', 'Resources', 'codex-cli', 'CodexCLI.app', 'Contents', 'MacOS', 'codex'),
+    '/opt/homebrew/bin/codex',
+    '/usr/local/bin/codex',
     '/Applications/ChatGPT.app/Contents/Resources/codex',
     '/Applications/Codex.app/Contents/Resources/codex',
     join(home, 'Applications', 'ChatGPT.app', 'Contents', 'Resources', 'codex'),

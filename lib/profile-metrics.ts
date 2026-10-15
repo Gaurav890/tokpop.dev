@@ -46,3 +46,20 @@ export function resolveTokenMetrics(rows: ProfileMetricRow[]): ProfileMetricRow[
   }
   return [...selected.values()];
 }
+
+export function tokenComponents(rows: ProfileMetricRow[]) {
+  const result = { input: 0, output: 0, cacheCreation: 0, cacheRead: 0, combinedOnly: 0 };
+  for (const total of rows.filter((row) => row.metric_name === 'tokens')) {
+    const sameDay = rows.filter((row) => row.date === total.date && row.source === total.source && row.provenance === total.provenance);
+    const value = (name: string) => sameDay.find((row) => row.metric_name === name)?.value ?? 0;
+    const parts = { input: value('input_tokens'), output: value('output_tokens'), cacheCreation: value('cache_creation_input_tokens'), cacheRead: value('cache_read_input_tokens') };
+    const classified = Object.values(parts).reduce((sum, count) => sum + count, 0);
+    if (classified > total.value || Object.values(parts).some((count) => !Number.isFinite(count) || count < 0)) {
+      result.combinedOnly += total.value;
+      continue;
+    }
+    for (const key of Object.keys(parts) as Array<keyof typeof parts>) result[key] += parts[key];
+    result.combinedOnly += total.value - classified;
+  }
+  return result;
+}

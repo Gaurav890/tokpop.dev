@@ -38,7 +38,7 @@ export function backgroundSyncPaths({ homeDir = homedir(), platform = process.pl
   return { configDir, collectorRoot, definition: null, serviceDefinition: null, log: null };
 }
 
-export function renderLaunchAgent({ nodePath, cliPath, logPath, intervalSeconds = BACKGROUND_INTERVAL_SECONDS }) {
+export function renderLaunchAgent({ nodePath, cliPath, logPath, environment = {}, intervalSeconds = BACKGROUND_INTERVAL_SECONDS }) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -49,6 +49,7 @@ export function renderLaunchAgent({ nodePath, cliPath, logPath, intervalSeconds 
   <key>RunAtLoad</key><true/>
   <key>StartInterval</key><integer>${intervalSeconds}</integer>
   <key>ProcessType</key><string>Background</string>
+  <key>EnvironmentVariables</key><dict>${Object.entries(environment).map(([key, value]) => `<key>${xml(key)}</key><string>${xml(value)}</string>`).join('')}</dict>
   <key>StandardOutPath</key><string>${xml(logPath)}</string>
   <key>StandardErrorPath</key><string>${xml(logPath)}</string>
 </dict>
@@ -56,12 +57,13 @@ export function renderLaunchAgent({ nodePath, cliPath, logPath, intervalSeconds 
 `;
 }
 
-export function renderSystemdUnits({ nodePath, cliPath, intervalSeconds = BACKGROUND_INTERVAL_SECONDS }) {
+export function renderSystemdUnits({ nodePath, cliPath, environment = {}, intervalSeconds = BACKGROUND_INTERVAL_SECONDS }) {
   const service = `[Unit]
 Description=Refresh AI Native Profile aggregates
 
 [Service]
 Type=oneshot
+${Object.entries(environment).map(([key, value]) => `Environment=${systemdQuote(`${key}=${value}`).replaceAll('%', '%%')}`).join('\n')}
 ExecStart=${systemdQuote(nodePath)} ${systemdQuote(cliPath)} sync --background
 `;
   const timer = `[Unit]
@@ -110,6 +112,7 @@ export function installBackgroundSync({
   nodePath = process.execPath,
   uid = typeof process.getuid === 'function' ? process.getuid() : null,
   runner = spawnSync,
+  environment = { PATH: process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin' },
 } = {}) {
   if (!sourceRoot) throw new Error('The collector source directory is required.');
   if (!['darwin', 'linux'].includes(platform)) {
@@ -122,7 +125,7 @@ export function installBackgroundSync({
   if (platform === 'darwin') {
     if (uid === null) throw new Error('Could not determine the current macOS user.');
     mkdirSync(dirname(paths.definition), { recursive: true });
-    writeFileSync(paths.definition, renderLaunchAgent({ nodePath, cliPath, logPath: paths.log }), { mode: 0o600 });
+    writeFileSync(paths.definition, renderLaunchAgent({ nodePath, cliPath, logPath: paths.log, environment }), { mode: 0o600 });
     const domain = `gui/${uid}`;
     run('launchctl', ['bootout', `${domain}/${BACKGROUND_LABEL}`], { allowFailure: true, runner });
     run('launchctl', ['bootstrap', domain, paths.definition], { runner });
@@ -131,7 +134,7 @@ export function installBackgroundSync({
 
   if (platform === 'linux') {
     mkdirSync(dirname(paths.definition), { recursive: true, mode: 0o700 });
-    const units = renderSystemdUnits({ nodePath, cliPath });
+    const units = renderSystemdUnits({ nodePath, cliPath, environment });
     writeFileSync(paths.serviceDefinition, units.service, { mode: 0o600 });
     writeFileSync(paths.definition, units.timer, { mode: 0o600 });
     run('systemctl', ['--user', 'daemon-reload'], { runner });
@@ -160,12 +163,47 @@ export function uninstallBackgroundSync({
   return { installed: false, platform };
 }
 
-export function backgroundSyncStatus({ homeDir = homedir(), platform = process.platform } = {}) {
+export async function runWithSyncState(task, { homeDir = homedir(), background = false, now = () => new Date() } = {}) {
+  const { configDir } = backgroundSyncPaths({ homeDir });
+  mkdirSync(configDir, { recursive: true, mode: 0o700 });
+  const file = join(configDir, background ? 'background-status.json' : 'sync-status.json');
+  let previous = {};
+  try { previous = JSON.parse(readFileSync(file, 'utf8')) ?? {}; } catch {}
+  const state = { lastAttemptAt: now().toISOString(), lastSuccessAt: previous.lastSuccessAt ?? null, result: 'running' };
+  const save = () => writeFileSync(file, JSON.stringify(state), { mode: 0o600 });
+  save();
+  try {
+    const result = await task();
+    state.lastSuccessAt = now().toISOString();
+    state.result = result?.warnings?.length ? 'partial' : 'success';
+    state.skippedSources = result?.warnings ?? [];
+    save();
+    return result;
+  } catch (error) {
+    state.result = 'failed';
+    save();
+    throw error;
+  }
+}
+
+export function backgroundSyncStatus({ homeDir = homedir(), platform = process.platform, uid = typeof process.getuid === 'function' ? process.getuid() : null, runner = spawnSync, now = Date.now() } = {}) {
   const paths = backgroundSyncPaths({ homeDir, platform });
   if (!paths.definition) return { supported: false, installed: false, platform };
+  const installed = existsSync(paths.definition);
+  const service = installed ? runner(platform === 'darwin' ? 'launchctl' : 'systemctl', platform === 'darwin' ? ['print', `gui/${uid}/${BACKGROUND_LABEL}`] : ['--user', 'is-active', basename(paths.definition)], { encoding: 'utf8', timeout: 5000 }) : null;
+  const scheduled = service?.status === 0 && !service.error;
+  let state = {};
+  try { state = JSON.parse(readFileSync(join(paths.configDir, 'background-status.json'), 'utf8')) ?? {}; } catch {}
+  const age = now - Date.parse(state.lastSuccessAt ?? '');
+  const health = !installed ? 'off' : !scheduled ? 'not loaded' : state.result === 'failed' ? 'failed' : !Number.isFinite(age) ? 'not yet verified' : age < 0 || age > BACKGROUND_INTERVAL_SECONDS * 3 * 1000 ? 'stale' : state.result === 'running' ? 'in progress' : state.result === 'partial' ? 'partial' : state.result === 'success' ? 'healthy' : 'not yet verified';
   return {
     supported: true,
-    installed: existsSync(paths.definition),
+    installed,
+    scheduled,
+    health,
+    lastAttemptAt: state.lastAttemptAt ?? null,
+    lastSuccessAt: state.lastSuccessAt ?? null,
+    skippedSources: state.skippedSources ?? [],
     platform,
     definition: paths.definition,
     intervalSeconds: BACKGROUND_INTERVAL_SECONDS,

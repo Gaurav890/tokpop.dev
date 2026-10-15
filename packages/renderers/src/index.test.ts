@@ -23,6 +23,8 @@ describe('SVG renderers', () => {
     const svg = renderProfileCard(profile);
     expect(svg).toContain('SOURCE-LABELLED');
     expect(svg).not.toContain('Verified collection');
+    expect(svg).toContain('INCLUDES REPORTED CACHE');
+    expect(svg).toContain('2026-09-20 UTC');
   });
   it('shows every provider without a hidden remainder', () => {
     const svg = renderProfileCard({ ...profile, providers: ['Codex', 'Claude Code', 'Cursor', 'Gemini CLI'] });

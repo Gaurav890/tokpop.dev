@@ -23,9 +23,10 @@ export type PublicProfile = {
   archetype: ProfileArchetype;
   deliveryPoints: number;
   providers: string[];
-  coverage: Array<{ source: string; label: string; provenance: string; status: string; completeness: string; note?: string }>;
+  coverage: Array<{ source: string; label: string; provenance: string; status: string; completeness: string; note?: string; lastSyncedAt?: string; coverageStart?: string; coverageEnd?: string }>;
   activity: Array<{ date: string; value: number }>;
-  github: { commits: number; mergedPullRequests: number; reviews: number; releases: number };
+  github: { commits: number; pullRequests: number; reviews: number; privateContributions: number; verifiedWindow: boolean; fresh?: boolean; coverageStart?: string; coverageEnd?: string; lastSyncedAt?: string };
+  sessionSources?: string[];
   conversation: { sessions: number; activeDays: number; coverage: string };
   updatedAt: string;
 };
@@ -71,7 +72,7 @@ export const demoProfile: PublicProfile = {
     { source: 'chatgpt_web', label: 'ChatGPT Web', provenance: 'MCP observed', status: 'Partial', completeness: 'partial' },
   ],
   activity: Array.from({ length: 84 }, (_, index) => ({ date: new Date(Date.UTC(2026, 5, 17 + index)).toISOString().slice(0, 10), value: ((index * 7 + Math.floor(index / 12) * 3) % 11) > 6 ? 4 : ((index * 7) % 5) })),
-  github: { commits: 118, mergedPullRequests: 12, reviews: 6, releases: 1 },
+  github: { commits: 118, pullRequests: 12, reviews: 6, privateContributions: 34, verifiedWindow: true },
   conversation: { sessions: 32, activeDays: 18, coverage: 'Partial and excluded from ranking' },
   updatedAt: '2026-09-12T18:00:00.000Z',
 };

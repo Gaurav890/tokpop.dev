@@ -1,9 +1,10 @@
 import { runtimeEnv as env } from '@/lib/runtime-env';
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 import { privacyCheck } from '@ai-native-profile/adapters';
 import { ensureDb } from '../../../../../db/ensure';
 import { canonicalJson, hmac, secureEqual, sha256 } from '../../../../../lib/crypto';
 import { persistGithubSnapshot } from '../../../../../lib/github-storage';
+import { refreshGitHubAfterUpload } from '../../../../../lib/github-refresh';
 
 export async function POST(request: NextRequest) {
   const authorization = request.headers.get('authorization');
@@ -32,5 +33,6 @@ export async function POST(request: NextRequest) {
   for (const item of batch.coverage) statements.push(env.DB.prepare(`INSERT INTO source_coverage (user_id,source,coverage_start,coverage_end,last_synced_at,completeness,competitive_eligible,note) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(user_id,source) DO UPDATE SET coverage_start=min(source_coverage.coverage_start,excluded.coverage_start),coverage_end=max(source_coverage.coverage_end,excluded.coverage_end),last_synced_at=excluded.last_synced_at,completeness=excluded.completeness,competitive_eligible=excluded.competitive_eligible,note=excluded.note`).bind(device.user_id, item.source, item.coverageStart, item.coverageEnd, item.lastSyncedAt, item.completeness, item.competitiveEligible ? 1 : 0, item.note ?? null));
   statements.push(env.DB.prepare('UPDATE devices SET last_seen_at=? WHERE id=?').bind(now, device.id));
   await env.DB.batch(statements);
+  after(() => refreshGitHubAfterUpload(device.user_id));
   return NextResponse.json({ ok: true, acceptedDays: batch.daily.length }, { status: 202 });
 }

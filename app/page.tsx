@@ -84,7 +84,7 @@ export function DashboardDemo({ profile }: { profile: PublicProfile }) {
 
           <section className="stat-grid" aria-label="Coding activity summary">
             <article><span className="stat-icon">01</span><p>Active coding days</p><strong>{profile.activeDays}</strong><small><b>Coverage</b> eligible sources only</small></article>
-            <article><span className="stat-icon">02</span><p>Coding sessions</p><strong>{profile.sessions}</strong><small>Across {profile.providers.length} sources</small></article>
+            <article><span className="stat-icon">02</span><p>Recorded sessions</p><strong>{profile.sessions}</strong><small>{profile.sessionSources?.length ? profile.sessionSources.join(', ') : 'Partial source coverage'}</small></article>
             <article><span className="stat-icon">03</span><p>Current streak</p><strong>{profile.currentStreak} <em>days</em></strong><small>Longest: {profile.longestStreak} days</small></article>
             <article><span className="stat-icon">04</span><p>Delivery points</p><strong>{profile.deliveryPoints}</strong><small>GitHub · last 90 days</small></article>
           </section>

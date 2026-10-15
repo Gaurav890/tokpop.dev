@@ -11,6 +11,7 @@ import { GitHubProofSync } from '../connect/github-proof-sync';
 import { PowerUpPanel } from './power-up-panel';
 import { SiteFooter } from '../ui/site-footer';
 import { publicAppOrigin } from '../../lib/public-origin';
+import { SyncHealth } from '../ui/sync-health';
 
 type SettingsRow = {
   public_enabled: number;
@@ -22,11 +23,11 @@ type SettingsRow = {
 
 export const dynamic = 'force-dynamic';
 
-export default async function SharePage({ searchParams }: { searchParams: Promise<{ onboarding?: string }> }) {
+export default async function SharePage() {
   const user = await currentGitHubUser();
   if (!user) redirect('/api/auth/github/start?return_to=/share');
 
-  const [{ onboarding }, profile] = await Promise.all([searchParams, getPrivateProfile(user.userId)]);
+  const profile = await getPrivateProfile(user.userId);
   let settings: SettingsRow | null;
   if (backendOrigin()) {
     settings = (await backendJson<{ settings: SettingsRow | null }>('/api/v1/settings', { authenticated: true })).settings;
@@ -47,7 +48,8 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
       </div>
       <div className="activation-step"><span>{settings?.public_enabled ? 'LIVE ●' : 'UNLOCKED'}</span><strong>{profile?.archetype.emoji} {profile?.archetype.title ?? 'Workflow Builder'}</strong><small>{compactMetric(profile?.lifetimeTokens ?? 0)} tokens · {profile?.providers.length ?? 0} tools · {profile?.currentStreak ?? 0}-day streak</small></div>
     </section>
-    {onboarding === '1' ? <GitHubProofSync username={user.login} compact/> : null}
+    <GitHubProofSync username={user.login} compact/>
+    {profile ? <SyncHealth profile={profile} owner/> : null}
     {!hasCodingEvidence ? <PowerUpPanel hasCodingEvidence={false} publicOrigin={publicOrigin}/> : null}
     <ActivationShare
       publicOrigin={publicOrigin}

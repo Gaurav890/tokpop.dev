@@ -51,6 +51,12 @@ npx --yes ai-native-profile@latest watch --install
 
 Check their status with `doctor`, or disable them with `watch --uninstall`. Plain `watch` remains available for a foreground-only loop that stops with the process. The scheduled collector is copied under `~/.config/ai-native-profile/collector`; no provider credentials or source data are copied.
 
+### Repair or upgrade automatic sync
+
+An existing scheduled job keeps its own collector copy. After upgrading, run the new version's `watch --install` once to replace that copy and preserve the executable search path from your terminal. Pairing is preserved; do not disconnect first.
+
+`doctor` distinguishes a missing job, a job that is not loaded, an unverified first run, a failed or partial run, and a recent successful automatic upload. A manual `sync` does not prove the background job works. Last-attempt and last-success timestamps are stored locally without credentials or raw error content. A sleeping/offline computer may show a delayed sync; retry after it wakes.
+
 ## Supported coding sources
 
 | Source | Collection path | Trust label |

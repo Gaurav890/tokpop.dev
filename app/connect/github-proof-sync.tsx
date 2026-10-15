@@ -4,26 +4,30 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 type SyncResult = {
-  events?: number;
+  windowDays?: number;
+  commits?: number;
+  pullRequests?: number;
+  reviews?: number;
+  privateContributions?: number;
   activeDays?: number;
   error?: string;
 };
 
 async function requestGitHubProof(): Promise<SyncResult> {
-  const response = await fetch('/api/v1/github/sync', { method: 'POST' });
+  const response = await fetch('/api/v1/github/sync', { method: 'POST', signal: AbortSignal.timeout(25000) });
   const body = await response.json().catch(() => ({})) as SyncResult;
   if (!response.ok) throw new Error(body.error ?? 'GitHub activity sync failed.');
   return body;
 }
 
 function resultDetail(result: SyncResult) {
-  return `${result.events ?? 0} public events across ${result.activeDays ?? 0} active days are ready.`;
+  return `${result.commits ?? 0} commits · ${result.pullRequests ?? 0} pull requests · ${result.reviews ?? 0} reviews across ${result.windowDays ?? 90} days.`;
 }
 
 export function GitHubProofSync({ username, compact = false }: { username: string; compact?: boolean }) {
   const router = useRouter();
   const [state, setState] = useState<'syncing' | 'ready' | 'error'>('syncing');
-  const [detail, setDetail] = useState('Reading your public delivery activity…');
+  const [detail, setDetail] = useState('Reading your GitHub contribution graph…');
 
   useEffect(() => {
     let cancelled = false;
@@ -42,7 +46,7 @@ export function GitHubProofSync({ username, compact = false }: { username: strin
 
   async function retry() {
     setState('syncing');
-    setDetail('Reading your public delivery activity…');
+    setDetail('Reading your GitHub contribution graph…');
     try {
       const body = await requestGitHubProof();
       setState('ready');

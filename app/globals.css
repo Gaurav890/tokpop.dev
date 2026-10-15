@@ -1124,3 +1124,13 @@ button,a { font:inherit; } button { cursor:pointer; } a { color:inherit; text-de
   .story-page { width:calc(100% - 28px); padding:28px 22px; }
   .story-page::after { right:20px; top:-28px; width:56px; height:56px; }
 }
+
+.sync-health { padding:24px; margin:18px 0; border:2px solid #18122e; border-radius:20px; background:#fff4cf; color:#18122e; }
+.sync-health p { max-width:85ch; line-height:1.6; }
+.sync-health .delivery-list>div { gap:16px; flex-wrap:wrap; }
+.sync-health .delivery-list dt,.sync-health .fine-print { color:#4d4560; }
+.sync-health .delivery-list dd { overflow-wrap:anywhere; }
+.sync-health a { color:#5530c6; text-decoration:underline; }
+.profile-feature-card>.token-components { margin:18px 0; gap:16px; }
+.profile-feature-card>.token-components dt { color:#514963; font-size:10px; }
+.profile-feature-card>.token-components dd { font-size:14px; }

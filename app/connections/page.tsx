@@ -20,7 +20,7 @@ type CoverageRow = {
 };
 
 const sourceDefinitions = [
-  { id: 'github', mark: 'GH', name: 'GitHub', group: 'Identity and delivery', method: 'GitHub OAuth', description: 'Verified identity plus public commits, pull requests, reviews, and releases.', href: '/settings/github', action: 'Manage GitHub' },
+  { id: 'github', mark: 'GH', name: 'GitHub', group: 'Identity and delivery', method: 'GitHub OAuth', description: 'Verified identity plus exact 90-day contribution totals for commits, pull requests, and reviews.', href: '/settings/github', action: 'Manage GitHub' },
   { id: 'codex', mark: 'CX', name: 'Codex', group: 'Coding activity', method: 'Local App Server + connector', description: 'Official account totals when available, with local session detail used as supporting evidence.', href: '/connect', action: 'Pair connector' },
   { id: 'claude_code', mark: 'CL', name: 'Claude Code', group: 'Coding activity', method: 'Local connector', description: 'Reads the official local statistics cache and retained session logs after approval.', href: '/connect', action: 'Pair connector' },
   { id: 'cursor', mark: 'CU', name: 'Cursor', group: 'Coding activity', method: 'Local connector', description: 'Reads supported local database metadata. Derived values are labelled and estimated values are not ranked.', href: '/connect', action: 'Pair connector' },

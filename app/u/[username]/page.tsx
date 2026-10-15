@@ -8,6 +8,9 @@ import Image from 'next/image';
 import { currentGitHubUser } from '../../../lib/auth';
 import { SiteFooter } from '../../ui/site-footer';
 import { publicAppOrigin } from '../../../lib/public-origin';
+import { utcTimestamp } from '../../../lib/data-freshness';
+import { summarizeTokens } from '../../../lib/token-summary';
+import { SyncHealth } from '../../ui/sync-health';
 
 function compact(value: number) { return new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value); }
 function exact(value: number) { return new Intl.NumberFormat('en-US').format(value); }
@@ -47,8 +50,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
     { icon: '🏁', value: `${profile.currentStreak}d`, label: 'current streak', visible: profile.currentStreak > 0 },
     { icon: '🧰', value: profile.providers.length, label: 'tool loadout', visible: profile.providers.length > 0 },
   ].filter((item) => item.visible);
-  const deliveryTotal = profile.github.commits + profile.github.mergedPullRequests + profile.github.reviews + profile.github.releases;
-  const updatedLabel = new Date(profile.updatedAt).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' });
+  const updatedLabel = utcTimestamp(profile.updatedAt);
+  const tokenSummary = summarizeTokens(profile.tokenBreakdown);
+  const nonTokenProviders = profile.providers.filter((label) => !profile.tokenBreakdown.some((row) => row.label === label));
 
   return <main className="profile-page">
     <SiteHeader user={user}/>
@@ -57,7 +61,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       <div className="profile-player-copy">
         <div className="profile-player-identity">
           <span className="profile-avatar">{profile.avatarUrl ? <Image src={profile.avatarUrl} width={96} height={96} alt=""/> : profile.name.slice(0, 2).toUpperCase()}</span>
-          <div><p className="verified-line">● {profile.verified ? 'GITHUB VERIFIED PLAYER' : 'LABELLED EXAMPLE'}</p><h1>{profile.name}</h1><p>@{profile.username} · Updated {updatedLabel}</p></div>
+          <div><p className="verified-line">● {profile.verified ? 'GITHUB VERIFIED PLAYER' : 'LABELLED EXAMPLE'}</p><h1>{profile.name}</h1><p>@{profile.username} · Latest coding sync: {updatedLabel}</p></div>
         </div>
         <div className="profile-alter-ego">
           <span aria-hidden="true">{profile.archetype.emoji}</span>
@@ -66,9 +70,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         {profile.providers.length ? <div className="profile-loadout"><span>TOOL LOADOUT</span><div>{profile.providers.map((provider) => <b key={provider}>{provider}</b>)}</div></div> : null}
       </div>
       <div className="profile-player-score">
-        <span className="profile-live-pill">● LIVE BUILD</span>
-        {profile.lifetimeTokens > 0 ? <div className="profile-token-flex"><strong>{compact(profile.lifetimeTokens)}</strong><span>AI CODING TOKENS MOVED</span></div> : <div className="profile-token-flex"><strong>READY</strong><span>FOR THE FIRST SYNC</span></div>}
+        <span className="profile-live-pill">● SOURCE-LABELLED BUILD</span>
+        {profile.lifetimeTokens > 0 ? <div className="profile-token-flex"><strong>{compact(profile.lifetimeTokens)}</strong><span>TOTAL TOKENS · INCLUDES REPORTED CACHE USAGE</span></div> : <div className="profile-token-flex"><strong>READY</strong><span>FOR THE FIRST SYNC</span></div>}
         <div className="profile-score-duo"><div><span>BUILD LEVEL</span><strong>{profile.scoreEligible ? profile.score : '—'}<small>/100</small></strong></div><div><span>CURRENT STREAK</span><strong>{profile.currentStreak}<small> days</small></strong></div></div>
+        {!profile.scoreEligible && profile.scoreReason ? <p className="fine-print">{profile.scoreReason}</p> : null}
         <a href="#receipts">See the receipts ↓</a>
       </div>
     </section>
@@ -78,24 +83,29 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
     <section className="profile-section-intro" id="receipts"><div><p className="eyebrow">THE RECEIPTS</p><h2>Big flex. Exact breakdown.</h2></div><p>The headline is fun; the proof is serious. Every source keeps its own label, every total is inspectable, and raw token volume never buys a higher build level.</p></section>
 
     <section className="profile-grid">
+      <SyncHealth profile={profile} owner={user?.login.toLowerCase() === profile.username.toLowerCase()}/>
       {profile.lifetimeTokens > 0 ? <article className="public-card token-ledger profile-feature-card wide">
         <div className="section-title"><div><p className="eyebrow">⚡ TOKEN VAULT · COVERED PERIOD</p><h2>Power by provider</h2></div><strong className="token-total-display">{exact(profile.lifetimeTokens)}</strong></div>
-        <p className="card-intro">No mystery mega-number. Each token-reporting tool gets its own lane, percentage, and provenance label.</p>
+        <p className="card-intro">Total includes reported cache reads and writes, not just newly generated tokens. Counts are usage measurements—not cost, unique text, or proof of productivity. Covered history is limited to the past 365 days.</p>
+        <dl className="token-components"><div><dt>Base input reported</dt><dd>{exact(tokenSummary.input)}</dd></div><div><dt>Output reported</dt><dd>{exact(tokenSummary.output)}</dd></div><div><dt>Cache writes reported</dt><dd>{exact(tokenSummary.cacheCreation)}</dd></div><div><dt>Cache reads reported</dt><dd>{exact(tokenSummary.cacheRead)}</dd></div><div><dt>Unclassified / combined-only</dt><dd>{exact(tokenSummary.unclassified)}</dd></div></dl>
+        <p className="fine-print">Components are only shown where reported and reconcilable. Unclassified tokens may include cache usage; missing breakdowns are not treated as fresh tokens.</p>
+        {nonTokenProviders.length ? <p className="fine-print">Activity without token totals: {nonTokenProviders.join(', ')}. These sources report activity, not a measured zero-token count.</p> : null}
         <div className="token-source-list">{profile.tokenBreakdown.map((item, index) => <div key={item.source}>
           <span className="provider-rank">0{index + 1}</span><div><strong>{item.label}</strong><span>{item.provenance}</span></div><b>{exact(item.tokens)}<small>{percent(item.tokens, profile.lifetimeTokens)}% of total</small></b>
           <span className="token-bar"><i style={{ width: `${Math.max(4, profile.lifetimeTokens ? item.tokens / profile.lifetimeTokens * 100 : 0)}%` }}/></span>
           {item.components && (item.components.input + item.components.output + item.components.cacheCreation + item.components.cacheRead > 0) ? <dl className="token-components"><div><dt>Base input</dt><dd>{exact(item.components.input)}</dd></div><div><dt>Output</dt><dd>{exact(item.components.output)}</dd></div><div><dt>Cache write</dt><dd>{exact(item.components.cacheCreation)}</dd></div><div><dt>Cache read</dt><dd>{exact(item.components.cacheRead)}</dd></div>{item.components.combinedOnly > 0 ? <div><dt>Combined-only history</dt><dd>{exact(item.components.combinedOnly)}</dd></div> : null}</dl> : null}
         </div>)}</div>
         {activityTotals.length ? <div className="activity-mini-grid">{activityTotals.map(([label, value]) => <div key={label}><strong>{compact(value)}</strong><span>{label}</span></div>)}</div> : null}
+        <p className="fine-print">Sessions: {profile.sessionSources?.length ? profile.sessionSources.join(', ') : 'source coverage not available'}. Session, turn, and active-day coverage can differ; these are not complete cross-tool totals.</p>
       </article> : null}
 
       {profile.activeDays > 0 ? <article className="public-card wide rhythm-card"><div className="section-title"><div><p className="eyebrow">🔥 12-WEEK BUILD STREAK</p><h2>Momentum, in pixels</h2></div><span className="proof-chip">{profile.verified ? 'Source-labelled' : 'Example data'}</span></div><div className="public-heatmap">{profile.activity.map((day) => <span key={day.date} className={`heat level-${day.value}`} title={`${day.date}: level ${day.value}`}/>)}</div><div className="provider-row" aria-label="All connected coding providers">{profile.providers.map((provider) => <span key={provider}>{provider}</span>)}</div></article> : null}
 
-      {deliveryTotal > 0 ? <article className="public-card shipping-card"><p className="eyebrow">🚀 GITHUB · 90 DAYS</p><h2>Shipping receipts</h2><dl className="delivery-list"><div><dt>Commits</dt><dd>{profile.github.commits}</dd></div><div><dt>Merged PRs</dt><dd>{profile.github.mergedPullRequests}</dd></div><div><dt>Reviews</dt><dd>{profile.github.reviews}</dd></div><div><dt>Releases</dt><dd>{profile.github.releases}</dd></div></dl><p className="fine-print">Correlated by time window. No claim that a specific commit was AI-generated.</p></article> : null}
+      <article className="public-card shipping-card"><p className="eyebrow">🚀 GITHUB · CONTRIBUTION RECEIPTS</p><h2>{profile.github.verifiedWindow ? 'Your contribution snapshot' : 'Receipts need a refresh'}</h2>{profile.github.verifiedWindow ? <><p className="fine-print">{profile.github.coverageStart ?? 'Example window'} → {profile.github.coverageEnd ?? '90 days'} · UTC. {profile.github.fresh === false ? 'Outdated snapshot — excluded from the current ranked score.' : 'GitHub-defined contribution counts, not all repository activity.'}</p><dl className="delivery-list"><div><dt>Commit contributions</dt><dd>{profile.github.commits}</dd></div><div><dt>Pull requests opened</dt><dd>{profile.github.pullRequests}</dd></div><div><dt>PR reviews</dt><dd>{profile.github.reviews}</dd></div><div><dt>Restricted contributions reported</dt><dd>{profile.github.privateContributions > 0 ? profile.github.privateContributions : 'Not exposed / none reported'}</dd></div></dl></> : <p>No current contribution snapshot is available. Legacy event counts are not shown as zero contributions.</p>}<p className="fine-print">Private activity coverage depends on GitHub visibility and permissions. Restricted counts are context only, never added to the score. Repository names and content are not collected.</p>{user?.login.toLowerCase() === profile.username.toLowerCase() ? <Link href="/settings/github">Refresh my GitHub receipts →</Link> : null}</article>
 
       {profile.conversation.sessions > 0 ? <article className="public-card conversation-card"><div><p className="eyebrow">💬 SIDE QUEST</p><h2>Conversation activity</h2><p>{profile.conversation.sessions} deliberately observed or imported sessions across {profile.conversation.activeDays} days.</p></div><span className="excluded-label">Never ranked</span><p className="fine-print">{profile.conversation.coverage}. This does not represent complete provider history.</p></article> : null}
 
-      {profile.dailyTokens.length ? <details className="public-card wide daily-token-details"><summary><span><b>🔎</b><span><strong>Open the day-by-day token receipts</strong><small>{profile.dailyTokens.length} token-bearing days · every provider kept separate</small></span></span><em><span>EXPAND ↓</span><span>CLOSE ↑</span></em></summary><div className="daily-token-body"><p className="card-intro">Each row comes from the same de-duplicated provider metrics used in the token vault and reconciles to the headline total.</p><div className="daily-token-table-wrap"><table className="daily-token-table"><thead><tr><th scope="col">Date</th>{profile.tokenBreakdown.map((provider) => <th scope="col" key={provider.source}>{provider.label}</th>)}<th scope="col">Daily total</th></tr></thead><tbody>{profile.dailyTokens.map((day) => <tr key={day.date}><th scope="row"><time dateTime={day.date}>{calendarDate(day.date)}</time></th>{profile.tokenBreakdown.map((provider) => <td key={provider.source}>{exact(day.bySource[provider.source] ?? 0)}</td>)}<td className="daily-total">{exact(day.total)}</td></tr>)}</tbody></table></div></div></details> : null}
+      {profile.dailyTokens.length ? <details className="public-card wide daily-token-details"><summary><span><b>🔎</b><span><strong>Open the day-by-day token receipts</strong><small>{profile.dailyTokens.length} token-bearing days · every provider kept separate</small></span></span><em><span>EXPAND ↓</span><span>CLOSE ↑</span></em></summary><div className="daily-token-body"><p className="card-intro">Source-reported calendar dates. Each row reconciles to the headline total. A dash means no token total was reported for that source and day, not a measured zero.</p><div className="daily-token-table-wrap"><table className="daily-token-table"><thead><tr><th scope="col">Date</th>{profile.tokenBreakdown.map((provider) => <th scope="col" key={provider.source}>{provider.label}</th>)}<th scope="col">Daily total</th></tr></thead><tbody>{profile.dailyTokens.map((day) => <tr key={day.date}><th scope="row"><time dateTime={day.date}>{calendarDate(day.date)}</time></th>{profile.tokenBreakdown.map((provider) => <td key={provider.source}>{day.bySource[provider.source] === undefined ? '—' : exact(day.bySource[provider.source])}</td>)}<td className="daily-total">{exact(day.total)}</td></tr>)}</tbody></table></div></div></details> : null}
 
       <details className="profile-proof-details wide" id="build-level"><summary><span><strong>🧪 Open the build-level recipe</strong><small>Scoring formula and source details</small></span><b>SHOW THE MATH ↓</b></summary><div className="proof-details-grid"><article className="score-ledger"><div className="section-title"><div><p className="eyebrow">BUILD LEVEL BREAKDOWN</p><h2>Four signals under the hood</h2></div><span className="proof-chip">Tokens excluded</span></div><div className="score-part-list">{scoreParts.map(([label, value, max]) => <div key={label}><div><span>{label}</span><strong>{value}/{max}</strong></div><span className="score-part-track"><i style={{ width: `${Math.min(100, value / max * 100)}%` }}/></span></div>)}</div><p className="fine-print">Raw token volume never raises the build level. <Link href="/methodology">See the complete formula →</Link></p></article><article><p className="eyebrow">SOURCE DETAILS</p><h2>Where every stat came from</h2><div className="provenance-list">{profile.coverage.map((item) => <div key={item.source}><span className={`status-dot ${item.status.toLowerCase()}`}/><span><strong>{item.label}</strong><small>{item.provenance} · {item.completeness}</small>{item.note ? <em>{item.note}</em> : null}</span></div>)}</div></article></div></details>
     </section>

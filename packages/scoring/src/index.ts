@@ -8,9 +8,9 @@ export type ScoreInput = {
   advancedWorkflowSessionRate: number;
   activeCodingProviders: number;
   commits: number;
-  mergedPullRequests: number;
+  pullRequests: number;
   reviews: number;
-  releases: number;
+  deliveryAvailable?: boolean;
 };
 
 export type ScoreBreakdown = {
@@ -38,9 +38,8 @@ export function calculateWorkflowIndex(input: ScoreInput): ScoreBreakdown {
   const providerBreadth = 3 * Math.min(5, Math.max(0, input.activeCodingProviders));
   const deliveryPoints =
     Math.max(0, input.commits) +
-    3 * Math.max(0, input.mergedPullRequests) +
-    2 * Math.max(0, input.reviews) +
-    5 * Math.max(0, input.releases);
+    3 * Math.max(0, input.pullRequests) +
+    2 * Math.max(0, input.reviews);
   const delivery = 30 * clamp01(Math.log1p(deliveryPoints) / Math.log1p(200));
 
   const base = {
@@ -53,5 +52,6 @@ export function calculateWorkflowIndex(input: ScoreInput): ScoreBreakdown {
 
   if (!input.githubConnected) return { eligible: false, reason: 'Connect GitHub to receive a ranked score.', total: null, ...base };
   if (input.coveredDays < 30) return { eligible: false, reason: 'At least 30 covered coding days are required.', total: null, ...base };
+  if (input.deliveryAvailable === false) return { eligible: false, reason: 'Refresh GitHub contribution receipts to calculate a current ranked score.', total: null, ...base };
   return { eligible: true, total: Math.round(consistency + workflowDepth + providerBreadth + delivery), ...base };
 }

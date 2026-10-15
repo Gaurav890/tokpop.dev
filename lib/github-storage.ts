@@ -17,7 +17,7 @@ export async function persistGithubSnapshot(userId: string, path: string, value:
   const storage = await record(userId);
   if (!storage) return false;
   const content = btoa(unescape(encodeURIComponent(`${JSON.stringify(value, null, 2)}\n`)));
-  const response = await fetch(`https://api.github.com/repos/${encodeURIComponent(storage.login)}/${encodeURIComponent(storage.repo)}/contents/${path.split('/').map(encodeURIComponent).join('/')}`, { method: 'PUT', headers: { accept: 'application/vnd.github+json', authorization: `Bearer ${storage.token}`, 'content-type': 'application/json', 'x-github-api-version': '2022-11-28', 'user-agent': 'ai-native-profile' }, body: JSON.stringify({ message: `Store activity snapshot ${path.split('/').at(-1)}`, content }) });
-  if (!response.ok && response.status !== 422) throw new Error(`GitHub-backed snapshot failed (${response.status}).`);
+  const response = await fetch(`https://api.github.com/repos/${encodeURIComponent(storage.login)}/${encodeURIComponent(storage.repo)}/contents/${path.split('/').map(encodeURIComponent).join('/')}`, { method: 'PUT', headers: { accept: 'application/vnd.github+json', authorization: `Bearer ${storage.token}`, 'content-type': 'application/json', 'x-github-api-version': '2022-11-28', 'user-agent': 'ai-native-profile' }, body: JSON.stringify({ message: `Store activity snapshot ${path.split('/').at(-1)}`, content }), signal: AbortSignal.timeout(10000) });
+  if (!response.ok) throw new Error(`GitHub-backed snapshot failed (${response.status}).`);
   return true;
 }

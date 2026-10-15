@@ -21,7 +21,7 @@ export function buildProfileArchetype(input: ArchetypeInput): ProfileArchetype {
     return {
       emoji: '🥷',
       title: 'Token Ninja',
-      summary: `${compactMetric(input.tokens)} tokens moved. ${input.currentStreak} days straight. Quietly relentless.`,
+      summary: input.currentStreak > 0 ? `${compactMetric(input.tokens)} tokens recorded, including reported cache usage. ${input.currentStreak} days straight.` : `${compactMetric(input.tokens)} tokens recorded, including reported cache usage. Your next streak starts with your next active day.`,
     };
   }
   if (input.currentStreak >= 30) {

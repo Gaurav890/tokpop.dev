@@ -1,6 +1,6 @@
 import { publicAppOrigin } from './public-origin';
 
-export const CONNECTOR_VERSION = '0.2.1';
+export const CONNECTOR_VERSION = '0.2.2';
 
 export function collectorConnectCommand(userCode: string, apiOrigin: string): string {
   if (!/^[A-Za-z0-9_-]+$/.test(userCode)) throw new Error('Invalid pairing code.');

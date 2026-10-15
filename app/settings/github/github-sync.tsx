@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { requestGitHubProof } from '../../../lib/github-sync-result';
 
 export function GitHubSync() {
   const router = useRouter();
@@ -11,13 +12,11 @@ export function GitHubSync() {
     setBusy(true);
     setStatus('Reading your GitHub contribution graph…');
     try {
-      const response = await fetch('/api/v1/github/sync', { method: 'POST', signal: AbortSignal.timeout(25000) });
-      const body = await response.json() as { commits?: number; pullRequests?: number; reviews?: number; coverageStart?: string; coverageEnd?: string; error?: string };
-      if (!response.ok) throw new Error(body.error ?? 'Sync failed.');
+      const body = await requestGitHubProof();
       setStatus(`Synced ${body.commits} commit contributions, ${body.pullRequests} opened pull requests, and ${body.reviews} reviews. Window: ${body.coverageStart} → ${body.coverageEnd} (UTC).`);
       router.refresh();
-    } catch {
-      setStatus('Could not refresh receipts. Previous data is preserved. Check your connection or reconnect GitHub, then retry.');
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : 'Could not refresh receipts. Your saved data is unchanged.');
     } finally {
       setBusy(false);
     }

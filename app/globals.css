@@ -1131,6 +1131,16 @@ button,a { font:inherit; } button { cursor:pointer; } a { color:inherit; text-de
 .sync-health .delivery-list dt,.sync-health .fine-print { color:#4d4560; }
 .sync-health .delivery-list dd { overflow-wrap:anywhere; }
 .sync-health a { color:#5530c6; text-decoration:underline; }
+
+/* Keep connection details secondary to the card and share action. */
+.share-ready-hero { margin-top:32px; margin-bottom:28px; }
+.share-ready-hero h1 { font-size:clamp(36px,4.5vw,60px); }
+.share-connection-status { width:min(1120px,calc(100% - 48px)); margin:16px auto; color:#4d4560; }
+.sync-health-inline { display:flex; flex-wrap:wrap; gap:6px 14px; margin:0; font-size:13px; line-height:1.6; }
+.share-connection-status a,.github-sync-status button { color:#5530c6; text-decoration:underline; }
+.github-sync-status { display:flex; align-items:baseline; flex-wrap:wrap; gap:6px 14px; font-size:13px; line-height:1.6; }
+.github-sync-status p { margin:8px 0 0; }
+.github-sync-status button { padding:0; border:0; background:transparent; font:inherit; cursor:pointer; }
 .profile-feature-card>.token-components { margin:18px 0; gap:16px; }
 .profile-feature-card>.token-components dt { color:#514963; font-size:10px; }
 .profile-feature-card>.token-components dd { font-size:14px; }

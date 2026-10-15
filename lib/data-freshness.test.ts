@@ -1,9 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { githubReceiptWindow, syncFreshness, utcTimestamp } from './data-freshness';
+import { githubReceiptWindow, sourceSyncSummary, syncFreshness, utcTimestamp } from './data-freshness';
 
 const now = Date.parse('2026-10-14T12:00:00Z');
 const coverage = { note: 'anp.github-contributions.v2: snapshot', coverage_start: '2026-07-17', coverage_end: '2026-10-14', last_synced_at: '2026-10-14T11:00:00Z' };
 describe('data freshness', () => {
+  it('does not label missing metadata as a failed or delayed sync', () => {
+    expect(sourceSyncSummary([{ lastSyncedAt: undefined }], now)).toBe('Sync timing is not available yet');
+    expect(sourceSyncSummary([{ lastSyncedAt: '2026-10-14T11:30:00Z' }, {}], now)).toBe('Sync timing is not available yet');
+    expect(sourceSyncSummary([{ lastSyncedAt: '2026-10-09T11:30:00Z' }, {}], now)).toBe('Some sources have not synced recently');
+    expect(sourceSyncSummary([{ lastSyncedAt: '2026-10-14T11:30:00Z' }], now)).toBe('Sources synced recently');
+    expect(sourceSyncSummary([], now)).toBe('Waiting for your first coding sync');
+  });
   it('requires real timestamps, not just a verification marker', () => {
     expect(githubReceiptWindow({ note: coverage.note }, now)).toEqual({ verified: false, fresh: false });
     expect(githubReceiptWindow(coverage, now)).toEqual({ verified: true, fresh: true });

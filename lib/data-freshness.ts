@@ -6,6 +6,14 @@ export function syncFreshness(lastSyncedAt?: string | null, now = Date.now()) {
   return now - time <= 45 * 60_000 ? 'recent' : 'delayed';
 }
 
+export function sourceSyncSummary(sources: Array<{ lastSyncedAt?: string | null }>, now = Date.now()) {
+  if (!sources.length) return 'Waiting for your first coding sync';
+  const states = sources.map((source) => syncFreshness(source.lastSyncedAt, now));
+  if (states.includes('delayed')) return 'Some sources have not synced recently';
+  if (states.includes('unknown')) return 'Sync timing is not available yet';
+  return 'Sources synced recently';
+}
+
 type ReceiptCoverage = { note?: string; coverage_start?: string; coverage_end?: string; last_synced_at?: string };
 
 export function githubReceiptWindow(coverage?: ReceiptCoverage, now = Date.now()) {

@@ -40,7 +40,7 @@ export default async function SharePage() {
 
   return <main className="marketing-page activation-page">
     <SiteHeader user={user}/>
-    <section className="activation-hero">
+    <section className={`activation-hero ${hasCodingEvidence ? 'share-ready-hero' : ''}`}>
       <div>
         <p className="eyebrow">{hasCodingEvidence ? 'Your build identity is ready 🎉' : 'Your private card is ready'}</p>
         <h1>{hasCodingEvidence ? 'Meet your AI build alter ego.' : 'One command unlocks your real stats.'}</h1>
@@ -48,8 +48,6 @@ export default async function SharePage() {
       </div>
       <div className="activation-step"><span>{settings?.public_enabled ? 'LIVE ●' : 'UNLOCKED'}</span><strong>{profile?.archetype.emoji} {profile?.archetype.title ?? 'Workflow Builder'}</strong><small>{compactMetric(profile?.lifetimeTokens ?? 0)} tokens · {profile?.providers.length ?? 0} tools · {profile?.currentStreak ?? 0}-day streak</small></div>
     </section>
-    <GitHubProofSync username={user.login} compact/>
-    {profile ? <SyncHealth profile={profile} owner/> : null}
     {!hasCodingEvidence ? <PowerUpPanel hasCodingEvidence={false} publicOrigin={publicOrigin}/> : null}
     <ActivationShare
       publicOrigin={publicOrigin}
@@ -76,7 +74,10 @@ export default async function SharePage() {
         archetype: profile?.archetype ?? { emoji: '⚡', title: 'Workflow Builder', summary: 'Building an evidence-backed coding workflow, one active day at a time.' },
       }}
     />
-    {hasCodingEvidence ? <PowerUpPanel hasCodingEvidence publicOrigin={publicOrigin}/> : null}
+    <section className="share-connection-status" aria-label="Connection status">
+      {profile ? <SyncHealth profile={profile} owner compact/> : null}
+      <GitHubProofSync quiet={hasCodingEvidence}/>
+    </section>
     <SiteFooter/>
   </main>;
 }

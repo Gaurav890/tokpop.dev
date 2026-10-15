@@ -146,7 +146,7 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
         <button type="button" onClick={() => copy('html')} disabled={!settings.publicEnabled}>Copy HTML</button>
       </div></details>
 
-      {!hasCodingEvidence ? <div className="power-up-nudge"><span>⚡</span><p><strong>Want the impressive version?</strong><small>Connect your coding tools below and this card powers up automatically.</small></p><a href="#power-up">Power it up ↓</a></div> : <div className="power-up-nudge connected"><span>✓</span><p><strong>Live coding stats connected</strong><small>{profile.providers.join(' · ')}</small></p><a href="#power-up">Manage ↓</a></div>}
+      {!hasCodingEvidence ? <div className="power-up-nudge"><span>⚡</span><p><strong>Want the impressive version?</strong><small>Connect your coding tools above and this card powers up automatically.</small></p><a href="#power-up">Power it up ↑</a></div> : <div className="power-up-nudge connected"><span>✓</span><p><strong>Coding tools connected</strong><small>{profile.providers.join(' · ')}</small></p><Link href="/connections">Manage →</Link></div>}
 
       <div className="share-trust-line"><span>🔒 Private until published</span><span>🧼 No prompts or code</span></div>
       {status ? <p className="status-line" aria-live="polite">{status}</p> : null}

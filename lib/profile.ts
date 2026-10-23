@@ -8,6 +8,7 @@ import { buildDailyTokenLedger } from './token-ledger';
 import { publicConversationRows } from './profile-visibility';
 import { resolveTokenMetrics, tokenComponents } from './profile-metrics';
 import { githubReceiptWindow, syncFreshness } from './data-freshness';
+import { buildActivityHistory } from './activity-window';
 
 type MetricRow = { date: string; source: string; metric_name: string; value: number; provenance: string; competitive_eligible: number };
 type CoverageRow = { source: string; completeness: string; last_synced_at: string; coverage_start: string; coverage_end: string; provenance?: string; note?: string };
@@ -149,10 +150,7 @@ async function buildProfile(user: ProfileUser): Promise<PublicProfile> {
   const archetype = buildProfileArchetype({ tokens: lifetimeTokens, currentStreak: currentStreak(activeDates), providerCount: sources.length, deliveryPoints: score.deliveryPoints, toolCalls: activityTotals.toolCalls });
   const byDate = new Map<string, number>();
   for (const row of eligible) if (row.value > 0) byDate.set(row.date, (byDate.get(row.date) ?? 0) + 1);
-  const activity = Array.from({ length: 84 }, (_, index) => {
-    const date = new Date(Date.now() - (83 - index) * 86_400_000).toISOString().slice(0, 10);
-    return { date, value: Math.min(4, byDate.get(date) ?? 0) };
-  });
+  const activity = buildActivityHistory(byDate);
   const latest = coverageResult.results?.filter((row) => !['github', 'chatgpt_web', 'claude_web'].includes(row.source)).map((row) => row.last_synced_at).sort().at(-1) ?? '';
   const conversationRows = publicConversationRows(metrics, Boolean(user.conversation_enabled));
   return {

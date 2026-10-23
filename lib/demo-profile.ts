@@ -1,5 +1,6 @@
-import type { ProfileArchetype } from './profile-archetype';
+import { buildProfileArchetype, type ProfileArchetype } from './profile-archetype';
 import type { DailyTokenRow } from './token-ledger';
+import { buildActivityHistory } from './activity-window';
 
 export type PublicProfile = {
   username: string;
@@ -62,7 +63,7 @@ export const demoProfile: PublicProfile = {
   dailyTokens: demoDailyTokens,
   sessions: 684,
   activityTotals: { sessions: 684, turns: 8_420, toolCalls: 2_310, skillUses: 410, commandUses: 82, agentRuns: 39 },
-  archetype: { emoji: '🥷', title: 'Token Ninja', summary: '2.5B tokens moved. 41 days straight. Quietly relentless.' },
+  archetype: buildProfileArchetype({ tokens: 2_480_000_000, currentStreak: 41, providerCount: 3, deliveryPoints: 172, toolCalls: 2_310 }),
   deliveryPoints: 172,
   providers: ['Codex', 'Claude Code', 'Cursor'],
   coverage: [
@@ -71,7 +72,7 @@ export const demoProfile: PublicProfile = {
     { source: 'cursor', label: 'Cursor', provenance: 'Local derived', status: 'Live', completeness: 'partial' },
     { source: 'chatgpt_web', label: 'ChatGPT Web', provenance: 'MCP observed', status: 'Partial', completeness: 'partial' },
   ],
-  activity: Array.from({ length: 84 }, (_, index) => ({ date: new Date(Date.UTC(2026, 5, 17 + index)).toISOString().slice(0, 10), value: ((index * 7 + Math.floor(index / 12) * 3) % 11) > 6 ? 4 : ((index * 7) % 5) })),
+  activity: buildActivityHistory(new Map(demoDailyTokens.map((day) => [day.date, 2])), Date.parse('2026-09-12T00:00:00Z')),
   github: { commits: 118, pullRequests: 12, reviews: 6, privateContributions: 34, verifiedWindow: true },
   conversation: { sessions: 32, activeDays: 18, coverage: 'Partial and excluded from ranking' },
   updatedAt: '2026-09-12T18:00:00.000Z',

@@ -17,44 +17,41 @@ export function compactMetric(value: number): string {
 }
 
 export function buildProfileArchetype(input: ArchetypeInput): ProfileArchetype {
-  if (input.tokens >= 1_000_000_000) {
-    return {
-      emoji: '🥷',
-      title: 'Token Ninja',
-      summary: input.currentStreak > 0 ? `${compactMetric(input.tokens)} tokens recorded, including reported cache usage. ${input.currentStreak} days straight.` : `${compactMetric(input.tokens)} tokens recorded, including reported cache usage. Your next streak starts with your next active day.`,
-    };
-  }
-  if (input.currentStreak >= 30) {
-    return {
-      emoji: '🔥',
-      title: 'Streak Machine',
-      summary: `${input.currentStreak} days straight. The system is still warm.`,
-    };
-  }
-  if (input.deliveryPoints >= 100) {
-    return {
-      emoji: '🚀',
-      title: 'Ship Captain',
-      summary: `${input.deliveryPoints} delivery points. Ideas keep reaching production.`,
-    };
-  }
-  if (input.providerCount >= 3) {
-    return {
-      emoji: '🧠',
-      title: 'Model Wrangler',
-      summary: `${input.providerCount} tools in the loadout. One builder at the controls.`,
-    };
-  }
-  if (input.toolCalls >= 100) {
-    return {
-      emoji: '🛠️',
-      title: 'Toolsmith',
-      summary: `${compactMetric(input.toolCalls)} recorded tool calls and a workflow built to use them.`,
-    };
-  }
+  const nonnegative = (value: number) => Number.isFinite(value) ? Math.max(0, value) : 0;
+  const tokens = nonnegative(input.tokens);
+  const streak = Math.floor(nonnegative(input.currentStreak));
+  const providers = Math.floor(nonnegative(input.providerCount));
+  const calls = nonnegative(input.toolCalls);
+  const stage = tokens >= 5e9 ? 4 : tokens >= 1e9 ? 3 : tokens >= 100e6 ? 2 : tokens >= 1e6 ? 1 : 0;
+  const styles = {
+    tokens: [
+      ['✨', 'Pocket Spark'], ['🐸', 'Token Tadpole'], ['👾', 'Token Goblin'],
+      ['☄️', 'Token Comet'], ['🌌', 'Token Supernova'],
+    ],
+    streak: [
+      ['🔥', 'Spark Keeper'], ['🌱', 'Streak Sprout'], ['🧚', 'Streak Sprite'],
+      ['🐉', 'Streak Dragon'], ['🦅', 'Cosmic Phoenix'],
+    ],
+    explorer: [
+      ['🧭', 'Tool Scout'], ['🤹', 'Tool Juggler'], ['🎧', 'Model DJ'],
+      ['🧙', 'Stack Sorcerer'], ['🪐', 'Galaxy Wrangler'],
+    ],
+    automation: [
+      ['🔧', 'Button Sprite'], ['👹', 'Macro Gremlin'], ['🛠️', 'Tool Tinkerer'],
+      ['🪄', 'Workflow Wizard'], ['🐙', 'Automation Kraken'],
+    ],
+  } as const;
+  const style = streak >= 30 ? 'streak' : providers >= 3 ? 'explorer' : calls >= 100 ? 'automation' : 'tokens';
+  const [emoji, title] = styles[style][stage];
+  const personality = {
+    tokens: tokens > 0 ? 'A little cosmic chaos in the token counter.' : 'Small spark. Big main-character energy. Connect a tool to begin.',
+    streak: `${streak} days straight. You brought the fire; the calendar kept receipts.`,
+    explorer: `${providers} tools in your loadout. The whole band is here.`,
+    automation: `${compactMetric(calls)} recorded tool calls. Your workflow has extra tentacles.`,
+  }[style];
   return {
-    emoji: '⚡',
-    title: 'Workflow Builder',
-    summary: 'Turning ideas into momentum, one active day at a time.',
+    emoji,
+    title,
+    summary: `${personality} ${compactMetric(tokens)} recorded tokens, including reported cache usage. A playful identity, not a skill rating.`,
   };
 }

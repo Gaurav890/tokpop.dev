@@ -44,7 +44,7 @@ const provenanceLabels: Record<string, string> = {
 
 function relativeSync(value: string): string {
   const age = Date.now() - Date.parse(value);
-  if (!Number.isFinite(age)) return 'Unknown sync time';
+  if (!Number.isFinite(age) || age < -300_000) return 'Unknown sync time';
   if (age < 60_000) return 'Synced just now';
   if (age < 3_600_000) return `Synced ${Math.floor(age / 60_000)}m ago`;
   if (age < 86_400_000) return `Synced ${Math.floor(age / 3_600_000)}h ago`;
@@ -88,18 +88,29 @@ export default async function ConnectionsPage() {
         <div className="connection-cards">
           {sourceDefinitions.filter((source) => source.group === group).map((source) => {
             const record = coverage.get(source.id);
-            const stale = record ? Date.now() - Date.parse(record.last_synced_at) > 3 * 86_400_000 : false;
-            const state = source.id === 'github' && !record ? 'Identity connected' : !record ? 'Not connected' : stale ? 'Stale' : record.completeness === 'full' ? 'Connected' : 'Partial';
+            const syncAge = record ? Date.now() - Date.parse(record.last_synced_at) : NaN;
+            const unknownSync = record && (!Number.isFinite(syncAge) || syncAge < -300_000);
+            const stale = record && syncAge > 3 * 86_400_000;
+            const state = source.id === 'github' && !record ? 'Identity connected' : !record ? 'Not connected' : unknownSync ? 'Check sync' : stale ? 'Sync delayed' : 'Connected';
             const stateClass = state === 'Connected' || state === 'Identity connected' ? 'connected' : state === 'Not connected' ? 'disconnected' : 'partial';
+            const localHistory = record && (record.provenance?.startsWith('local_') || record.provenance === 'estimated' || (!record.provenance && source.id !== 'github'));
+            const historyNote = !record || record.completeness === 'full' ? null
+              : record.completeness !== 'partial' ? 'History coverage is not verified yet. A successful sync does not guarantee complete history.'
+              : localHistory ? 'Local history only; older or other-device activity may be missing. This does not mean the connection failed.'
+              : 'History coverage is limited; some activity may be missing. This does not mean the connection failed.';
             return <article className="connection-card" key={source.id}>
               <div className="connection-source"><span className="connection-mark">{source.mark}</span><div><h3>{source.name}</h3><p>{source.method}</p></div></div>
               <p className="connection-description">{source.description}</p>
               <div className="connection-meta">
                 <span><b>Provenance</b>{source.id === 'github' && !record ? 'GitHub verified identity' : record?.provenance ? provenanceLabels[record.provenance] ?? record.provenance : 'No evidence received'}</span>
                 <span><b>Coverage</b>{record ? `${record.coverage_start} → ${record.coverage_end}` : 'Starts after first sync'}</span>
-                <span><b>Freshness</b>{record ? relativeSync(record.last_synced_at) : source.id === 'github' ? 'Signed in now' : 'Never synced'}</span>
               </div>
-              <div className="connection-controls"><span className={`connection-state ${stateClass}`}><i/>{state}</span><Link className="connection-action" href={source.href}>{source.id === 'github' ? 'Manage GitHub' : record ? 'Reconnect / add device' : `Connect ${source.name}`} →</Link></div>
+              <div className="connection-controls"><div className="connection-health"><span className={`connection-state ${stateClass}`}><i/>{state}</span><small>{record ? relativeSync(record.last_synced_at) : source.id === 'github' ? 'Signed in now' : 'Never synced'}</small></div><Link className="connection-action" href={source.href}>{source.id === 'github' ? 'Manage GitHub' : record ? stale || unknownSync ? 'Check setup' : 'Add another computer' : `Connect ${source.name}`} →</Link></div>
+              {record && <div className="connection-history-note">
+                {historyNote && <p>{historyNote}</p>}
+                {(stale || unknownSync) && <p>{stale ? 'No recent sync. Updates can pause while your computer is asleep or offline.' : 'We could not verify the last sync time. Check your connector setup.'}</p>}
+                {record.note && <details><summary>Collection details</summary><p>{record.note}</p></details>}
+              </div>}
             </article>;
           })}
         </div>

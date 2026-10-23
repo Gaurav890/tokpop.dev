@@ -2,6 +2,7 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import {
   BACKGROUND_INTERVAL_SECONDS,
@@ -36,6 +37,10 @@ describe('automatic background sync', () => {
     expect(result.installed).toBe(true);
     expect(backgroundSyncStatus({ homeDir, platform: 'darwin', runner }).installed).toBe(true);
     expect(existsSync(join(paths.collectorRoot, 'src', 'claude-usage.mjs'))).toBe(true);
+    expect(existsSync(join(paths.collectorRoot, 'src', 'open-browser.mjs'))).toBe(true);
+    const help = spawnSync(process.execPath, [join(paths.collectorRoot, 'bin', 'anp.mjs'), '--help'], { encoding: 'utf8' });
+    expect(help.status).toBe(0);
+    expect(help.stdout).toContain('--no-browser');
     expect(readFileSync(paths.definition, 'utf8')).toContain(join(paths.collectorRoot, 'bin', 'anp.mjs'));
     expect(calls.some((call) => call[0] === 'launchctl' && call[1] === 'bootstrap')).toBe(true);
 

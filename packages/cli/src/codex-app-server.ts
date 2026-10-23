@@ -31,7 +31,7 @@ export async function readCodexAccountUsage(timeoutMs = 8_000, executable = reso
   });
   try {
     await started;
-    await request(1, 'initialize', { clientInfo: { name: 'ai_native_profile', title: 'AI Native Profile', version: '0.2.2' } });
+    await request(1, 'initialize', { clientInfo: { name: 'ai_native_profile', title: 'AI Native Profile', version: '0.2.3' } });
     child.stdin.write(`${JSON.stringify({ method: 'initialized', params: {} })}\n`);
     return await request(2, 'account/usage/read');
   } finally {

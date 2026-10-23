@@ -35,6 +35,8 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [status, setStatus] = useState('');
   const [pending, setPending] = useState(false);
+  const [manualCopy, setManualCopy] = useState('');
+  const [cardReady, setCardReady] = useState(false);
   const hasCodingEvidence = profile.providers.length > 0;
   const profilePath = `/u/${username}`;
   const funnelPath = cardFunnelPath(username);
@@ -52,10 +54,12 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
   async function writeClipboard(value: string, success: string) {
     try {
       await navigator.clipboard.writeText(value);
+      setManualCopy('');
       setStatus(success);
       return true;
     } catch {
-      setStatus('Your profile is live. Use the copy button again to copy the card.');
+      setManualCopy(value);
+      setStatus('Clipboard blocked? No problem. Select and copy the text below.');
       return false;
     }
   }
@@ -64,6 +68,7 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
     const githubTab = window.open('', '_blank');
     if (githubTab) githubTab.opener = null;
     setPending(true);
+    try {
     if (!settings.publicEnabled) {
       setStatus('Publishing your card…');
       const next = { ...settings, publicEnabled: true };
@@ -77,14 +82,19 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
       }
       setSettings(next);
     }
-    const copied = await writeClipboard(absoluteShareValues().markdown, 'Card copied. Opening your GitHub profile repository…');
+    const copied = await writeClipboard(absoluteShareValues().markdown, 'Copied! Paste it into your profile README, then save. Your card does the rest.');
+    setCardReady(true);
     if (copied && githubTab) githubTab.location.href = `https://github.com/${encodeURIComponent(username)}/${encodeURIComponent(username)}`;
     else githubTab?.close();
-    setPending(false);
+    } catch {
+      githubTab?.close();
+      setStatus('Could not finish sharing. Check your connection and try again.');
+    } finally { setPending(false); }
   }
 
   async function joinLeaderboard() {
     setPending(true);
+    try {
     const next = { ...settings, publicEnabled: true, leaderboardEnabled: true };
     const response = await fetch('/api/v1/settings', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(next) });
     const body = await response.json().catch(() => ({})) as { error?: string };
@@ -92,7 +102,8 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
       setSettings(next);
       setStatus('You are in. Eligible profiles appear on the leaderboard automatically.');
     } else setStatus(body.error ?? 'Leaderboard opt-in failed.');
-    setPending(false);
+    } catch { setStatus('Could not join right now. Check your connection and try again.'); }
+    finally { setPending(false); }
   }
 
   async function copy(kind: 'profile' | 'post' | 'html') {
@@ -132,7 +143,7 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
     <article className={`activation-share-panel ${hasCodingEvidence ? '' : 'starter-share'}`}>
       <p className="eyebrow">Flex mode: on</p>
       <h2>{hasCodingEvidence ? 'Your build flex is ready.' : 'Your starter card can wait.'}</h2>
-      <p className="share-panel-intro">{hasCodingEvidence ? 'Pick a flavor. One click copies your live card and opens your GitHub README.' : 'Connect coding activity above for the version worth sharing. You can still publish the GitHub-only starter card.'}</p>
+      <p className="share-panel-intro">{hasCodingEvidence ? 'Pick a flavor. Copy your card. Paste it into your GitHub profile README. Instant flex.' : 'Connect coding activity above for the version worth sharing. You can still publish the GitHub-only starter card.'}</p>
 
       <div className="card-vibe-picker" aria-label="Card theme">
         <button type="button" aria-pressed={theme === 'dark'} className={theme === 'dark' ? 'active' : ''} onClick={() => setTheme('dark')}><span className="vibe-swatch punch"/><span><b>Hyper</b><small>Violet + bubblegum</small></span></button>
@@ -140,6 +151,7 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
       </div>
 
       <button type="button" className="publish-copy-button" onClick={addToGitHub} disabled={pending}>{pending ? 'Getting it ready…' : hasCodingEvidence ? 'Copy my flex card' : 'Publish starter card'} <span>→</span></button>
+      {!settings.publicEnabled ? <p className="share-action-hint">This publishes your stats card and opens GitHub. Prompts and code stay private.</p> : null}
       <details className="share-more"><summary>More ways to share</summary><div className="quick-share-actions">
         <button type="button" onClick={() => copy('profile')} disabled={!settings.publicEnabled}>Copy profile link</button>
         <button type="button" onClick={() => copy('post')} disabled={!settings.publicEnabled}>Copy launch post</button>
@@ -150,6 +162,8 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
 
       <div className="share-trust-line"><span>🔒 Private until published</span><span>🧼 No prompts or code</span></div>
       {status ? <p className="status-line" aria-live="polite">{status}</p> : null}
+      {manualCopy ? <label className="share-manual-copy">Copy this text<textarea readOnly value={manualCopy} onFocus={(event) => event.currentTarget.select()} rows={4}/></label> : null}
+      {cardReady ? <div className="share-finish"><strong>One last paste. Then you’re live ✨</strong><p>Open your profile README, paste the card, and save your changes. No profile repository yet? Create one named <b>{username}</b> and add a README.</p><a href={`https://github.com/${encodeURIComponent(username)}/${encodeURIComponent(username)}`} target="_blank" rel="noreferrer">Open my GitHub profile repository ↗</a></div> : null}
       {settings.publicEnabled ? <div className="post-share-loop"><Link className="open-profile-link" href={profilePath}>Open my live profile ↗</Link>{settings.leaderboardEnabled ? <Link href="/leaderboard">View leaderboard →</Link> : <button type="button" onClick={joinLeaderboard} disabled={pending}>Join the leaderboard →</button>}</div> : null}
     </article>
   </section>;

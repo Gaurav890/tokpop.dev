@@ -1,19 +1,19 @@
 {
   "name": "ai-native-profile",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Privacy-first collector for AI Native Profile",
   "license": "MIT",
   "type": "module",
   "bin": { "anp": "bin/anp.mjs", "ai-native-profile": "bin/anp.mjs" },
-  "files": ["bin", "src/background-sync.mjs", "src/codex-app-server.ts", "src/codex-executable.mjs", "src/claude-usage.mjs", "src/file-discovery.mjs", "README.md"],
+  "files": ["bin", "src/background-sync.mjs", "src/codex-app-server.ts", "src/codex-executable.mjs", "src/codex-usage.mjs", "src/claude-usage.mjs", "src/file-discovery.mjs", "src/open-browser.mjs", "README.md"],
   "engines": { "node": ">=22.13.0" },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Gaurav890/ai-native-profile.git",
+    "url": "git+https://github.com/Gaurav890/tokpop.dev.git",
     "directory": "packages/cli"
   },
-  "homepage": "https://ai-native-profile.vercel.app",
-  "bugs": { "url": "https://github.com/Gaurav890/ai-native-profile/issues" },
+  "homepage": "https://tokpop.dev",
+  "bugs": { "url": "https://github.com/Gaurav890/tokpop.dev/issues" },
   "publishConfig": { "access": "public" },
   "keywords": ["developer-tools", "analytics", "activity", "profile", "privacy"]
 }

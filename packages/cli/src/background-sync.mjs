@@ -95,7 +95,9 @@ function installCollectorBundle({ sourceRoot, collectorRoot }) {
     ['src/background-sync.mjs', 'src/background-sync.mjs'],
     ['src/claude-usage.mjs', 'src/claude-usage.mjs'],
     ['src/codex-executable.mjs', 'src/codex-executable.mjs'],
+    ['src/codex-usage.mjs', 'src/codex-usage.mjs'],
     ['src/file-discovery.mjs', 'src/file-discovery.mjs'],
+    ['src/open-browser.mjs', 'src/open-browser.mjs'],
   ];
   for (const [source, destination] of files) {
     const target = join(collectorRoot, destination);

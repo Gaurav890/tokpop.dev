@@ -2,8 +2,11 @@
 
 import { useState } from 'react';
 import Link from '../ui/native-link';
+import { useRouter } from 'next/navigation';
+import { setupStorageKey } from '../../lib/setup-progress';
 
-export function ConnectForm({ initialCode = '' }: { initialCode?: string }) {
+export function ConnectForm({ initialCode = '', accountLogin = '' }: { initialCode?: string; accountLogin?: string }) {
+  const router = useRouter();
   const [code, setCode] = useState(initialCode);
   const [status, setStatus] = useState('');
   const [pending, setPending] = useState(false);
@@ -13,9 +16,13 @@ export function ConnectForm({ initialCode = '' }: { initialCode?: string }) {
     setPending(true);
     try {
     const response = await fetch('/api/v1/device/approve', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ userCode: code }) });
-    const body = await response.json().catch(() => ({})) as { error?: string };
+    const body = await response.json().catch(() => ({})) as { error?: string; deviceId?: string };
     setApproved(response.ok);
     setStatus(response.ok ? 'You’re paired! Return to Terminal to review and approve your first sync.' : body.error ?? 'Approval failed.');
+    if (response.ok && body.deviceId) {
+      try { sessionStorage.setItem(setupStorageKey(accountLogin), body.deviceId); } catch { /* Manual return remains available. */ }
+      router.push('/share?connect=1#power-up');
+    }
     } catch { setStatus('Could not reach the server. Check your connection and try again.'); }
     finally { setPending(false); }
   }

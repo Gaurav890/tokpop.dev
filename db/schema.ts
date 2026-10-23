@@ -28,6 +28,7 @@ export const devices = pgTable('devices', {
   tokenDelivered: integer('token_delivered').notNull().default(0),
   expiresAt: text('expires_at').notNull(),
   lastSeenAt: text('last_seen_at'),
+  setupReceiptJson: text('setup_receipt_json'),
   createdAt: text('created_at').notNull(),
 }, (table) => [index('idx_devices_user_id').on(table.userId), index('idx_devices_status_expires').on(table.status, table.expiresAt)]);
 

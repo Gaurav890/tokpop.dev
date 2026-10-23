@@ -28,6 +28,8 @@ describe('low-friction, inspectable onboarding', () => {
     expect(html).toContain('Node.js 22.13');
     expect(html).toContain('href="/api/auth/github/start?return_to=%2Fshare%3Fonboarding%3D1"');
     expect(html.indexOf('Make my card')).toBeLessThan(html.indexOf(COLLECTOR_PREVIEW_COMMAND));
+    expect(html.indexOf('Make my card with GitHub')).toBeLessThan(html.indexOf('home-card-drop'));
+    expect(html).not.toContain('class="home-alter-ego"');
     expect(html).not.toContain('in 30 seconds');
     expect(html).toContain('eligible history from your tools counts');
   });

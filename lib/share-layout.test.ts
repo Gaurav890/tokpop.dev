@@ -23,7 +23,7 @@ beforeEach(() => mocks.profile.mockResolvedValue({ ...demoProfile, verified: tru
 
 describe('share page prioritizes the card', () => {
   it('puts sharing before connection diagnostics for connected users', async () => {
-    const html = renderToStaticMarkup(await SharePage());
+    const html = renderToStaticMarkup(await SharePage({ searchParams:Promise.resolve({}) }));
     expect(html.indexOf('activation-grid')).toBeLessThan(html.indexOf('share-connection-status'));
     expect(html).not.toContain('Starter stats loaded');
     expect(html).not.toContain('id="power-up"');
@@ -31,10 +31,18 @@ describe('share page prioritizes the card', () => {
     expect(html).not.toContain('Source sync health');
   });
   it('keeps the connection step first for a new user', async () => {
-    mocks.profile.mockResolvedValue({ ...demoProfile, providers: [], verified: true });
-    const html = renderToStaticMarkup(await SharePage());
+    mocks.profile.mockResolvedValue({ ...demoProfile, providers: [], activeDays:0, sessions:0, lifetimeTokens:0, verified: true });
+    const html = renderToStaticMarkup(await SharePage({ searchParams:Promise.resolve({}) }));
     expect(html.indexOf('id="power-up"')).toBeLessThan(html.indexOf('activation-grid'));
     expect(html).toContain('href="#power-up"');
+    expect(html).toContain('<details><summary>Use a GitHub-only starter card instead</summary>');
+    expect(html).toContain('Your build identity is waiting');
+    expect(html).not.toContain('class="activation-step"');
+  });
+  it('keeps add-computer setup inside the workspace for existing users', async () => {
+    const html = renderToStaticMarkup(await SharePage({ searchParams:Promise.resolve({ connect:'1' }) }));
+    expect(html).toContain('id="power-up"');
+    expect(html).toContain('activation-grid');
   });
   it('keeps missing timestamps neutral and compact', () => {
     const html = renderToStaticMarkup(React.createElement(SyncHealth, { profile: { ...demoProfile, verified: true }, compact: true, owner: true }));

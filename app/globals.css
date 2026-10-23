@@ -696,6 +696,19 @@ button,a { font:inherit; } button { cursor:pointer; } a { color:inherit; text-de
 .home-conversion-button span { font-size:20px; }
 .home-conversion-trust { display:flex; flex-wrap:wrap; gap:8px 14px; margin-top:18px; color:#6e7484; font-size:8px; font-weight:700; }
 .home-page .supported-strip { border:2px solid #18122e; box-shadow:5px 6px 0 #70e7ff; }
+.home-collector { width:min(1180px,calc(100% - 40px)); display:grid; grid-template-columns:1fr 1.1fr; gap:32px; margin:68px auto 0; padding:32px; border:2px solid #18122e; border-radius:22px; background:#e6fbf4; color:#18122e; box-shadow:7px 8px 0 #70e7ff; }
+.home-collector>div { min-width:0; }
+.home-collector .eyebrow { color:#5730b8; }
+.home-collector h2 { margin:8px 0 16px; font-size:clamp(30px,4vw,44px); line-height:1.05; letter-spacing:-.05em; }
+.home-collector p,.home-collector li { color:#40495d; font-size:14px; line-height:1.65; }
+.home-collector-inspect { align-self:start; padding:22px; border:1.5px solid #18122e; border-radius:16px; background:#fffdf7; }
+.home-collector pre { margin:16px 0; padding:16px; border:1px solid #b7c3d5; border-radius:10px; background:#f0efff; color:#18122e; white-space:pre-wrap; overflow-wrap:anywhere; font-size:13px; line-height:1.6; }
+.home-collector code { font-family:var(--font-geist-mono),monospace; overflow-wrap:anywhere; }
+.home-collector summary { padding:10px 0; cursor:pointer; font-size:14px; font-weight:750; }
+.home-collector ul { padding-left:20px; }
+.home-collector li+li { margin-top:10px; }
+.home-collector a { color:#5730b8; text-decoration:underline; font-size:14px; font-weight:700; }
+.home-collector summary:focus-visible,.home-collector pre:focus-visible { outline:3px solid #7147ff; outline-offset:4px; }
 .home-flex-reasons { width:min(1180px,calc(100% - 40px)); margin:86px auto 0; }
 .home-flex-heading { display:grid; grid-template-columns:.55fr 1.45fr; align-items:end; gap:40px; margin-bottom:27px; }
 .home-flex-heading>.eyebrow { color:#7147ff; }
@@ -717,6 +730,8 @@ button,a { font:inherit; } button { cursor:pointer; } a { color:inherit; text-de
 .home-final-conversion .home-conversion-button { min-width:210px; flex:0 0 auto; }
 
 @media (max-width:900px) {
+  .site-header .dark-brand .brand-mark:last-child { display:inline-flex; }
+  .home-collector { grid-template-columns:1fr; gap:16px; padding:24px; }
   .home-stage { grid-template-columns:1fr; }
   .home-alter-ego { max-width:360px; transform:none; }
   .home-flex-heading { grid-template-columns:1fr; gap:8px; }

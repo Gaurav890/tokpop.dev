@@ -4,6 +4,7 @@ import type { PublicProfile } from '../lib/demo-profile';
 import { currentGitHubUser } from '../lib/auth';
 import { SiteHeader } from './ui/site-header';
 import { SiteFooter } from './ui/site-footer';
+import { COLLECTOR_PREVIEW_COMMAND } from '../lib/collector-command';
 
 const supportedSources = [
   { id: 'codex', label: 'Codex' },
@@ -160,14 +161,14 @@ export default async function Home() {
 
       <aside className="home-conversion-card">
         <p className="eyebrow">Start free</p>
-        <h2>Your flex card in 30 seconds.</h2>
-        <p className="home-conversion-intro">See your starter card immediately. Add stronger proof only when you want it.</p>
+        <h2>Your next README flex starts here.</h2>
+        <p className="home-conversion-intro">Sign in for a private starter card. Run one command on your computer to add your coding stats.</p>
         <Link className="home-conversion-button" href={cardHref}>{user ? 'Open my card' : 'Make my card'} <span>→</span></Link>
         <div className="home-conversion-trust"><span>🔒 Private until published</span><span>🧼 No prompts or code</span></div>
         <ol>
           <li><span>01</span><div><strong>Claim it with GitHub</strong><small>Your private starter card appears instantly.</small></div></li>
           <li><span>02</span><div><strong>Power up your stats</strong><small>One command finds supported coding tools.</small></div></li>
-          <li><span>03</span><div><strong>Copy. Paste. Flex.</strong><small>Your live README card updates automatically.</small></div></li>
+          <li><span>03</span><div><strong>Copy. Paste. Flex.</strong><small>Enable background sync to keep your card fresh.</small></div></li>
         </ol>
       </aside>
     </section>
@@ -175,12 +176,36 @@ export default async function Home() {
       <span>WORKS WITH</span>
       <ul>{supportedSources.map((source) => <li key={source.id} className={`source-logo source-logo-${source.id}`}><span className="source-logo-mark"><SourceLogo source={source.id}/></span><strong>{source.label}</strong></li>)}</ul>
     </section>
+    <section className="home-collector" aria-labelledby="collector-heading">
+      <div>
+        <p className="eyebrow">Your computer. Your call.</p>
+        <h2 id="collector-heading">No mystery install.</h2>
+        <p>After sign-in, we give you a personal connection command. It finds supported tools, asks before the first upload, and offers background updates every 15 minutes while your computer is awake and online.</p>
+        <p>Want a look first? This optional preview prints the aggregate payload in your terminal without uploading it to tokpop. Requires Node.js 22.13 or newer.</p>
+      </div>
+      <div className="home-collector-inspect">
+        <span className="eyebrow">Optional · preview before connecting</span>
+        <pre tabIndex={0} aria-label="Collector preview command"><code>{COLLECTOR_PREVIEW_COMMAND}</code></pre>
+        <p>npm downloads and runs the open-source collector. Your existing tool sign-ins stay with those tools.</p>
+        <details>
+          <summary>What does it read?</summary>
+          <ul>
+            <li><strong>Codex:</strong> account usage through its local App Server. Local state is checked for detection.</li>
+            <li><strong>Claude Code:</strong> usage fields in <code>~/.claude/projects</code> and <code>~/.claude/stats-cache.json</code>.</li>
+            <li><strong>Cursor:</strong> local session metadata in <code>state.vscdb</code>, not token totals.</li>
+            <li><strong>Gemini CLI / Copilot CLI:</strong> retained activity in <code>~/.gemini/tmp</code> and <code>~/.copilot/session-state</code>, not token totals.</li>
+          </ul>
+          <p>Retained history can be incomplete. Only aggregate metrics and coverage are uploaded—not prompts, responses, code, file paths, or repository names. Background scheduling is supported on macOS and Linux.</p>
+          <a href="https://github.com/Gaurav890/tokpop.dev/tree/main/packages/cli" target="_blank" rel="noreferrer">Inspect the collector and full source paths ↗</a>
+        </details>
+      </div>
+    </section>
     <section className="home-flex-reasons">
       <div className="home-flex-heading"><p className="eyebrow">More than a badge</p><h2>Show the build. Show the receipts. Keep it fun.</h2></div>
       <div className="home-flex-grid">
         <article><span>🔥</span><small>THE FLEX</small><h3>A live card worth putting in your README.</h3><p>Your alter ego, tools, tokens, streak, and level in one collectible drop.</p></article>
         <article><span>🔎</span><small>THE RECEIPTS</small><h3>Every provider and every day, clearly broken down.</h3><p>No mystery total: inspect exactly which tool contributed what.</p></article>
-        <article><span>🏆</span><small>THE GAME</small><h3>Climb through consistency—not token spending.</h3><p>Join the leaderboard when you are ready. Raw token volume never raises your level.</p></article>
+        <article><span>⚡</span><small>YOUR RHYTHM</small><h3>Build a streak. Find your alter ego.</h3><p>Your card is ready before any ranking. The optional leaderboard needs 30 covered days—eligible history from your tools counts. Raw token volume never raises your level.</p></article>
       </div>
     </section>
     <section className="home-final-conversion">

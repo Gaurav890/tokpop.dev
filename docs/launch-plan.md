@@ -1,5 +1,7 @@
 # Launch readiness and growth plan
 
+For the current release decision, use the [beta acceptance gate](beta-acceptance.md). The plan below preserves the original strategy and failure hypotheses; it is not a record of completed validation.
+
 ## The market position
 
 AI Native Profile should not compete as another local token or cost dashboard. Mature tools already provide fast, broad usage reports. The product's wedge is different:

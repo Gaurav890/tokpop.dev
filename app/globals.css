@@ -954,6 +954,30 @@ button,a { font:inherit; } button { cursor:pointer; } a { color:inherit; text-de
 .connection-mark { border:1.5px solid #18122e; border-radius:10px; background:#7147ff; color:#fff; }
 .connection-state { border:1px solid #18122e; border-radius:999px; background:#d9ff57; color:#18122e; }
 .connection-state i { background:#18122e; }
+.activity-card,.rhythm-card,.activity-explorer { min-width:0; }
+.activity-explorer .card-head { flex-wrap:wrap; gap:14px; }
+.activity-range { display:flex; flex-wrap:wrap; gap:3px; }
+.activity-range button:not(.selected),.activity-range button { display:inline-flex; align-items:center; min-height:44px; }
+.activity-range button:focus-visible,.activity-scroll:focus-visible { outline:3px solid #7044ff; outline-offset:3px; }
+.activity-window-summary { color:#555267; font-size:12px; line-height:1.6; }
+.activity-scroll { max-width:100%; overflow-x:auto; padding:8px 0; }
+.activity-calendar { display:grid; grid-template-columns:28px minmax(0,1fr); gap:10px; min-width:280px; }
+.activity-calendar-long { min-width:720px; }
+.activity-weekdays { display:grid; grid-template-rows:repeat(7,14px); gap:5px; color:#555267; font-size:9px; }
+.activity-grid { display:grid; grid-template-rows:repeat(7,14px); grid-auto-flow:column; grid-auto-columns:minmax(7px,1fr); gap:5px; }
+.activity-grid .heat { background:#e1e3eb; }
+.activity-grid .level-1 { background:#d4daf9; }.activity-grid .level-2 { background:#abb8f7; }.activity-grid .level-3 { background:#7b8af0; }.activity-grid .level-4 { background:#3d49f5; }
+.activity-grid .activity-unavailable { background:repeating-linear-gradient(135deg,#fff,#fff 3px,#d7d5df 3px,#d7d5df 4px); }
+.activity-chart-note { color:#555267; font-size:11px; line-height:1.6; margin-bottom:20px; }
+.connection-health { display:grid; justify-items:end; gap:6px; }
+.connection-health small { color:#626a79; font-size:10px; }
+.connection-history-note { grid-column:1/-1; min-width:0; color:#555267; font-size:12px; line-height:1.6; overflow-wrap:anywhere; }
+.connection-history-note:empty { display:none; }
+.connection-history-note p { margin:0; }
+.connection-history-note details { margin-top:6px; }
+.connection-history-note summary { cursor:pointer; font-weight:650; }
+.connection-history-note details p { margin-top:6px; }
+@media (max-width:760px) { .connection-health { justify-items:start; } .connection-controls { column-gap:12px; } .connection-controls .connection-action { white-space:normal; text-align:right; } }
 .connection-action { color:#5d36db; }
 .experimental-sources,.connection-disclaimer,.mcp-boundary,.tool-list,.integration-grid article,.focused-approval .approval-card,.connect-return-card,.field-boundary {
   border:2px solid #18122e;

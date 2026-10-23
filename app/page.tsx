@@ -1,6 +1,8 @@
 import Link from './ui/native-link';
 import Image from 'next/image';
 import type { PublicProfile } from '../lib/demo-profile';
+import { demoProfile } from '../lib/demo-profile';
+import { ActivityChart } from './ui/activity-chart';
 import { currentGitHubUser } from '../lib/auth';
 import { SiteHeader } from './ui/site-header';
 import { SiteFooter } from './ui/site-footer';
@@ -92,21 +94,9 @@ export function DashboardDemo({ profile }: { profile: PublicProfile }) {
 
           <section className="dashboard-grid">
             <article className="card activity-card" id="activity">
-              <div className="card-head">
-                <div><p className="eyebrow">Coding activity</p><h2>Momentum, not volume</h2></div>
-                <div className="segmented" aria-label="Activity range"><button className="selected">12 weeks</button><button>6 months</button><button>Year</button></div>
-              </div>
-              <div className="heatmap-wrap">
-                <div className="weekday-labels"><span>Mon</span><span>Wed</span><span>Fri</span></div>
-                <div className="heatmap" aria-label="Twelve week activity heatmap">
-                  {profile.activity.map((day) => <span key={day.date} className={`heat level-${day.value}`} title={`${day.date}: level ${day.value}`} />)}
-                </div>
-              </div>
-              <div className="heatmap-foot">
-                <span>Jun 17</span><span>Jul 1</span><span>Jul 15</span><span>Jul 29</span><span>Aug 12</span><span>Aug 26</span><span>Sep 9</span>
-              </div>
+              <ActivityChart activity={profile.activity}/>
               <div className="activity-summary">
-                <div><strong>{profile.activeDays}</strong><span>active days</span></div>
+                <div><strong>{profile.activeDays}</strong><span>active days across available history</span></div>
                 <div><strong>{Math.round(profile.scoreBreakdown.workflowDepth / 25 * 100)}%</strong><span>workflow depth</span></div>
                 <div><strong>{profile.providers.length}</strong><span>active providers</span></div>
               </div>
@@ -147,7 +137,7 @@ export default async function Home() {
       </div>
       <aside className="home-alter-ego" aria-label="Example build alter ego">
         <span>UNLOCKED ●</span>
-        <strong>🥷 Token Ninja</strong>
+        <strong>{demoProfile.archetype.emoji} {demoProfile.archetype.title}</strong>
         <small>2.5B tokens · 3 tools · 41-day streak</small>
       </aside>
 

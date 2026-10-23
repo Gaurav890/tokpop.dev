@@ -6,7 +6,7 @@ export function SiteFooter() {
     <nav aria-label="Footer navigation">
       <Link href="/leaderboard">Leaderboard</Link>
       <Link href="/methodology">How scoring works</Link>
-      <a href="https://github.com/Gaurav890/ai-native-profile" target="_blank" rel="noreferrer">Open-source repo ↗</a>
+      <a href="https://github.com/Gaurav890/tokpop.dev" target="_blank" rel="noreferrer">Open-source repo ↗</a>
     </nav>
     <p>Source-labelled activity. No prompts, code, or credentials.</p>
   </footer>;

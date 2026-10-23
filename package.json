@@ -29,7 +29,7 @@
     "@ai-native-profile/scoring": "workspace:*",
     "drizzle-orm": "0.45.2",
     "fflate": "^0.8.3",
-    "next": "16.4.0",
+    "next": "16.4.2",
     "pg": "^8.23.1",
     "react": "19.2.6",
     "react-dom": "19.2.6"
@@ -43,7 +43,7 @@
     "@vitest/coverage-v8": "^4.1.11",
     "drizzle-kit": "0.31.10",
     "eslint": "9.39.4",
-    "eslint-config-next": "16.4.0",
+    "eslint-config-next": "16.4.2",
     "railway": "^3.15.0",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",

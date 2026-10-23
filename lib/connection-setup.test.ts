@@ -6,7 +6,7 @@ import { CONNECTOR_VERSION } from './collector-command';
 
 const mocks = vi.hoisted(() => ({ user: vi.fn(), data: vi.fn() }));
 vi.mock('./auth', () => ({ currentGitHubUser: mocks.user }));
-vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+vi.mock('next/navigation', () => ({ redirect: (url: string) => { throw new Error(`Redirect:${url}`); }, useRouter: () => ({ refresh: vi.fn(), push:vi.fn() }) }));
 vi.mock('@/lib/runtime-env', () => ({ runtimeEnv: { PUBLIC_APP_URL: 'https://tokpop.dev' } }));
 vi.mock('../db/ensure', () => ({ ensureDb: vi.fn() }));
 vi.mock('./server-api', () => ({ backendOrigin: () => 'https://example.test', backendJson: mocks.data }));
@@ -37,19 +37,21 @@ describe('direct tool setup', () => {
       username:'builder', initialSettings:{ publicEnabled:false, leaderboardEnabled:false, comparisonEnabled:false, conversationEnabled:false, storageMode:'managed' },
       profile:{ score:50, scoreEligible:true, activeDays:30, streakDays:3, deliveryPoints:2, providers:['test tool'], lifetimeTokens:100, tokenBreakdown:[], sessions:2, updatedAt:'2026-10-22', archetype:{emoji:'⚡',title:'Builder',summary:'Building'} },
     }));
-    expect(html).toContain('This publishes your stats card and opens GitHub');
+    expect(html).toContain('This makes your profile and stats card public');
     expect(html).toContain('Paste it into your GitHub profile README');
-    expect(html).toContain('Copy my flex card');
+    expect(html).toContain('Publish &amp; copy my card');
+    expect(html).not.toContain('<b>LIVE</b>');
   });
   it('renders an actionable setup flow without a code or a detour through the card', async () => {
-    const html = renderToStaticMarkup(await ConnectPage({ searchParams: Promise.resolve({}) }));
+    await expect(ConnectPage({ searchParams:Promise.resolve({}) })).rejects.toThrow('Redirect:/share?connect=1#power-up');
+    const html = renderToStaticMarkup(React.createElement(PowerUpPanel, { hasCodingEvidence:false, accountLogin:'builder' }));
     expect(html).toContain('id="power-up"');
-    expect(html).toContain('Connect my AI tools');
+    expect(html).toContain('Copy your setup command');
     expect(html).toContain('@builder');
     expect(html).toContain('No project folder needed');
     expect(html).toContain('Automatic updates are optional');
     expect(html).toContain(`ai-native-profile@${CONNECTOR_VERSION}`);
-    expect(html).toContain('Missing a tool or stuck?');
+    expect(html).toContain('Need help or want to inspect first?');
     expect(html).not.toContain('Start from your live card');
   });
 
@@ -62,8 +64,7 @@ describe('direct tool setup', () => {
     expect(html).toMatch(/href="\/connect"[^>]*>Connect my tools/);
     expect(html.match(/href="\/connect" class="connection-action">Add another computer/g)).toHaveLength(2);
     expect(html).toContain('Connect Cursor');
-    const setup = renderToStaticMarkup(await ConnectPage({ searchParams: Promise.resolve({}) }));
-    expect(setup).toContain('id="power-up"');
+    await expect(ConnectPage({ searchParams:Promise.resolve({}) })).rejects.toThrow('Redirect:/share?connect=1#power-up');
   });
 
   it('shows recent partial history as connected with an honest coverage note', async () => {

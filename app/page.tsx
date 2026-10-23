@@ -1,7 +1,6 @@
 import Link from './ui/native-link';
 import Image from 'next/image';
 import type { PublicProfile } from '../lib/demo-profile';
-import { demoProfile } from '../lib/demo-profile';
 import { ActivityChart } from './ui/activity-chart';
 import { currentGitHubUser } from '../lib/auth';
 import { SiteHeader } from './ui/site-header';
@@ -134,12 +133,10 @@ export default async function Home() {
         <p className="eyebrow">Track. Share. Flex.</p>
         <h1>Your AI activity.<br/><span>With personality.</span></h1>
         <p>Your tools, tokens, and daily streaks—in one place. Track your AI workflow, then turn it into a live card worth showing off.</p>
+        <Link className="home-conversion-button home-main-action" href={cardHref}>{user ? 'Open my card' : 'Make my card with GitHub'} <span>→</span></Link>
+        <p className="home-setup-promise">GitHub sign-in → one command on your computer → your real card.</p>
+        <div className="home-conversion-trust"><span>Private until you publish</span><span>No prompts or code</span></div>
       </div>
-      <aside className="home-alter-ego" aria-label="Example build alter ego">
-        <span>UNLOCKED ●</span>
-        <strong>{demoProfile.archetype.emoji} {demoProfile.archetype.title}</strong>
-        <small>2.5B tokens · 3 tools · 41-day streak</small>
-      </aside>
 
       <div className="home-card-drop">
         <div className="home-card-head"><span>LIVE DEMO · CLICK TO MAKE YOURS</span><b>FLEX MODE ON ⚡</b></div>
@@ -149,12 +146,10 @@ export default async function Home() {
         <p>Paste it once. Your stats keep moving. Every click can bring the next builder in.</p>
       </div>
 
-      <aside className="home-conversion-card">
+      <aside className="home-conversion-card home-how-it-works">
         <p className="eyebrow">Start free</p>
         <h2>Your next README flex starts here.</h2>
         <p className="home-conversion-intro">Sign in for a private starter card. Run one command on your computer to add your coding stats.</p>
-        <Link className="home-conversion-button" href={cardHref}>{user ? 'Open my card' : 'Make my card'} <span>→</span></Link>
-        <div className="home-conversion-trust"><span>🔒 Private until published</span><span>🧼 No prompts or code</span></div>
         <ol>
           <li><span>01</span><div><strong>Claim it with GitHub</strong><small>Your private starter card appears instantly.</small></div></li>
           <li><span>02</span><div><strong>Power up your stats</strong><small>One command finds supported coding tools.</small></div></li>

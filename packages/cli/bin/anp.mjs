@@ -228,13 +228,14 @@ async function finishConnection(connectedMessage) {
     return;
   }
   await sync();
-  console.log('Your card is updated. Return to the browser to see it.');
+  console.log('Upload received. One more choice before returning to your card:');
   if (await confirmAutomaticSync()) {
     try { enableAutomaticSync(); }
     catch (error) { console.error(`\nAutomatic sync could not be enabled: ${error instanceof Error ? error.message : String(error)}\nRun \`anp watch\` for foreground updates.`); }
   } else {
     console.log('\nAutomatic sync is off. Run `anp watch --install` later to enable it.');
   }
+  console.log('\nSetup finished. Return to your card in the browser. If no activity appeared, check the source results above; you do not need to pair again.');
 }
 
 async function claimWebConnection(apiUrl, userCode) {

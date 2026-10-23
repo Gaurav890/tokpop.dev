@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from '../ui/native-link';
 import { cardFunnelPath } from '../../lib/card-cache';
+import type { ReadmeDestination } from '../../lib/readme-destination';
 
 type Settings = {
   publicEnabled: boolean;
@@ -37,6 +38,8 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
   const [pending, setPending] = useState(false);
   const [manualCopy, setManualCopy] = useState('');
   const [cardReady, setCardReady] = useState(false);
+  const [readmeCopied, setReadmeCopied] = useState(false);
+  const [readme, setReadme] = useState<ReadmeDestination | null>(null);
   const hasCodingEvidence = profile.providers.length > 0;
   const profilePath = `/u/${username}`;
   const funnelPath = cardFunnelPath(username);
@@ -65,8 +68,6 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
   }
 
   async function addToGitHub() {
-    const githubTab = window.open('', '_blank');
-    if (githubTab) githubTab.opener = null;
     setPending(true);
     try {
     if (!settings.publicEnabled) {
@@ -75,19 +76,19 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
       const response = await fetch('/api/v1/settings', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(next) });
       const body = await response.json().catch(() => ({})) as { error?: string };
       if (!response.ok) {
-        githubTab?.close();
         setStatus(body.error ?? 'The card could not be published.');
         setPending(false);
         return;
       }
       setSettings(next);
     }
-    const copied = await writeClipboard(absoluteShareValues().markdown, 'Copied! Paste it into your profile README, then save. Your card does the rest.');
+    setReadmeCopied(await writeClipboard(absoluteShareValues().markdown, 'Copied! Next, open the README editor below and paste your card.'));
     setCardReady(true);
-    if (copied && githubTab) githubTab.location.href = `https://github.com/${encodeURIComponent(username)}/${encodeURIComponent(username)}`;
-    else githubTab?.close();
+    try {
+      const response = await fetch('/api/v1/github/readme', { cache:'no-store' });
+      if (response.ok) setReadme(await response.json() as ReadmeDestination);
+    } catch { /* The manual repository link remains available. */ }
     } catch {
-      githubTab?.close();
       setStatus('Could not finish sharing. Check your connection and try again.');
     } finally { setPending(false); }
   }
@@ -123,10 +124,10 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
         ? <Image src={previewCardPath} width={640} height={252} unoptimized alt={`${username}'s live AI build card`}/>
         : <div className={`private-card-preview build-pass ${theme}`}>
           <div className="build-pass-identity">
-            <div className="build-pass-brand"><span>tokpop.dev</span><b>LIVE</b></div>
+            <div className="build-pass-brand"><span>tokpop.dev</span><b>PRIVATE</b></div>
             <strong>@{username}</strong>
             <p><span>{profile.archetype.emoji}</span>{profile.archetype.title}</p>
-            <small>TOOL LOADOUT · CONNECTED</small>
+            <small>{hasCodingEvidence ? 'YOUR CONNECTED TOOLS' : 'GITHUB STARTER CARD'}</small>
             <em>{profile.providers.join(' · ') || 'GitHub starter card'}</em>
           </div>
           <div className="build-pass-story">
@@ -137,21 +138,23 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
             <div className="build-pass-loadout">{profile.tokenBreakdown.length ? profile.tokenBreakdown.map((item) => <span key={item.label}><small>{item.label}</small><b>{compact(item.tokens)}</b></span>) : <p>Connect coding activity to unlock exact tool totals.</p>}</div>
           </div>
         </div>}
-      <p className="activation-card-note">Paste it once. Your card keeps leveling up as you build.</p>
+      <p className="activation-card-note">Paste it once. New syncs update this same card.</p>
     </article>
 
     <article className={`activation-share-panel ${hasCodingEvidence ? '' : 'starter-share'}`}>
       <p className="eyebrow">Flex mode: on</p>
-      <h2>{hasCodingEvidence ? 'Your build flex is ready.' : 'Your starter card can wait.'}</h2>
-      <p className="share-panel-intro">{hasCodingEvidence ? 'Pick a flavor. Copy your card. Paste it into your GitHub profile README. Instant flex.' : 'Connect coding activity above for the version worth sharing. You can still publish the GitHub-only starter card.'}</p>
+      <h2>{hasCodingEvidence ? 'Make it yours.' : 'Your GitHub starter card.'}</h2>
+      <p className="share-panel-intro">{hasCodingEvidence ? 'Pick a look. Publish & copy your card. Paste it into your GitHub profile README.' : 'This version has no coding activity yet. You can connect your tools later.'}</p>
 
       <div className="card-vibe-picker" aria-label="Card theme">
         <button type="button" aria-pressed={theme === 'dark'} className={theme === 'dark' ? 'active' : ''} onClick={() => setTheme('dark')}><span className="vibe-swatch punch"/><span><b>Hyper</b><small>Violet + bubblegum</small></span></button>
         <button type="button" aria-pressed={theme === 'light'} className={theme === 'light' ? 'active' : ''} onClick={() => setTheme('light')}><span className="vibe-swatch clean"/><span><b>Fresh</b><small>Blue + turbo mint</small></span></button>
       </div>
 
-      <button type="button" className="publish-copy-button" onClick={addToGitHub} disabled={pending}>{pending ? 'Getting it ready…' : hasCodingEvidence ? 'Copy my flex card' : 'Publish starter card'} <span>→</span></button>
-      {!settings.publicEnabled ? <p className="share-action-hint">This publishes your stats card and opens GitHub. Prompts and code stay private.</p> : null}
+      <button type="button" className="publish-copy-button" onClick={addToGitHub} disabled={pending}>{pending ? 'Getting it ready…' : settings.publicEnabled ? 'Copy README card' : 'Publish & copy my card'} <span>→</span></button>
+      {!settings.publicEnabled ? <p className="share-action-hint">This makes your profile and stats card public. Prompts and code stay private. Joining the leaderboard is a separate choice.</p> : null}
+      {manualCopy ? <label className="share-manual-copy">Copy this text<textarea readOnly value={manualCopy} onFocus={(event) => event.currentTarget.select()} rows={4}/></label> : null}
+      {cardReady ? <div className="share-finish" role="status"><strong>{readmeCopied ? 'One last paste. Make it official ✨' : 'Copy the Markdown above, then paste it on GitHub.'}</strong><p>{readme?.instruction ?? 'Open your profile repository, edit or create its README, paste your card, then commit your changes.'}</p><a className="secondary-link" href={readme?.url ?? `https://github.com/${encodeURIComponent(username)}/${encodeURIComponent(username)}`} target="_blank" rel="noreferrer">{readme?.label ?? 'Open profile repository'} ↗</a><p>We never edit your repository. Copying the card does not install it on GitHub.</p></div> : null}
       <details className="share-more"><summary>More ways to share</summary><div className="quick-share-actions">
         <button type="button" onClick={() => copy('profile')} disabled={!settings.publicEnabled}>Copy profile link</button>
         <button type="button" onClick={() => copy('post')} disabled={!settings.publicEnabled}>Copy launch post</button>
@@ -160,10 +163,8 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
 
       {!hasCodingEvidence ? <div className="power-up-nudge"><span>⚡</span><p><strong>Want the impressive version?</strong><small>Connect your coding tools above and this card powers up automatically.</small></p><a href="#power-up">Power it up ↑</a></div> : <div className="power-up-nudge connected"><span>✓</span><p><strong>Coding tools connected</strong><small>{profile.providers.join(' · ')}</small></p><Link href="/connections">Manage →</Link></div>}
 
-      <div className="share-trust-line"><span>🔒 Private until published</span><span>🧼 No prompts or code</span></div>
+      <div className="share-trust-line"><span>{settings.publicEnabled ? '🌐 Public stats card' : '🔒 Private until published'}</span><span>🧼 No prompts or code</span></div>
       {status ? <p className="status-line" aria-live="polite">{status}</p> : null}
-      {manualCopy ? <label className="share-manual-copy">Copy this text<textarea readOnly value={manualCopy} onFocus={(event) => event.currentTarget.select()} rows={4}/></label> : null}
-      {cardReady ? <div className="share-finish"><strong>One last paste. Then you’re live ✨</strong><p>Open your profile README, paste the card, and save your changes. No profile repository yet? Create one named <b>{username}</b> and add a README.</p><a href={`https://github.com/${encodeURIComponent(username)}/${encodeURIComponent(username)}`} target="_blank" rel="noreferrer">Open my GitHub profile repository ↗</a></div> : null}
       {settings.publicEnabled ? <div className="post-share-loop"><Link className="open-profile-link" href={profilePath}>Open my live profile ↗</Link>{settings.leaderboardEnabled ? <Link href="/leaderboard">View leaderboard →</Link> : <button type="button" onClick={joinLeaderboard} disabled={pending}>Join the leaderboard →</button>}</div> : null}
     </article>
   </section>;

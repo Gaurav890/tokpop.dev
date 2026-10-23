@@ -8,6 +8,13 @@
       "when": 1789282380276,
       "tag": "0000_slow_magneto",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792728624405,
+      "tag": "0001_chemical_stepford_cuckoos",
+      "breakpoints": true
     }
   ]
 }

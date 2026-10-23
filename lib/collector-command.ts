@@ -1,6 +1,6 @@
 import { publicAppOrigin } from './public-origin';
 
-export const CONNECTOR_VERSION = '0.2.2';
+export const CONNECTOR_VERSION = '0.2.3';
 export const COLLECTOR_PREVIEW_COMMAND = `npm exec --yes --package=ai-native-profile@${CONNECTOR_VERSION} -- ai-native-profile preview`;
 
 export function collectorConnectCommand(userCode: string, apiOrigin: string): string {

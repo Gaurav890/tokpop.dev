@@ -10,14 +10,16 @@ import { backgroundSyncStatus, installBackgroundSync, uninstallBackgroundSync, r
 import { resolveCodexExecutable } from '../src/codex-executable.mjs';
 import { addClaudeSessionEvent, createClaudeSessionAccumulator, finalizeClaudeSessionUsage, mergeClaudeUsage, parseClaudeStatsCache } from '../src/claude-usage.mjs';
 import { discoverLocalDataFiles } from '../src/file-discovery.mjs';
+import { openApprovalBrowser } from '../src/open-browser.mjs';
+import { collectUsage, localUsageRoots, readLocalUsage } from '../src/codex-usage.mjs';
 
-const VERSION = '0.2.2';
-const DEFAULT_API_URL = 'https://ai-native-profile.vercel.app';
+const VERSION = '0.2.3';
+const DEFAULT_API_URL = 'https://tokpop.dev';
 const packageRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const configDir = join(homedir(), '.config', 'ai-native-profile');
 const configFile = join(configDir, 'config.json');
 const paths = {
-  codex: [join(homedir(), '.codex', 'state_5.sqlite'), join(homedir(), '.codex', 'sessions')],
+  codex: localUsageRoots(homedir()),
   claude_code: [join(homedir(), '.claude', 'stats-cache.json'), join(homedir(), '.claude', 'projects')],
   cursor: [join(homedir(), 'Library', 'Application Support', 'Cursor', 'User', 'globalStorage', 'state.vscdb'), join(homedir(), '.config', 'Cursor', 'User', 'globalStorage', 'state.vscdb')],
   gemini_cli: [join(homedir(), '.gemini', 'tmp')],
@@ -32,7 +34,7 @@ const detectedSources = () => Object.entries(paths).map(([source, candidates]) =
   }
   const executable = resolveCodexExecutable();
   const localData = candidates.some(existsSync);
-  return { source, detected:Boolean(executable), detail:executable ? 'detected' : localData ? 'local data found; App Server unavailable' : 'not detected' };
+  return { source, detected:Boolean(executable || localData), detail:executable ? 'detected; local history fallback available when retained' : localData ? 'local history found; account API unavailable' : 'not detected' };
 });
 const loadConfig = () => { try { return JSON.parse(readFileSync(configFile, 'utf8')); } catch { return {}; } };
 const saveConfig = (value) => { mkdirSync(configDir, { recursive: true, mode: 0o700 }); writeFileSync(configFile, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 }); };
@@ -118,7 +120,7 @@ async function cursorAggregate() {
   } catch { return []; }
 }
 
-async function codexAggregate() {
+async function readAccountUsage() {
   const executable = resolveCodexExecutable();
   if (!executable) throw new Error('Codex App Server is unavailable. Install the Codex CLI or set ANP_CODEX_PATH to its executable.');
   const child = spawn(executable, ['app-server'], { stdio: ['pipe', 'pipe', process.env.ANP_DEBUG === '1' ? 'inherit' : 'ignore'] });
@@ -150,20 +152,23 @@ async function codexAggregate() {
 }
 
 async function createBatch(warnings = []) {
-  let codexDaily = [];
+  let codex = null;
   const hasCodexState = paths.codex.some(existsSync);
   if (hasCodexState || resolveCodexExecutable()) {
-    try { codexDaily = await codexAggregate(); }
+    try {
+      codex = await collectUsage({ readAccount:readAccountUsage, readLocal:() => readLocalUsage(paths.codex) });
+      if (codex.fallback) console.error('Codex: using retained local token records (partial coverage); account daily usage is unavailable.');
+    }
     catch (error) { warnings.push('codex'); console.error(`Codex skipped: ${error instanceof Error ? error.message : String(error)}`); }
   }
   const claude = await claudeAggregate(warnings);
-  const daily = [...codexDaily, ...(claude?.daily ?? []), ...(await cursorAggregate()), ...genericLocalAggregate('gemini_cli', paths.gemini_cli), ...genericLocalAggregate('copilot_cli', paths.copilot_cli)];
+  const daily = [...(codex?.daily ?? []), ...(claude?.daily ?? []), ...(await cursorAggregate()), ...genericLocalAggregate('gemini_cli', paths.gemini_cli), ...genericLocalAggregate('copilot_cli', paths.copilot_cli)];
   const dates = daily.map((day) => day.date).sort();
   const sources = [...new Set(daily.map((day) => day.source))];
   const batch = {
     schemaVersion:'anp.activity.v1', batchId:randomUUID(), deviceId:loadConfig().deviceId ?? randomUUID(), generatedAt:new Date().toISOString(), collectorVersion:VERSION,
     daily,
-    coverage: sources.map((source) => { const sourceDays = daily.filter((day) => day.source === source); const sourceDates = sourceDays.map((day) => day.date).sort(); const competitiveEligible = sourceDays.some((day) => day.metrics.some((metric) => metric.competitiveEligible)); return { source, coverageStart:sourceDates[0] ?? dates[0], coverageEnd:sourceDates.at(-1) ?? dates.at(-1), lastSyncedAt:new Date().toISOString(), completeness:source === 'codex' ? 'full' : source === 'claude_code' ? claude?.completeness ?? 'unknown' : 'partial', competitiveEligible, note:source === 'claude_code' ? claude?.note : source === 'cursor' ? 'Estimated from supported local database metadata; excluded from rankings.' : source === 'gemini_cli' || source === 'copilot_cli' ? 'Derived from locally retained CLI telemetry; prompt content is never emitted.' : undefined }; }),
+    coverage: sources.map((source) => { const sourceDays = daily.filter((day) => day.source === source); const sourceDates = sourceDays.map((day) => day.date).sort(); const competitiveEligible = sourceDays.some((day) => day.metrics.some((metric) => metric.competitiveEligible)); return { source, coverageStart:sourceDates[0] ?? dates[0], coverageEnd:sourceDates.at(-1) ?? dates.at(-1), lastSyncedAt:new Date().toISOString(), completeness:source === 'codex' ? codex?.completeness ?? 'unknown' : source === 'claude_code' ? claude?.completeness ?? 'unknown' : 'partial', competitiveEligible, note:source === 'codex' ? codex?.note : source === 'claude_code' ? claude?.note : source === 'cursor' ? 'Estimated from supported local database metadata; excluded from rankings.' : source === 'gemini_cli' || source === 'copilot_cli' ? 'Derived from locally retained CLI telemetry; prompt content is never emitted.' : undefined }; }),
     signature:'pending',
   };
   const secret = loadConfig().deviceToken ?? 'preview-only';
@@ -204,7 +209,7 @@ function printPrivacyPreview() {
 
 function enableAutomaticSync() {
   const executable = resolveCodexExecutable();
-  const result = installBackgroundSync({ sourceRoot:packageRoot, environment: { PATH: process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin', ...(executable ? { ANP_CODEX_PATH: executable } : {}) } });
+  const result = installBackgroundSync({ sourceRoot:packageRoot, environment: { PATH: process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin', ...(process.env.CODEX_HOME ? { CODEX_HOME:process.env.CODEX_HOME } : {}), ...(executable ? { ANP_CODEX_PATH: executable } : {}) } });
   if (!result.installed) {
     console.log(`\n${result.reason} Run \`anp watch\` when you want foreground updates.`);
     return false;
@@ -256,7 +261,10 @@ async function connect() {
   if (!response.ok) throw new Error(`Pairing failed (${response.status}).`);
   const pair = await response.json();
   saveConfig({ apiUrl, deviceId:pair.deviceId, deviceCode:pair.deviceCode, pairingCode:pair.userCode });
-  console.log(`Open ${pair.verificationUrl} and enter ${pair.userCode}`);
+  console.log('\nApprove this computer in your browser. Sign in with your own GitHub account; the pairing code is already filled in.');
+  console.log(`Approval link (keep private):\n${pair.verificationUrl}`);
+  const browserOpened = await openApprovalBrowser(pair.verificationUrl, { allowedOrigin: apiUrl, disabled: process.argv.includes('--no-browser') });
+  console.log(browserOpened ? 'Browser requested. If no tab opened, copy and paste the approval link above.' : 'Copy and paste the approval link above into your browser to continue.');
   console.log('Waiting for approval (the code expires in 10 minutes)…');
   const deadline = Date.now() + 10 * 60 * 1000;
   while (Date.now() < deadline) {
@@ -290,7 +298,7 @@ async function syncBatch() {
 }
 
 function help() {
-  console.log(`AI Native Profile collector ${VERSION}\n\nUsage: anp <command> [options]\n\n  connect      Pair this device with the cloud dashboard\n               --code <code> claims a command created by the signed-in website\n               --api-url <url> overrides the hosted dashboard\n               --yes approves the first sync and automatic updates without prompting\n  sources      Detect supported coding tools\n  preview      Print the exact aggregate payload\n  sync         Send one aggregate batch\n  watch        Sync every 15 minutes until stopped\n               --install enables persistent 15-minute updates\n               --uninstall disables persistent updates\n  doctor       Check configuration, sources, and automatic sync\n  sessions     Explain selected-session sharing\n  share        Publish a selected sanitized session\n  unshare      Revoke a shared session\n  export       Alias for preview\n  disconnect   Disable automatic sync and remove the local pairing\n`);
+  console.log(`AI Native Profile collector ${VERSION}\n\nUsage: anp <command> [options]\n\n  connect      Pair this device with the cloud dashboard\n               --code <code> claims a command created by the signed-in website\n               --api-url <url> overrides the hosted dashboard\n               --yes approves the first sync and automatic updates without prompting\n               --no-browser prints the approval link without opening a browser\n  sources      Detect supported coding tools\n  preview      Print the exact aggregate payload\n  sync         Send one aggregate batch\n  watch        Sync every 15 minutes until stopped\n               --install enables persistent 15-minute updates\n               --uninstall disables persistent updates\n  doctor       Check configuration, sources, and automatic sync\n  sessions     Explain selected-session sharing\n  share        Publish a selected sanitized session\n  unshare      Revoke a shared session\n  export       Alias for preview\n  disconnect   Disable automatic sync and remove the local pairing\n`);
 }
 
 function option(name) { const index = process.argv.indexOf(`--${name}`); return index >= 0 ? process.argv[index + 1] : undefined; }

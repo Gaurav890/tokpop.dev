@@ -48,7 +48,7 @@ export default async function SharePage() {
       </div>
       <div className="activation-step"><span>{settings?.public_enabled ? 'LIVE ●' : 'UNLOCKED'}</span><strong>{profile?.archetype.emoji} {profile?.archetype.title ?? 'Workflow Builder'}</strong><small>{compactMetric(profile?.lifetimeTokens ?? 0)} tokens · {profile?.providers.length ?? 0} tools · {profile?.currentStreak ?? 0}-day streak</small></div>
     </section>
-    {!hasCodingEvidence ? <PowerUpPanel hasCodingEvidence={false} publicOrigin={publicOrigin}/> : null}
+    {!hasCodingEvidence ? <PowerUpPanel hasCodingEvidence={false} accountLogin={user.login} publicOrigin={publicOrigin}/> : null}
     <ActivationShare
       publicOrigin={publicOrigin}
       username={user.login}

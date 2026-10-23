@@ -29,7 +29,7 @@ Pair this computer with your cloud profile:
 npx --yes ai-native-profile@latest connect
 ```
 
-The command prints a short-lived verification URL and code. Open the URL, sign in with GitHub, and approve the device. The collector then shows the privacy boundary and asks before the first sync. You can also run a one-off sync later:
+The command opens your default browser to a short-lived approval page with the code already filled in. Sign in with your own GitHub account and approve the device. If the browser does not open, copy the printed approval link; keep it private. Use `connect --no-browser` to open the link yourself. Remote/SSH and non-interactive sessions only print the link. The collector then shows the privacy boundary and asks before the first sync. You can also run a one-off sync later:
 
 ```bash
 npx --yes ai-native-profile@latest sync
@@ -61,7 +61,7 @@ An existing scheduled job keeps its own collector copy. After upgrading, run the
 
 | Source | Collection path | Trust label |
 |---|---|---|
-| Codex | Official local App Server account usage | Official account source |
+| Codex | Account usage when supported; retained local session counters otherwise | Official account source, or partial locally derived coverage |
 | Claude Code | Deduplicated local session usage plus non-overlapping statistics-cache history | Local exact for retained records; estimated daily splits for cache-inclusive statistics history; partial lifetime coverage |
 | Cursor | Supported local database metadata | Estimated; excluded from rankings |
 | Gemini CLI | Locally retained CLI telemetry | Locally derived |
@@ -123,7 +123,7 @@ The collector checks the shell `PATH` and the standard macOS ChatGPT/Codex app-b
 ANP_CODEX_PATH=/path/to/codex npx --yes ai-native-profile@latest preview
 ```
 
-If the App Server is unavailable, the collector reports that Codex was skipped and continues collecting other detected sources instead of failing the entire sync.
+If the App Server is unavailable, lacks `account/usage/read`, or returns no daily buckets, the collector falls back to retained token counters in local `sessions` and `archived_sessions` directories. It honors `CODEX_HOME` when set. This fallback is partial history, not a lifetime account total. Repeated cumulative snapshots are not summed, and reported cache/reasoning tokens are not added again. Account totals and local totals are never combined. If neither source has usable records, the collector reports the missing usage rather than claiming zero.
 
 ## What the evidence means
 

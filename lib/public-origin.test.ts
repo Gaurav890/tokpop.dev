@@ -16,7 +16,7 @@ describe('domain migration', () => {
   });
 
   it('uses the published executable and explicit custom origin for pairing', () => {
-    expect(collectorConnectCommand('AAF_BL68', 'https://tokpop.dev/')).toBe("npm exec --yes --package=ai-native-profile@0.2.2 -- ai-native-profile connect --code AAF_BL68 --api-url 'https://tokpop.dev'");
+    expect(collectorConnectCommand('AAF_BL68', 'https://tokpop.dev/')).toBe("npm exec --yes --package=ai-native-profile@0.2.3 -- ai-native-profile connect --code AAF_BL68 --api-url 'https://tokpop.dev'");
     expect(() => collectorConnectCommand('code;exit', 'https://tokpop.dev')).toThrow();
   });
 

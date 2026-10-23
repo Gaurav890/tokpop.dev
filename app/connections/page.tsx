@@ -81,6 +81,7 @@ export default async function ConnectionsPage() {
       <div><p className="eyebrow">Sources · @{user.login}</p><h1>Connections</h1><p>Every source names what it can prove, how it was collected, and when it was last seen.</p></div>
       <div className="connection-summary"><strong>{connectedCount}<small>/{sourceDefinitions.length}</small></strong><span>sources with evidence</span><p>{approvedDevices} approved local {approvedDevices === 1 ? 'device' : 'devices'}</p></div>
     </section>
+    <section className="connect-return-card"><div><p className="eyebrow">One setup · all supported tools</p><h2>Add a tool or another computer.</h2><p>Use the computer where you run your coding tools. The setup command checks them together; no separate provider connection is needed.</p></div><Link className="primary-link" href="/connect">Connect my tools →</Link></section>
     <section className="connection-groups">
       {['Identity and delivery', 'Coding activity'].map((group) => <div className="connection-group" key={group}>
         <div className="group-heading"><h2>{group}</h2><p>{group === 'Coding activity' ? 'Collected locally after device approval.' : 'Your primary account and delivery evidence.'}</p></div>
@@ -98,7 +99,7 @@ export default async function ConnectionsPage() {
                 <span><b>Coverage</b>{record ? `${record.coverage_start} → ${record.coverage_end}` : 'Starts after first sync'}</span>
                 <span><b>Freshness</b>{record ? relativeSync(record.last_synced_at) : source.id === 'github' ? 'Signed in now' : 'Never synced'}</span>
               </div>
-              <div className="connection-controls"><span className={`connection-state ${stateClass}`}><i/>{state}</span><Link className="connection-action" href={source.href}>{record ? 'Manage' : source.action} →</Link></div>
+              <div className="connection-controls"><span className={`connection-state ${stateClass}`}><i/>{state}</span><Link className="connection-action" href={source.href}>{source.id === 'github' ? 'Manage GitHub' : record ? 'Reconnect / add device' : `Connect ${source.name}`} →</Link></div>
             </article>;
           })}
         </div>

@@ -22,7 +22,8 @@ describe('low-friction, inspectable onboarding', () => {
     expect(html).toContain(COLLECTOR_PREVIEW_COMMAND);
     expect(CONNECTOR_VERSION).toBe(collectorPackage.version);
     expect(COLLECTOR_PREVIEW_COMMAND).toContain('-- ai-native-profile preview');
-    expect(html).toContain('without uploading it to tokpop');
+    expect(html).toContain('This optional command uploads nothing to tokpop');
+    expect(html).toContain('retained local token records as a fallback');
     expect(html).toContain('~/.claude/projects');
     expect(html).toContain('awake and online');
     expect(html).toContain('Node.js 22.13');

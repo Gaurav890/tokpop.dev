@@ -114,8 +114,8 @@ export function PowerUpPanel({ hasCodingEvidence, publicOrigin, accountLogin }: 
           {command ? <><pre className="setup-command" aria-label="Setup command"><code>{command}</code></pre><button type="button" className="power-button" onClick={() => copy(command, 'Copied! Paste into Terminal and press Enter.')}>Copy command again</button><small>Single use · expires {new Date(pairing!.expiresAt).toLocaleTimeString([], { hour:'numeric', minute:'2-digit' })}</small></> : null}
           <div className="setup-live-state" role="status">
             {expired ? 'This setup command expired or was revoked. Copy a fresh one when you are ready.'
-              : progress?.stage === 'empty' ? 'Upload received, but no usable coding activity was found. You are paired—do not reconnect.'
-              : progress?.stage === 'limited' ? 'Activity received. These records do not yet contain the recent stats needed for your full card. You are paired—do not reconnect. You can use the starter card below while you check your sources.'
+              : progress?.stage === 'empty' ? 'Upload received, but no usable coding activity was found. Your computer is already paired. No need to reconnect.'
+              : progress?.stage === 'limited' ? 'Activity received. This upload does not include enough recent activity to reveal your full card yet. Your computer is already paired. No need to reconnect. You can use the starter card below while you check your sources.'
               : progress?.stage === 'unknown' ? 'An upload was received, but its activity details are unavailable. Check your card or retry a sync.'
               : claimed ? 'Computer paired. Review and approve the aggregate upload in Terminal. We’re watching for your activity here.'
               : attemptId ? 'Waiting for Terminal. Keep this page open; your card will appear after activity arrives.' : 'Your card stays private until you choose to publish.'}

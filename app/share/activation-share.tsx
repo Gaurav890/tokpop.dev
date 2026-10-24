@@ -53,7 +53,7 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
     const profileUrl = `${origin}${profilePath}`;
     const funnelUrl = `${origin}${funnelPath}`;
     const cardUrl = `${origin}${cardPath}`;
-    return { profileUrl, funnelUrl, cardUrl, markdown: `[![${username}'s tokpop.dev — AI workflow stats](${cardUrl})](${funnelUrl})` };
+    return { profileUrl, funnelUrl, cardUrl, markdown: `[![${username}'s tokpop.dev · AI workflow stats](${cardUrl})](${funnelUrl})` };
   }
 
   async function writeClipboard(value: string, success: string) {
@@ -64,7 +64,7 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
       return true;
     } catch {
       setManualCopy(value);
-      setStatus('Clipboard blocked? No problem. Select and copy the text below.');
+      setStatus('Select and copy the text below. Your browser could not copy it automatically.');
       return false;
     }
   }
@@ -114,7 +114,7 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
     const value = kind === 'post'
       ? `${profile.archetype.emoji} ${profile.archetype.title}\n\n${profile.streakDays}-day streak · ${profile.activeDays} recorded active days · ${profile.providers.length} tool${profile.providers.length === 1 ? '' : 's'} in my loadout.\n\nA playful builder identity, not a skill rating.\nMake yours: ${funnelUrl}${settings.publicEnabled ? `\nMy full breakdown: ${profileUrl}` : ''}`
       : kind === 'html'
-        ? `<a href="${funnelUrl}"><img src="${cardUrl}" alt="${username}'s AI build card — click to make yours" /></a>`
+        ? `<a href="${funnelUrl}"><img src="${cardUrl}" alt="${username}'s AI build card · click to make yours" /></a>`
         : profileUrl;
     await writeClipboard(value, kind === 'post' ? 'Caption copied. Add it beside your card image.' : kind === 'html' ? 'HTML copied.' : 'Profile link copied.');
   }
@@ -148,7 +148,7 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
             <div className="build-pass-story-head"><span>YOUR AI BUILD STORY</span><b>MAKE YOURS ↗</b></div>
             <strong>{profile.streakDays > 0 ? `${profile.streakDays}d` : profile.activeDays}</strong>
             <small>{profile.streakDays > 0 ? 'CURRENT BUILD STREAK' : 'RECORDED ACTIVE DAYS'}</small>
-            <dl><div><dt>Build level</dt><dd>{profile.score ?? '—'}</dd></div><div><dt>Active days</dt><dd>{profile.activeDays}</dd></div><div><dt>Current streak</dt><dd>{profile.streakDays}d</dd></div></dl>
+            <dl><div><dt>Build level</dt><dd>{profile.score ?? 'N/A'}</dd></div><div><dt>Active days</dt><dd>{profile.activeDays}</dd></div><div><dt>Current streak</dt><dd>{profile.streakDays}d</dd></div></dl>
             <div className="build-pass-loadout">{profile.tokenBreakdown.length ? profile.tokenBreakdown.map((item) => <span key={item.label}><small>{item.label}</small><b>{compact(item.tokens)}</b></span>) : <p>Connect coding activity to see reported tool totals.</p>}</div>
             <small>{compact(profile.lifetimeTokens)} recorded tokens · includes reported cache · available history, up to 365 days</small>
           </div>
@@ -171,14 +171,14 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
       <p className="share-action-hint">Paste it into your GitHub profile README. New syncs update the same banner.</p>
       {!settings.publicEnabled ? <p className="share-action-hint">This makes your profile and stats card public. Prompts and code stay private. Joining the leaderboard is a separate choice.</p> : null}
       {manualCopy ? <label className="share-manual-copy">Copy this text<textarea readOnly value={manualCopy} onFocus={(event) => event.currentTarget.select()} rows={4}/></label> : null}
-      {cardReady ? <div className="share-finish" role="status"><strong>{readmeCopied ? 'One last paste. Make it official ✨' : 'Copy the Markdown above, then paste it on GitHub.'}</strong><p>{readme?.instruction ?? 'Open your profile repository, edit or create its README, paste your card, then commit your changes.'}</p><a className="secondary-link" href={readme?.url ?? `https://github.com/${encodeURIComponent(username)}/${encodeURIComponent(username)}`} target="_blank" rel="noreferrer">{readme?.label ?? 'Open profile repository'} ↗</a><p>We never edit your repository. Copying the card does not install it on GitHub.</p></div> : null}
+      {cardReady ? <div className="share-finish" role="status"><strong>{readmeCopied ? 'One last paste. Make it official ✨' : 'Copy the Markdown above, then paste it on GitHub.'}</strong><p>{readme?.instruction ?? 'Open your profile repository, edit or create its README, paste your card, then commit your changes.'}</p><a className="secondary-link" href={readme?.url ?? `https://github.com/${encodeURIComponent(username)}/${encodeURIComponent(username)}`} target="_blank" rel="noreferrer">{readme?.label ?? 'Open profile repository'} ↗</a><p>Paste the card into your README and commit the change on GitHub. We do not edit your repository for you.</p></div> : null}
       <div className="social-share-choice"><p className="share-destination-label">02 · Share a snapshot</p><button type="button" onClick={saveImage} disabled={downloading || pending}>{downloading ? 'Making your image…' : 'Download card image ↓'}</button><button type="button" className="secondary-link" onClick={() => copy('post')}>Copy caption</button><p>1080 × 1080 PNG · created in your browser. No profile publishing required. Posting the image shares the stats shown on it.</p></div>
       <details className="share-more"><summary>More ways to share</summary><div className="quick-share-actions">
         <button type="button" onClick={() => copy('profile')} disabled={!settings.publicEnabled}>Copy profile link</button>
         <button type="button" onClick={() => copy('html')} disabled={!settings.publicEnabled}>Copy HTML</button>
       </div></details>
 
-      {!hasCodingEvidence ? <div className="power-up-nudge"><span>⚡</span><p><strong>Want the impressive version?</strong><small>Connect your coding tools above and this card powers up automatically.</small></p><a href="#power-up">Power it up ↑</a></div> : <div className="power-up-nudge connected"><span>✓</span><p><strong>Coding tools connected</strong><small>{profile.providers.join(' · ')}</small></p><Link href="/connections">Manage →</Link></div>}
+      {!hasCodingEvidence ? <div className="power-up-nudge"><span>⚡</span><p><strong>Ready to add your coding stats?</strong><small>Connect your coding tools above and this card powers up automatically.</small></p><a href="#power-up">Power it up ↑</a></div> : <div className="power-up-nudge connected"><span>✓</span><p><strong>Coding tools connected</strong><small>{profile.providers.join(' · ')}</small></p><Link href="/connections">Manage →</Link></div>}
 
       <div className="share-trust-line"><span>{settings.publicEnabled ? '🌐 Public stats card' : '🔒 Private until published'}</span><span>🧼 No prompts or code</span></div>
       {status ? <p className="status-line" aria-live="polite">{status}</p> : null}

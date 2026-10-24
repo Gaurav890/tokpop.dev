@@ -43,7 +43,7 @@ export function renderProfileCard(profile: ProfileCard, theme: 'light' | 'dark' 
   const accentSoft = hyper ? '#d9ff57' : '#8ff2d2';
   const warm = hyper ? '#ff7448' : '#ffbe4f';
   const blue = hyper ? '#70e7ff' : '#b8d3ff';
-  const score = profile.score == null ? '—' : String(profile.score);
+  const score = profile.score == null ? 'N/A' : String(profile.score);
   const providers = providerLines(profile.providers);
   const tokenRows = profile.tokenBreakdown.length ? profile.tokenBreakdown : [{ label: 'No source reports tokens', tokens: 0 }];
   const tokenSplitText = tokenRows.slice(0, 4).map((item, index) => {

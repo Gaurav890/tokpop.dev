@@ -20,7 +20,7 @@ describe('one workspace, clear rewards', () => {
   it('explains the uncertainty of blank recap days without shaming inactive users', () => {
     const html = renderToStaticMarkup(<BuildRecap recap={buildRecap([], [], Date.parse('2026-10-24'))}/>);
     expect(html).toContain('Your next chapter is unwritten');
-    expect(html).toContain('Blank days can mean missing history');
+    expect(html).toContain('Blank days may mean missing history');
     expect(html).not.toContain('0 / 7');
   });
   it('offers local image export before publishing while keeping README consent explicit', () => {

@@ -800,7 +800,7 @@ button,a { font:inherit; } button { cursor:pointer; } a { color:inherit; text-de
   .supported-strip li { justify-content:flex-start; }
 }
 
-/* Playful product system — shared across every route */
+/* Playful product system · shared across every route */
 .marketing-page,.profile-page {
   --page-accent:#7147ff;
   --page-pop:#d9ff57;

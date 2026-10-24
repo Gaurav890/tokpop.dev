@@ -10,6 +10,10 @@ describe('SVG renderers', () => {
     expect(svg).toContain('&lt;script&gt;');
   });
   it('renders an unranked badge safely', () => expect(renderBadge(null)).toContain('unranked'));
+  it('keeps unavailable build levels distinct from measured zero', () => {
+    expect(renderProfileCard({ ...profile, score: null })).toContain('LEVEL N/A / 100');
+    expect(renderProfileCard({ ...profile, score: 0 })).toContain('LEVEL 0 / 100');
+  });
   it('brands both themes and all social formats consistently', () => {
     for (const theme of ['dark', 'light'] as const) {
       for (const svg of [renderProfileCard(profile, theme), ...(['og', 'square', 'story'] as const).map((format) => renderSocialCard(profile, format, theme))]) {

@@ -6,7 +6,7 @@ import { activityWindow, type ActivityDay, type ActivityRange } from '../../lib/
 const ranges = [['12w', '12 weeks'], ['6m', '6 months'], ['year', 'Year']] as const;
 const formatDate = (date: string) => new Date(`${date}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
-export function ActivityChart({ activity, title = 'Momentum, not volume' }: { activity: ActivityDay[]; title?: string }) {
+export function ActivityChart({ activity, title = 'Your coding rhythm' }: { activity: ActivityDay[]; title?: string }) {
   const [range, setRange] = useState<ActivityRange>('12w');
   const window = activityWindow(activity, range);
   return <div className="activity-explorer">

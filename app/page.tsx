@@ -70,8 +70,8 @@ export function DashboardDemo({ profile }: { profile: PublicProfile }) {
           <section className="score-panel">
             <div className="score-copy">
               <div className="section-kicker"><span className="live-dot" />AI WORKFLOW INDEX · COVERAGE WEIGHTED</div>
-              <div className="score-line"><strong>{profile.scoreEligible ? profile.score : '—'}</strong><span>/100</span>{profile.scoreEligible && <em>rank eligible</em>}</div>
-              <p>{profile.scoreEligible ? 'Consistency, workflow depth, provider breadth, and shipped work—without rewarding raw token volume.' : profile.scoreReason ?? 'Insufficient coverage for a ranked score.'}</p>
+              <div className="score-line"><strong>{profile.scoreEligible ? profile.score : 'N/A'}</strong><span>/100</span>{profile.scoreEligible && <em>rank eligible</em>}</div>
+              <p>{profile.scoreEligible ? 'Your level reflects consistent practice, tool use, and GitHub contributions. Token volume does not affect it.' : profile.scoreReason ?? 'More covered activity is needed for a ranked score.'}</p>
               <Link href="/methodology">How your score works <span>→</span></Link>
             </div>
             <div className="score-breakdown" aria-label="Score breakdown">
@@ -132,7 +132,7 @@ export default async function Home() {
       <div className="home-stage-copy">
         <p className="eyebrow">Your build has a personality.</p>
         <h1>What kind of<br/><span>AI builder are you?</span></h1>
-        <p>Discover your tools, streaks, and builder personality. Turn your real activity into a card worth sharing—not a contest to spend more tokens.</p>
+        <p>Turn your coding activity into a builder card with its own personality. See your tool stats, keep your streak going, and share your progress.</p>
         <Link className="home-conversion-button home-main-action" href={cardHref}>{user ? 'Open my card' : 'Reveal my builder card'} <span>→</span></Link>
         <p className="home-setup-promise">GitHub sign-in → one command on your computer → your real card.</p>
         <div className="home-conversion-trust"><span>Private until you publish</span><span>No prompts or code</span></div>
@@ -143,7 +143,7 @@ export default async function Home() {
         <Link href={cardHref} aria-label="Make your own live AI build card">
           <Image src="/api/v1/cards/demo?theme=dark" width={640} height={252} unoptimized priority alt="Example live AI build card"/>
         </Link>
-        <p>Paste it once. Your stats keep moving. Every click can bring the next builder in.</p>
+        <p>Add it to your README once. New syncs update the same card, and visitors can click to make their own.</p>
       </div>
 
       <aside className="home-conversion-card home-how-it-works">
@@ -158,7 +158,7 @@ export default async function Home() {
       </aside>
     </section>
     <section className="personality-preview" aria-label="Example builder personalities">
-      <div><p className="eyebrow">Different habits. Different energy.</p><h2>There’s more than one way to build.</h2><p>Illustrative identities—not user rankings. Your available activity tells your story.</p></div>
+      <div><p className="eyebrow">Different habits. Different energy.</p><h2>There’s more than one way to build.</h2><p>These are example personalities. Your recorded activity shapes yours; token volume does not choose your title.</p></div>
       <ul><li><span aria-hidden="true">✨</span><strong>Pocket Spark</strong><p>Every build story starts somewhere.</p></li><li><span aria-hidden="true">🐉</span><strong>Streak Dragon</strong><p>You keep showing up.</p></li><li><span aria-hidden="true">🧭</span><strong>Tool Scout</strong><p>You like a little variety in your loadout.</p></li></ul>
     </section>
     <section className="supported-strip" aria-label="Supported coding sources">
@@ -168,9 +168,9 @@ export default async function Home() {
     <section className="home-collector" aria-labelledby="collector-heading">
       <div>
         <p className="eyebrow">Your computer. Your call.</p>
-        <h2 id="collector-heading">No mystery install.</h2>
+        <h2 id="collector-heading">See what you’re connecting.</h2>
         <p>After sign-in, we give you a personal connection command. It finds supported tools, asks before the first upload, and offers background updates every 15 minutes while your computer is awake and online.</p>
-        <p>Want a look first? This optional preview prints the aggregate payload in your terminal without uploading it to tokpop. Requires Node.js 22.13 or newer.</p>
+        <p>Preview the stats in Terminal before connecting. This optional command uploads nothing to tokpop. Requires Node.js 22.13 or newer.</p>
       </div>
       <div className="home-collector-inspect">
         <span className="eyebrow">Optional · preview before connecting</span>
@@ -179,12 +179,12 @@ export default async function Home() {
         <details>
           <summary>What does it read?</summary>
           <ul>
-            <li><strong>Codex:</strong> account usage through its local App Server. Local state is checked for detection.</li>
+            <li><strong>Codex:</strong> account usage through its local App Server when available, with retained local token records as a fallback.</li>
             <li><strong>Claude Code:</strong> usage fields in <code>~/.claude/projects</code> and <code>~/.claude/stats-cache.json</code>.</li>
             <li><strong>Cursor:</strong> local session metadata in <code>state.vscdb</code>, not token totals.</li>
             <li><strong>Gemini CLI / Copilot CLI:</strong> retained activity in <code>~/.gemini/tmp</code> and <code>~/.copilot/session-state</code>, not token totals.</li>
           </ul>
-          <p>Retained history can be incomplete. Only aggregate metrics and coverage are uploaded—not prompts, responses, code, file paths, or repository names. Background scheduling is supported on macOS and Linux.</p>
+          <p>Local history may be incomplete. Uploads contain aggregate stats and coverage details. Prompts, responses, code, file paths, and repository names stay on your computer. Background scheduling is supported on macOS and Linux.</p>
           <a href="https://github.com/Gaurav890/tokpop.dev/tree/main/packages/cli" target="_blank" rel="noreferrer">Inspect the collector and full source paths ↗</a>
         </details>
       </div>
@@ -193,13 +193,13 @@ export default async function Home() {
       <div className="home-flex-heading"><p className="eyebrow">More than a badge</p><h2>Show the build. Show the receipts. Keep it fun.</h2></div>
       <div className="home-flex-grid">
         <article><span>🔥</span><small>THE FLEX</small><h3>A live card worth putting in your README.</h3><p>Your alter ego, tools, tokens, streak, and level in one collectible drop.</p></article>
-        <article><span>🔎</span><small>THE RECEIPTS</small><h3>Every provider and every day, clearly broken down.</h3><p>No mystery total: inspect exactly which tool contributed what.</p></article>
-        <article><span>⚡</span><small>YOUR RHYTHM</small><h3>Build a streak. Find your alter ego.</h3><p>Your card is ready before any ranking. The optional leaderboard needs 30 covered days—eligible history from your tools counts. Raw token volume never raises your level.</p></article>
+        <article><span>🔎</span><small>THE RECEIPTS</small><h3>See where your stats came from.</h3><p>Explore reported tokens by tool and day, with coverage limits shown alongside them.</p></article>
+        <article><span>⚡</span><small>YOUR RHYTHM</small><h3>Build a streak. Find your alter ego.</h3><p>Share your card whenever you’re ready. The optional leaderboard needs 30 covered coding days; eligible history from your tools counts. Token volume never raises your level.</p></article>
       </div>
     </section>
     <section className="home-final-conversion">
       <div><span aria-hidden="true">⚡</span><p className="eyebrow">Ready player one</p><h2>What&apos;s your build alter ego?</h2></div>
-      <Link className="home-conversion-button" href={cardHref}>{user ? 'Go to my card' : 'Reveal my card'} <span>→</span></Link>
+      <Link className="home-conversion-button" href={cardHref}>{user ? 'Open my card' : 'Reveal my builder card'} <span>→</span></Link>
     </section>
     <SiteFooter/>
   </main>;

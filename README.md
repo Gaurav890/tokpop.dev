@@ -4,11 +4,15 @@
 
 Track your AI workflow across coding tools: tokens by provider, daily breakdowns, and streaks. Turn it into a live GitHub README card worth showing off. **Track. Share. Flex.**
 
-**[Make my card →](https://tokpop.dev/share)** · [▶ Watch the 22-second demo](https://tokpop.dev/media/launch-demo.mp4) · [⭐ Star this repo](https://github.com/Gaurav890/ai-native-profile)
+**[Make my card →](https://tokpop.dev/share)** · [⭐ Star this repo](https://github.com/Gaurav890/ai-native-profile)
 
-[![tokpop.dev — Your AI activity. With personality. Track your tools, tokens, and streaks. Click to make your own card.](public/media/tokpop-preview.svg)](https://tokpop.dev/share)
+![tokpop.dev — Your AI activity. With personality. Track your tools, tokens, and streaks.](public/media/tokpop-preview.svg)
 
-*Click the poster to make yours. The [22-second walkthrough](https://tokpop.dev/media/launch-demo.mp4) uses demo data and was recorded before the tokpop.dev rename; [get the MP4](public/media/launch-demo.mp4).*
+https://github.com/user-attachments/assets/29d0bf6b-cd35-4520-bfb0-8356fa667cc0
+
+[Watch video](https://github.com/user-attachments/assets/29d0bf6b-cd35-4520-bfb0-8356fa667cc0) · [Download MP4](public/media/launch-demo.mp4?raw=true)
+
+*The 22-second walkthrough uses demo data and was recorded before the tokpop.dev rename.*
 
 [![npm version](https://img.shields.io/npm/v/ai-native-profile?color=7147ff)](https://www.npmjs.com/package/ai-native-profile)
 [![GitHub stars](https://img.shields.io/github/stars/Gaurav890/ai-native-profile?style=flat&label=Star%20this%20repo&color=d9ff57)](https://github.com/Gaurav890/ai-native-profile)

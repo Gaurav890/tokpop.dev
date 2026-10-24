@@ -16,8 +16,8 @@ export default async function McpPage({ searchParams }: { searchParams: Promise<
     <SiteHeader user={user}/>
     <section className="narrow-hero">
       <p className="eyebrow">{isOnboarding ? 'Power-up · add a conversation source' : 'MCP · only when you say so'}</p>
-      <h1>Connect the moments you choose.</h1>
-      <p>MCP lets an assistant call profile tools when you ask. It never unlocks your provider account, old conversations, or background activity.</p>
+      <h1>Use your card from chat.</h1>
+      <p>Ask your assistant to read your profile, create card links, or record a session. This connection does not import your chat history or track usage in the background.</p>
     </section>
     <section className="integration-grid">
       <article id="chatgpt">
@@ -39,11 +39,11 @@ export default async function McpPage({ searchParams }: { searchParams: Promise<
     </section>
     <section className="mcp-boundary">
       <strong>MCP is not history sync.</strong>
-      <p>A recorded event proves that one of these tools was deliberately invoked. To add earlier activity, use an official export that is aggregated locally in your browser.</p>
+      <p>Each recorded event comes from a tool call. To add earlier conversation activity, import an official export. Your browser turns it into daily counts before upload.</p>
       <Link className="secondary-link compact-link" href="/import">Import an export</Link>
     </section>
     {isOnboarding ? <section className="onboarding-mcp-return"><div><strong>After adding the connector</strong><p>Invoke <code>record_session</code> once, then return to preview and publish your profile.</p></div><Link className="primary-link compact-link" href="/share?onboarding=1">Preview and publish →</Link></section> : null}
-    <section className="tool-list"><p className="eyebrow">Available tools</p>{[['get_profile','Read profile summary and sharing URLs.'],['record_session','Record one explicit mcp_observed session event.'],['publish_session','Publish a reviewed summary, unlisted by default.'],['create_share_card','Create README card and public profile URLs.']].map(([name, detail]) => <div key={name}><code>{name}</code><p>{detail}</p></div>)}</section>
-    <section className="plain-section"><h2>What authorization means</h2><p>OAuth signs you into tokpop.dev with GitHub. Your ChatGPT or Claude credentials stay with that provider. Published summaries pass secret scanning and require an explicit tool invocation; observed conversation activity remains non-competitive.</p><Link className="secondary-link" href="/connect">See every connection option →</Link></section>
+    <section className="tool-list"><p className="eyebrow">Available tools</p>{[['get_profile','Read profile summary and sharing URLs.'],['record_session','Record one session event from a tool call you request.'],['publish_session','Publish a reviewed summary, unlisted by default.'],['create_share_card','Create README card and public profile URLs.']].map(([name, detail]) => <div key={name}><code>{name}</code><p>{detail}</p></div>)}</section>
+    <section className="plain-section"><h2>What authorization means</h2><p>Sign in to tokpop.dev with GitHub to authorize the connector. Your ChatGPT or Claude credentials stay with that provider. Publishing a summary requires a tool call and a secret scan. Conversation activity never affects your rank.</p><Link className="secondary-link" href="/connect">Connect coding tools →</Link></section>
   </main>;
 }

@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   const profile = await getFunnelProfile(username);
   if (!profile) return { title: 'Make your live build card' };
   return {
-    title: `Make your live build card — inspired by @${profile.username}`,
+    title: `Make your live build card · inspired by @${profile.username}`,
     description: `You found @${profile.username}'s live build card. Create your own, connect your coding tools, and copy it into your README.`,
   };
 }

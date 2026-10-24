@@ -21,7 +21,7 @@ type CoverageRow = {
 
 const sourceDefinitions = [
   { id: 'github', mark: 'GH', name: 'GitHub', group: 'Identity and delivery', method: 'GitHub OAuth', description: 'Verified identity plus exact 90-day contribution totals for commits, pull requests, and reviews.', href: '/settings/github', action: 'Manage GitHub' },
-  { id: 'codex', mark: 'CX', name: 'Codex', group: 'Coding activity', method: 'Local App Server + connector', description: 'Official account totals when available, with local session detail used as supporting evidence.', href: '/connect', action: 'Pair connector' },
+  { id: 'codex', mark: 'CX', name: 'Codex', group: 'Coding activity', method: 'Local App Server + connector', description: 'Uses account totals when available, or retained local token records when account usage is unavailable.', href: '/connect', action: 'Pair connector' },
   { id: 'claude_code', mark: 'CL', name: 'Claude Code', group: 'Coding activity', method: 'Local connector', description: 'Reads the official local statistics cache and retained session logs after approval.', href: '/connect', action: 'Pair connector' },
   { id: 'cursor', mark: 'CU', name: 'Cursor', group: 'Coding activity', method: 'Local connector', description: 'Reads supported local database metadata. Derived values are labelled and estimated values are not ranked.', href: '/connect', action: 'Pair connector' },
   { id: 'gemini_cli', mark: 'GE', name: 'Gemini CLI', group: 'Coding activity', method: 'Local connector', description: 'Collects aggregate CLI telemetry with prompt logging disabled.', href: '/connect', action: 'Pair connector' },
@@ -53,7 +53,7 @@ function relativeSync(value: string): string {
 
 export default async function ConnectionsPage() {
   const user = await currentGitHubUser();
-  if (!user) return <main className="marketing-page"><SiteHeader/><section className="narrow-hero"><p className="eyebrow">Start with your card</p><h1>Make your private card in 30 seconds.</h1><p>GitHub creates the starter card. Then one optional command connects every supported local coding tool together.</p><Link className="primary-link dashboard-signin" href={`/api/auth/github/start?return_to=${encodeURIComponent('/share?onboarding=1')}`}>Make my card</Link></section></main>;
+  if (!user) return <main className="marketing-page"><SiteHeader/><section className="narrow-hero"><p className="eyebrow">Start with your card</p><h1>Start your private builder card.</h1><p>Sign in with GitHub, then run one command on your coding computer to add activity from supported tools.</p><Link className="primary-link dashboard-signin" href={`/api/auth/github/start?return_to=${encodeURIComponent('/share?onboarding=1')}`}>Make my card</Link></section></main>;
 
   let coverageRows: CoverageRow[];
   let approvedDevices: number;
@@ -78,13 +78,13 @@ export default async function ConnectionsPage() {
   return <main className="marketing-page connections-page">
     <SiteHeader user={user}/>
     <section className="connections-hero">
-      <div><p className="eyebrow">Sources · @{user.login}</p><h1>Connections</h1><p>Every source names what it can prove, how it was collected, and when it was last seen.</p></div>
+      <div><p className="eyebrow">Sources · @{user.login}</p><h1>Connections</h1><p>See which tools have synced, how their stats were collected, and how much history is available.</p></div>
       <div className="connection-summary"><strong>{connectedCount}<small>/{sourceDefinitions.length}</small></strong><span>sources with evidence</span><p>{approvedDevices} approved local {approvedDevices === 1 ? 'device' : 'devices'}</p></div>
     </section>
     <section className="connect-return-card"><div><p className="eyebrow">One setup · all supported tools</p><h2>Add a tool or another computer.</h2><p>Use the computer where you run your coding tools. The setup command checks them together; no separate provider connection is needed.</p></div><Link className="primary-link" href="/connect">Connect my tools →</Link></section>
     <section className="connection-groups">
       {['Identity and delivery', 'Coding activity'].map((group) => <div className="connection-group" key={group}>
-        <div className="group-heading"><h2>{group}</h2><p>{group === 'Coding activity' ? 'Collected locally after device approval.' : 'Your primary account and delivery evidence.'}</p></div>
+        <div className="group-heading"><h2>{group}</h2><p>{group === 'Coding activity' ? 'Collected locally after device approval.' : 'Your GitHub identity and contribution counts.'}</p></div>
         <div className="connection-cards">
           {sourceDefinitions.filter((source) => source.group === group).map((source) => {
             const record = coverage.get(source.id);
@@ -124,7 +124,7 @@ export default async function ConnectionsPage() {
       })}</div>
       <p>These sources do not provide silent or complete account history. They appear publicly only after data exists and you enable the conversation section.</p>
     </details>
-    <section className="connection-disclaimer"><strong>No invisible account access.</strong><p>Every connected state names the evidence path. Local coding tools use the approved collector; experimental web activity uses explicit MCP events or locally parsed official exports.</p><Link href="/settings/privacy">Privacy controls →</Link></section>
+    <section className="connection-disclaimer"><strong>You choose what to connect.</strong><p>Coding stats come from the collector you approve. Web conversation activity comes from tool calls you request or exports processed in your browser.</p><Link href="/settings/privacy">Privacy controls →</Link></section>
     <SiteFooter/>
   </main>;
 }

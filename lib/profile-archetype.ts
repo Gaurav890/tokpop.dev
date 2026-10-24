@@ -10,6 +10,7 @@ type ArchetypeInput = {
   providerCount: number;
   deliveryPoints: number;
   toolCalls: number;
+  activeDays?: number;
 };
 
 export function compactMetric(value: number): string {
@@ -18,15 +19,14 @@ export function compactMetric(value: number): string {
 
 export function buildProfileArchetype(input: ArchetypeInput): ProfileArchetype {
   const nonnegative = (value: number) => Number.isFinite(value) ? Math.max(0, value) : 0;
-  const tokens = nonnegative(input.tokens);
   const streak = Math.floor(nonnegative(input.currentStreak));
   const providers = Math.floor(nonnegative(input.providerCount));
   const calls = nonnegative(input.toolCalls);
-  const stage = tokens >= 5e9 ? 4 : tokens >= 1e9 ? 3 : tokens >= 100e6 ? 2 : tokens >= 1e6 ? 1 : 0;
+  const days = Math.floor(nonnegative(input.activeDays ?? 0));
   const styles = {
-    tokens: [
-      ['✨', 'Pocket Spark'], ['🐸', 'Token Tadpole'], ['👾', 'Token Goblin'],
-      ['☄️', 'Token Comet'], ['🌌', 'Token Supernova'],
+    rhythm: [
+      ['✨', 'Pocket Spark'], ['🌱', 'Build Sprout'], ['🛹', 'Flow Rider'],
+      ['🎸', 'Rhythm Rockstar'], ['🌌', 'Orbit Maker'],
     ],
     streak: [
       ['🔥', 'Spark Keeper'], ['🌱', 'Streak Sprout'], ['🧚', 'Streak Sprite'],
@@ -41,10 +41,15 @@ export function buildProfileArchetype(input: ArchetypeInput): ProfileArchetype {
       ['🪄', 'Workflow Wizard'], ['🐙', 'Automation Kraken'],
     ],
   } as const;
-  const style = streak >= 30 ? 'streak' : providers >= 3 ? 'explorer' : calls >= 100 ? 'automation' : 'tokens';
+  const style = streak >= 7 ? 'streak' : providers >= 2 ? 'explorer' : calls >= 100 ? 'automation' : 'rhythm';
+  const boundaries = style === 'streak' ? [14, 30, 60, 90]
+    : style === 'explorer' ? [3, 4, 5, 6]
+    : style === 'automation' ? [500, 2000, 10000, 50000] : [1, 7, 30, 90];
+  const signal = style === 'streak' ? streak : style === 'explorer' ? providers : style === 'automation' ? calls : days;
+  const stage = boundaries.filter((boundary) => signal >= boundary).length;
   const [emoji, title] = styles[style][stage];
   const personality = {
-    tokens: tokens > 0 ? 'A little cosmic chaos in the token counter.' : 'Small spark. Big main-character energy. Connect a tool to begin.',
+    rhythm: days > 0 ? `${days} recorded active days. You’re finding your own rhythm.` : 'Small spark. Big main-character energy. Your next build starts the story.',
     streak: `${streak} days straight. You brought the fire; the calendar kept receipts.`,
     explorer: `${providers} tools in your loadout. The whole band is here.`,
     automation: `${compactMetric(calls)} recorded tool calls. Your workflow has extra tentacles.`,
@@ -52,6 +57,6 @@ export function buildProfileArchetype(input: ArchetypeInput): ProfileArchetype {
   return {
     emoji,
     title,
-    summary: `${personality} ${compactMetric(tokens)} recorded tokens, including reported cache usage. A playful identity, not a skill rating.`,
+    summary: `${personality} Based on available activity, not token volume. A playful identity, not a skill rating.`,
   };
 }

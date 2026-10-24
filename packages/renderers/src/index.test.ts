@@ -40,7 +40,8 @@ describe('SVG renderers', () => {
     expect(svg).toContain('1B');
     expect(svg).toContain('Claude Code');
     expect(svg).toContain('200M');
-    expect(svg).toContain('POWER BY PROVIDER');
+    expect(svg).toContain('RECORDED TOKENS');
+    expect(svg).toContain('CURRENT BUILD STREAK');
     expect(svg).toContain('CLICK · MAKE YOURS');
   });
   it('uses bright card palettes instead of the old black slab', () => {
@@ -55,5 +56,16 @@ describe('SVG renderers', () => {
   it('renders story cards at the requested dimensions', () => {
     const svg = renderSocialCard(profile, 'story');
     expect(svg).toContain('width="1080" height="1920"');
+  });
+  it('makes every social format a dated snapshot with an honest coverage label', () => {
+    for (const format of ['square', 'story', 'og'] as const) {
+      const svg = renderSocialCard({ ...profile, username: '<img onerror="alert(1)">' }, format);
+      expect(svg).toContain('CURRENT BUILD STREAK');
+      expect(svg).toContain('up to 365 days');
+      expect(svg).toContain('2026-09-20 UTC');
+      expect(svg).toContain('Find it at tokpop.dev');
+      expect(svg).not.toContain('<img');
+      expect(svg).toContain('&lt;img');
+    }
   });
 });

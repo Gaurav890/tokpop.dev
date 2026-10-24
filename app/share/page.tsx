@@ -16,6 +16,8 @@ import { ShareStage } from './share-stage';
 import { CONNECTOR_VERSION } from '../../lib/collector-command';
 import Link from '../ui/native-link';
 import { hasCardActivity } from '../../lib/setup-progress';
+import { buildRecap } from '../../lib/build-recap';
+import { BuildRecap } from './build-recap';
 
 type SettingsRow = {
   public_enabled: number;
@@ -53,7 +55,7 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
     <section className={`activation-hero ${hasCodingEvidence ? 'share-ready-hero' : ''}`}>
       <div>
         <p className="eyebrow">{hasCodingEvidence ? 'Your build identity 🎉' : `You’re in, @${user.login}`}</p>
-        <h1>{hasCodingEvidence ? 'Your stats. Your personality.' : 'Next: bring your stats to life.'}</h1>
+        <h1>{hasCodingEvidence ? 'Your build. Your signature.' : 'Let’s reveal your builder card.'}</h1>
         <p>{hasCodingEvidence ? 'Pick your look, then put your card in your README. Keep building; your next sync brings the next update.' : 'One command on your coding computer. Your card appears right here when activity arrives.'}</p>
       </div>
       {hasCodingEvidence ? <div className="activation-step"><span>{settings?.public_enabled ? 'PUBLIC ●' : 'PRIVATE PREVIEW'}</span><strong>{profile?.archetype.emoji} {profile?.archetype.title}</strong><small>{compactMetric(profile?.lifetimeTokens ?? 0)} tokens · {profile?.providers.length ?? 0} tools · {profile?.currentStreak ?? 0}-day streak</small></div> : null}
@@ -86,6 +88,7 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
       }}
     />
     </ShareStage>
+    {hasCodingEvidence && profile ? <BuildRecap recap={buildRecap(profile.activity, profile.dailyTokens)}/> : null}
     {hasCodingEvidence ? <details className="workspace-tools"><summary>Tools, computers &amp; automatic updates</summary><p>Automatic updates are optional and must be enabled in Terminal. A recent upload alone does not confirm the background job is running.</p><Link href="/share?connect=1#power-up">Add another computer →</Link><Link href="/connections">See tool history and sync details →</Link><Link href="/settings/devices">Manage computers →</Link><p>Run <code>npm exec --yes --package=ai-native-profile@{CONNECTOR_VERSION} -- ai-native-profile doctor</code> on your coding computer to check automatic updates.</p></details> : null}
     <section className="share-connection-status" aria-label="Connection status">
       {profile ? <SyncHealth profile={profile} owner compact/> : null}

@@ -130,10 +130,10 @@ export default async function Home() {
     <SiteHeader user={user}/>
     <section className="home-stage">
       <div className="home-stage-copy">
-        <p className="eyebrow">Track. Share. Flex.</p>
-        <h1>Your AI activity.<br/><span>With personality.</span></h1>
-        <p>Your tools, tokens, and daily streaks—in one place. Track your AI workflow, then turn it into a live card worth showing off.</p>
-        <Link className="home-conversion-button home-main-action" href={cardHref}>{user ? 'Open my card' : 'Make my card with GitHub'} <span>→</span></Link>
+        <p className="eyebrow">Your build has a personality.</p>
+        <h1>What kind of<br/><span>AI builder are you?</span></h1>
+        <p>Discover your tools, streaks, and builder personality. Turn your real activity into a card worth sharing—not a contest to spend more tokens.</p>
+        <Link className="home-conversion-button home-main-action" href={cardHref}>{user ? 'Open my card' : 'Reveal my builder card'} <span>→</span></Link>
         <p className="home-setup-promise">GitHub sign-in → one command on your computer → your real card.</p>
         <div className="home-conversion-trust"><span>Private until you publish</span><span>No prompts or code</span></div>
       </div>
@@ -148,14 +148,18 @@ export default async function Home() {
 
       <aside className="home-conversion-card home-how-it-works">
         <p className="eyebrow">Start free</p>
-        <h2>Your next README flex starts here.</h2>
-        <p className="home-conversion-intro">Sign in for a private starter card. Run one command on your computer to add your coding stats.</p>
+        <h2>Connect. Reveal. Make it yours.</h2>
+        <p className="home-conversion-intro">Sign in with GitHub, connect your tools, and watch your own card appear. Sharing is always your choice.</p>
         <ol>
-          <li><span>01</span><div><strong>Claim it with GitHub</strong><small>Your private starter card appears instantly.</small></div></li>
+          <li><span>01</span><div><strong>Claim it with GitHub</strong><small>Your own private workspace. No public profile yet.</small></div></li>
           <li><span>02</span><div><strong>Power up your stats</strong><small>One command finds supported coding tools.</small></div></li>
-          <li><span>03</span><div><strong>Copy. Paste. Flex.</strong><small>Enable background sync to keep your card fresh.</small></div></li>
+          <li><span>03</span><div><strong>Reveal. Download. Flex.</strong><small>A live README banner or a social image. Your call.</small></div></li>
         </ol>
       </aside>
+    </section>
+    <section className="personality-preview" aria-label="Example builder personalities">
+      <div><p className="eyebrow">Different habits. Different energy.</p><h2>There’s more than one way to build.</h2><p>Illustrative identities—not user rankings. Your available activity tells your story.</p></div>
+      <ul><li><span aria-hidden="true">✨</span><strong>Pocket Spark</strong><p>Every build story starts somewhere.</p></li><li><span aria-hidden="true">🐉</span><strong>Streak Dragon</strong><p>You keep showing up.</p></li><li><span aria-hidden="true">🧭</span><strong>Tool Scout</strong><p>You like a little variety in your loadout.</p></li></ul>
     </section>
     <section className="supported-strip" aria-label="Supported coding sources">
       <span>WORKS WITH</span>

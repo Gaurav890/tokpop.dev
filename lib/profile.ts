@@ -62,6 +62,7 @@ function enrichProfile(profile: CompatibleProfile): PublicProfile {
     providerCount: profile.providers.length,
     deliveryPoints: profile.deliveryPoints,
     toolCalls: activityTotals.toolCalls,
+    activeDays: profile.activeDays,
   });
   const receiptFresh = profile.github?.verifiedWindow && profile.github.fresh === true;
   return { ...profile, activityTotals, tokenBreakdown, dailyTokens, archetype, scoreEligible: profile.scoreEligible && receiptFresh, scoreReason: receiptFresh ? profile.scoreReason : 'Refresh GitHub contribution receipts to calculate a current ranked score.' };
@@ -147,7 +148,7 @@ async function buildProfile(user: ProfileUser): Promise<PublicProfile> {
     advancedWorkflowSessionRate: sessions ? sum('advanced_workflow_sessions', eligible) / sessions : 0,
     activeCodingProviders: competitiveSources.length, commits: githubWindow.fresh ? githubCommits : 0, pullRequests: githubWindow.fresh ? githubPullRequests : 0, reviews: githubWindow.fresh ? githubReviews : 0, deliveryAvailable: githubWindow.fresh,
   });
-  const archetype = buildProfileArchetype({ tokens: lifetimeTokens, currentStreak: currentStreak(activeDates), providerCount: sources.length, deliveryPoints: score.deliveryPoints, toolCalls: activityTotals.toolCalls });
+  const archetype = buildProfileArchetype({ tokens: lifetimeTokens, currentStreak: currentStreak(activeDates), providerCount: sources.length, deliveryPoints: score.deliveryPoints, toolCalls: activityTotals.toolCalls, activeDays: activeDates.length });
   const byDate = new Map<string, number>();
   for (const row of eligible) if (row.value > 0) byDate.set(row.date, (byDate.get(row.date) ?? 0) + 1);
   const activity = buildActivityHistory(byDate);

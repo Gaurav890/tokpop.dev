@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from '../ui/native-link';
 import { collectorConnectCommand, CONNECTOR_VERSION } from '../../lib/collector-command';
 import { readSetupAttempt, revealStorageKey, setupStorageKey, type SetupProgress } from '../../lib/setup-progress';
+import { SourceImportResults } from './source-import-results';
 
 type Pairing = { deviceId: string; userCode: string; expiresAt: string; apiOrigin: string };
 const sourceNames: Record<string, string> = { codex:'Codex', claude_code:'Claude Code', cursor:'Cursor', gemini_cli:'Gemini CLI', copilot_cli:'Copilot CLI' };
@@ -18,6 +19,7 @@ export function PowerUpPanel({ hasCodingEvidence, publicOrigin, accountLogin }: 
   const [restoring, setRestoring] = useState(true);
   const [needsSignIn, setNeedsSignIn] = useState(false);
   const [message, setMessage] = useState('');
+  const [connectionError, setConnectionError] = useState('');
   const storageKey = setupStorageKey(accountLogin ?? '');
   const synced = progress?.stage === 'imported' || (hasCodingEvidence && !attemptId);
   const expired = progress?.stage === 'expired' || progress?.stage === 'revoked';
@@ -43,7 +45,7 @@ export function PowerUpPanel({ hasCodingEvidence, publicOrigin, accountLogin }: 
     const check = async () => {
       let keepChecking = true;
       try {
-        const response = await fetch(`/api/v1/device/setup?deviceId=${encodeURIComponent(attemptId)}`, { cache:'no-store' });
+        const response = await fetch(`/api/v1/device/setup?deviceId=${encodeURIComponent(attemptId)}`, { cache:'no-store', signal: AbortSignal.timeout(15000) });
         const body = await response.json().catch(() => ({}));
         if (cancelled) return;
         if (response.status === 401) {
@@ -54,6 +56,7 @@ export function PowerUpPanel({ hasCodingEvidence, publicOrigin, accountLogin }: 
           setMessage('That setup is no longer available for this account. Start a new setup.'); keepChecking = false;
         } else {
           if (!response.ok || !body.stage) throw new Error('Status unavailable');
+          setConnectionError('');
           setProgress(body as SetupProgress);
           if (body.stage === 'imported') {
             try { sessionStorage.removeItem(storageKey); sessionStorage.setItem(revealStorageKey(accountLogin ?? ''), String(Date.now())); } catch { /* No persistent state to clear. */ }
@@ -62,7 +65,7 @@ export function PowerUpPanel({ hasCodingEvidence, publicOrigin, accountLogin }: 
           } else if (['expired','revoked'].includes(body.stage)) keepChecking = false;
         }
       } catch {
-        if (!cancelled) setMessage('We cannot check progress right now. Continue in Terminal; this page will retry automatically.');
+        if (!cancelled) setConnectionError('We cannot check progress right now. Continue in Terminal; this page will retry automatically.');
       } finally {
         if (!cancelled && keepChecking) timer = window.setTimeout(() => void check(), 2500);
       }
@@ -77,9 +80,9 @@ export function PowerUpPanel({ hasCodingEvidence, publicOrigin, accountLogin }: 
   }
 
   async function createCommand() {
-    setCreating(true); setMessage('Creating your personal setup command…');
+    setCreating(true); setMessage('Creating your personal setup command…'); setConnectionError('');
     try {
-      const response = await fetch('/api/v1/device/pair', { method:'POST', headers:{ 'content-type':'application/json' }, body:JSON.stringify({ flow:'onboarding', collectorVersion:CONNECTOR_VERSION }) });
+      const response = await fetch('/api/v1/device/pair', { method:'POST', headers:{ 'content-type':'application/json' }, body:JSON.stringify({ flow:'onboarding', collectorVersion:CONNECTOR_VERSION }), signal: AbortSignal.timeout(15000) });
       const body = await response.json().catch(() => ({})) as Pairing & { error?: string };
       if (response.status === 401) setNeedsSignIn(true);
       if (!response.ok) throw new Error(body.error ?? 'Could not create a setup command. Please try again.');
@@ -120,6 +123,8 @@ export function PowerUpPanel({ hasCodingEvidence, publicOrigin, accountLogin }: 
           {claimed ? <details className="setup-help" open={progress?.stage === 'empty'}><summary>{progress?.stage === 'empty' ? 'How to find your missing activity' : 'Finished in Terminal, but still waiting?'}</summary><p>Use a supported coding tool on this computer and operating-system account, then retry the upload. Claude web chats are separate from Claude Code history.</p><pre className="setup-command"><code>{syncCommand}</code></pre><button type="button" className="secondary-link" onClick={() => copy(syncCommand, 'Retry command copied. Run it in Terminal; this page will update when activity arrives.')}>Copy retry command</button></details> : null}
         </>}
       {message ? <p className="power-up-status" aria-live="polite">{message}</p> : null}
+      {connectionError ? <p className="power-up-status" role="status">{connectionError}</p> : null}
+      {progress?.receipt && !expired ? <SourceImportResults receipt={progress.receipt}/> : null}
       <details className="setup-help"><summary>Need help or want to inspect first?</summary>
         <p><strong>Missing Node.js?</strong> Install a supported version from <a href="https://nodejs.org/en/download" target="_blank" rel="noreferrer">nodejs.org</a>, reopen Terminal, and run setup again.</p>
         <p>Check tools without uploading: <code>npm exec --yes --package=ai-native-profile@{CONNECTOR_VERSION} -- ai-native-profile sources</code></p>

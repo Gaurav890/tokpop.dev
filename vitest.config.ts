@@ -3,6 +3,6 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['packages/**/*.test.ts', 'packages/**/*.test.mjs', 'db/**/*.test.ts', 'lib/**/*.test.ts'],
+    include: ['packages/**/*.test.ts', 'packages/**/*.test.mjs', 'db/**/*.test.ts', 'lib/**/*.test.ts', 'lib/**/*.test.tsx'],
   },
 });

@@ -3,7 +3,7 @@
 tokpop.dev is the new product name. The published package and executable remain `ai-native-profile`; no reinstall is required for existing devices.
 
 [![npm version](https://img.shields.io/npm/v/ai-native-profile.svg)](https://www.npmjs.com/package/ai-native-profile)
-[![license](https://img.shields.io/npm/l/ai-native-profile.svg)](https://github.com/Gaurav890/ai-native-profile/blob/main/LICENSE)
+[![license](https://img.shields.io/npm/l/ai-native-profile.svg)](https://github.com/Gaurav890/tokpop.dev/blob/main/LICENSE)
 
 Connect local AI coding activity to a private [tokpop.dev](https://tokpop.dev), then choose what to publish on your profile or GitHub README.
 
@@ -134,10 +134,10 @@ Conversation imports, MCP observations, manual stories, and estimated metrics ne
 ## Links
 
 - [Create a profile](https://tokpop.dev)
-- [Source code and issue tracker](https://github.com/Gaurav890/ai-native-profile)
-- [Privacy boundary](https://github.com/Gaurav890/ai-native-profile/blob/main/docs/privacy.md)
-- [Provider capability matrix](https://github.com/Gaurav890/ai-native-profile/blob/main/docs/providers.md)
-- [Scoring methodology](https://github.com/Gaurav890/ai-native-profile/blob/main/docs/methodology.md)
+- [Source code and issue tracker](https://github.com/Gaurav890/tokpop.dev)
+- [Privacy boundary](https://github.com/Gaurav890/tokpop.dev/blob/main/docs/privacy.md)
+- [Provider capability matrix](https://github.com/Gaurav890/tokpop.dev/blob/main/docs/providers.md)
+- [Scoring methodology](https://github.com/Gaurav890/tokpop.dev/blob/main/docs/methodology.md)
 
 ## License
 

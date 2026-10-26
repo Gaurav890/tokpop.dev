@@ -5,6 +5,7 @@ import { ensureDb } from '../../db/ensure';
 import { SiteHeader } from '../ui/site-header';
 import { SiteFooter } from '../ui/site-footer';
 import { backendJson, backendOrigin } from '../../lib/server-api';
+import { RemoveImport } from './remove-import';
 
 export const dynamic = 'force-dynamic';
 
@@ -120,7 +121,7 @@ export default async function ConnectionsPage() {
       <summary><span><strong>Experimental conversation sources</strong><small>Optional · partial coverage · never ranked</small></span><b>Show</b></summary>
       <div className="experimental-source-grid">{experimentalSources.map((source) => {
         const record = coverage.get(source.id);
-        return <article key={source.id}><span className="connection-mark">{source.mark}</span><div><h3>{source.name}</h3><p>{source.description}</p><small>{record ? `${provenanceLabels[record.provenance ?? ''] ?? 'Partial'} · ${relativeSync(record.last_synced_at)}` : 'No activity connected'}</small></div><div><Link href={`/import?source=${source.id === 'chatgpt_web' ? 'chatgpt' : 'claude'}`}>Import export</Link><Link href="/integrations/mcp">MCP setup</Link></div></article>;
+        return <article key={source.id}><span className="connection-mark">{source.mark}</span><div><h3>{source.name}</h3><p>{source.description}</p><small>{record ? `${provenanceLabels[record.provenance ?? ''] ?? 'Partial'} · ${relativeSync(record.last_synced_at)}` : 'No activity connected'}</small></div><div><Link href={`/import?source=${source.id === 'chatgpt_web' ? 'chatgpt' : 'claude'}`}>Import export</Link><Link href="/integrations/mcp">MCP setup</Link></div><RemoveImport source={source.id} name={source.name}/></article>;
       })}</div>
       <p>These sources do not provide silent or complete account history. They appear publicly only after data exists and you enable the conversation section.</p>
     </details>

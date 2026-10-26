@@ -4,7 +4,7 @@
 
 Track your AI workflow across coding tools: tokens by provider, daily breakdowns, and streaks. Turn it into a live GitHub README card worth showing off. **Track. Share. Flex.**
 
-**[Make my card →](https://tokpop.dev/share)** · [⭐ Star this repo](https://github.com/Gaurav890/ai-native-profile)
+**[Make my card →](https://tokpop.dev/share)** · [⭐ Star this repo](https://github.com/Gaurav890/tokpop.dev)
 
 ![tokpop.dev — Your AI activity. With personality. Track your tools, tokens, and streaks.](public/media/tokpop-preview.svg)
 
@@ -15,7 +15,7 @@ https://github.com/user-attachments/assets/29d0bf6b-cd35-4520-bfb0-8356fa667cc0
 *The 22-second walkthrough uses demo data and was recorded before the tokpop.dev rename.*
 
 [![npm version](https://img.shields.io/npm/v/ai-native-profile?color=7147ff)](https://www.npmjs.com/package/ai-native-profile)
-[![GitHub stars](https://img.shields.io/github/stars/Gaurav890/ai-native-profile?style=flat&label=Star%20this%20repo&color=d9ff57)](https://github.com/Gaurav890/ai-native-profile)
+[![GitHub stars](https://img.shields.io/github/stars/Gaurav890/tokpop.dev?style=flat&label=Star%20this%20repo&color=d9ff57)](https://github.com/Gaurav890/tokpop.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-70e7ff)](LICENSE)
 
 Private until you publish. No prompts or source code in normal sync. No global install required.
@@ -98,7 +98,7 @@ Your dashboard starts private. Publishing your profile, joining the leaderboard,
 
 Providers count usage differently, cached tokens matter, and local history can be missing. Counts represent the **covered records**, not a guaranteed lifetime or billing total. Check the provider breakdown and coverage dates before comparing numbers; estimated values are labelled, not presented as exact.
 
-If something looks wrong, [report it](https://github.com/Gaurav890/ai-native-profile/issues/new) with the collector version, operating system, affected tool, and a redacted error. **Do not attach raw conversations, credentials, or unredacted logs.**
+If something looks wrong, [report it](https://github.com/Gaurav890/tokpop.dev/issues/new) with the collector version, operating system, affected tool, and a redacted error. **Do not attach raw conversations, credentials, or unredacted logs.**
 
 ### Is the score a measure of developer skill?
 
@@ -108,11 +108,15 @@ No. The 0–100 Workflow Index measures eligible activity across consistency, wo
 
 No. Experimental ChatGPT Web and Claude Web support is separate from the main coding flow. It only covers approved, locally parsed exports or explicitly invoked MCP activity—not silent history access—and does not affect rankings.
 
+For Claude exports, choose the manifest JSON in [Import](https://tokpop.dev/import?source=claude) to find your conversation downloads. Download all `conversations-*.zip` parts, select them together, then review the counts before approving. Raw conversations and manifest download links stay in your browser.
+
+To start fresh, open [Connections](https://tokpop.dev/connections), expand **Experimental conversation sources**, and choose **Remove imported data** for that source. This keeps coding stats and MCP observations. It also removes matching export snapshots from the connected GitHub storage branch, but does not erase Git commit history, other branches, or downloaded copies. Reimports update matching dates; remove the previous import first if you want to replace its full date range.
+
 ## Like the idea? Help it spread. ⭐
 
 **Use the Star button at the top of this repository** to support the project and find it again. Then put your own card in your README—that is the best demo someone else can discover.
 
-[Make my card](https://tokpop.dev/share) · [Report a bug or suggest a feature](https://github.com/Gaurav890/ai-native-profile/issues/new)
+[Make my card](https://tokpop.dev/share) · [Report a bug or suggest a feature](https://github.com/Gaurav890/tokpop.dev/issues/new)
 
 ## Build with us
 
@@ -124,8 +128,8 @@ Bug reports, clearer docs, and fixes for provider coverage are welcome. Open an 
 Requires Node.js 22.13+, pnpm 9.15.9, PostgreSQL, and a GitHub OAuth App.
 
 ```bash
-git clone https://github.com/Gaurav890/ai-native-profile.git
-cd ai-native-profile
+git clone https://github.com/Gaurav890/tokpop.dev.git
+cd tokpop.dev
 pnpm install
 cp .env.example .env.local
 ```

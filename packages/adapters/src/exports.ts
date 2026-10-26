@@ -8,6 +8,7 @@ export type ExportAggregate = {
 };
 
 function toDate(value: unknown): string | null {
+  if ((typeof value !== 'string' && typeof value !== 'number') || value === '') return null;
   const timestamp = typeof value === 'number' && value < 10_000_000_000 ? value * 1000 : value;
   const date = new Date(timestamp as string | number);
   return Number.isNaN(date.getTime()) ? null : date.toISOString().slice(0, 10);
@@ -17,6 +18,9 @@ export function parseConversationExport(source: ExportAggregate['source'], value
   if (!Array.isArray(value)) throw new Error('Expected an array of exported conversations.');
   const totals = new Map<string, { sessions: number; turns: number }>();
   for (const item of value as Array<Record<string, unknown>>) {
+    if (!item || typeof item !== 'object') continue;
+    if (source === 'claude_web' && !Array.isArray(item.chat_messages) && !Array.isArray(item.messages)) continue;
+    if (source === 'chatgpt_web' && (!item.mapping || typeof item.mapping !== 'object')) continue;
     const createdAt = source === 'chatgpt_web' ? item.create_time : item.created_at ?? item.createdAt;
     const date = toDate(createdAt);
     if (!date) continue;

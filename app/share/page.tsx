@@ -56,7 +56,7 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
       <div>
         <p className="eyebrow">{hasCodingEvidence ? 'Your build identity 🎉' : `You’re in, @${user.login}`}</p>
         <h1>{hasCodingEvidence ? 'Your build. Your signature.' : 'Let’s reveal your builder card.'}</h1>
-        <p>{hasCodingEvidence ? 'Pick your look, then put your card in your README. Keep building; your next sync brings the next update.' : 'One command on your coding computer. Your card appears right here when activity arrives.'}</p>
+        <p>{hasCodingEvidence ? 'Pick your look. Add a live card to GitHub or share a snapshot on LinkedIn. Your public profile keeps up with new syncs.' : 'One command on your coding computer. Your card appears right here when activity arrives.'}</p>
       </div>
       {hasCodingEvidence ? <div className="activation-step"><span>{settings?.public_enabled ? 'PUBLIC ●' : 'PRIVATE PREVIEW'}</span><strong>{profile?.archetype.emoji} {profile?.archetype.title}</strong><small>{compactMetric(profile?.lifetimeTokens ?? 0)} tokens · {profile?.providers.length ?? 0} tools · {profile?.currentStreak ?? 0}-day streak</small></div> : null}
     </section>

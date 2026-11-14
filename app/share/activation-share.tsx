@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from '../ui/native-link';
 import { cardFunnelPath } from '../../lib/card-cache';
 import type { ReadmeDestination } from '../../lib/readme-destination';
 import { hasCardActivity } from '../../lib/setup-progress';
+import { LinkedInShare, SocialCardPreview } from './linkedin-share';
 
 type Settings = {
   publicEnabled: boolean;
@@ -42,6 +43,9 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
   const [readmeCopied, setReadmeCopied] = useState(false);
   const [readme, setReadme] = useState<ReadmeDestination | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [destination, setDestination] = useState<'github' | 'linkedin' | 'image'>('github');
+  const [linkedInOpened, setLinkedInOpened] = useState(false);
+  const socialCard = useMemo(() => ({ ...profile, username, tokens: profile.lifetimeTokens }), [profile, username]);
   const hasCodingEvidence = hasCardActivity(profile);
   const profilePath = `/u/${username}`;
   const funnelPath = cardFunnelPath(username);
@@ -109,6 +113,19 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
     finally { setPending(false); }
   }
 
+  async function publishForLinkedIn() {
+    setPending(true);
+    try {
+      const next = { ...settings, publicEnabled: true };
+      const response = await fetch('/api/v1/settings', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(next) });
+      const body = await response.json().catch(() => ({})) as { error?: string };
+      if (!response.ok) throw new Error(body.error ?? 'Your profile could not be published.');
+      setSettings(next);
+      setStatus('Your profile is public. Its link is now included with your LinkedIn caption.');
+    } catch (error) { setStatus(error instanceof Error ? error.message : 'Publishing failed. Please try again.'); }
+    finally { setPending(false); }
+  }
+
   async function copy(kind: 'profile' | 'post' | 'html') {
     const { profileUrl, funnelUrl, cardUrl } = absoluteShareValues();
     const value = kind === 'post'
@@ -130,8 +147,7 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
     finally { setDownloading(false); }
   }
 
-  return <section className="activation-grid">
-    <article className="activation-preview">
+  const githubPreview = <div className="activation-preview composer-preview">
       <div className="activation-card-head"><span>YOUR BUILD DROP</span><b>{settings.publicEnabled ? 'LIVE ●' : 'PRIVATE PREVIEW'}</b></div>
       {hasCodingEvidence ? <div className="identity-reveal"><span aria-hidden="true">{profile.archetype.emoji}</span><div><small>YOUR BUILDER PERSONALITY</small><h2>{profile.archetype.title}</h2><p>{profile.archetype.summary}</p></div></div> : null}
       {settings.publicEnabled
@@ -154,8 +170,9 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
           </div>
         </div>}
       <p className="activation-card-note">Paste it once. New syncs update this same card.</p>
-    </article>
+    </div>;
 
+  return <section className="activation-grid share-composer">
     <article className={`activation-share-panel ${hasCodingEvidence ? '' : 'starter-share'}`}>
       <p className="eyebrow">Flex mode: on</p>
       <h2>{hasCodingEvidence ? 'Make it yours.' : 'Your GitHub starter card.'}</h2>
@@ -166,13 +183,21 @@ export function ActivationShare({ username, initialSettings, profile, publicOrig
         <button type="button" aria-pressed={theme === 'light'} className={theme === 'light' ? 'active' : ''} onClick={() => setTheme('light')}><span className="vibe-swatch clean"/><span><b>Fresh</b><small>Blue + turbo mint</small></span></button>
       </div>
 
-      <p className="share-destination-label">01 · Add to GitHub</p>
+      <div className="share-destinations" role="group" aria-label="Share destination">{(['github', 'linkedin', 'image'] as const).map(item => <button key={item} type="button" aria-pressed={destination === item} onClick={() => { setDestination(item); if (item === 'linkedin') setLinkedInOpened(true); setStatus(''); setManualCopy(''); }} disabled={pending || downloading}>{item === 'github' ? 'GitHub' : item === 'linkedin' ? 'LinkedIn' : 'Download image'}</button>)}</div>
+      <div hidden={destination !== 'github'}>
+      {destination === 'github' ? githubPreview : null}
+      <p className="share-destination-label">Add to GitHub</p>
       <button type="button" className="publish-copy-button" onClick={addToGitHub} disabled={pending}>{pending ? 'Getting it ready…' : settings.publicEnabled ? 'Copy README card' : 'Publish & copy my card'} <span>→</span></button>
       <p className="share-action-hint">Paste it into your GitHub profile README. New syncs update the same banner.</p>
       {!settings.publicEnabled ? <p className="share-action-hint">This makes your profile and stats card public. Prompts and code stay private. Joining the leaderboard is a separate choice.</p> : null}
-      {manualCopy ? <label className="share-manual-copy">Copy this text<textarea readOnly value={manualCopy} onFocus={(event) => event.currentTarget.select()} rows={4}/></label> : null}
       {cardReady ? <div className="share-finish" role="status"><strong>{readmeCopied ? 'One last paste. Make it official ✨' : 'Copy the Markdown above, then paste it on GitHub.'}</strong><p>{readme?.instruction ?? 'Open your profile repository, edit or create its README, paste your card, then commit your changes.'}</p><a className="secondary-link" href={readme?.url ?? `https://github.com/${encodeURIComponent(username)}/${encodeURIComponent(username)}`} target="_blank" rel="noreferrer">{readme?.label ?? 'Open profile repository'} ↗</a><p>Paste the card into your README and commit the change on GitHub. We do not edit your repository for you.</p></div> : null}
+      </div>
+      <div hidden={destination !== 'linkedin'}>{linkedInOpened ? <LinkedInShare card={socialCard} theme={theme} publicProfileUrl={settings.publicEnabled ? absoluteShareValues().profileUrl : undefined} onPublish={publishForLinkedIn} publishing={pending}/> : null}</div>
+      <div hidden={destination !== 'image'}>
+      {destination === 'image' ? <SocialCardPreview card={socialCard} theme={theme}/> : null}
       <div className="social-share-choice"><p className="share-destination-label">02 · Share a snapshot</p><button type="button" onClick={saveImage} disabled={downloading || pending}>{downloading ? 'Making your image…' : 'Download card image ↓'}</button><button type="button" className="secondary-link" onClick={() => copy('post')}>Copy caption</button><p>1080 × 1080 PNG · created in your browser. No profile publishing required. Posting the image shares the stats shown on it.</p></div>
+      </div>
+      {manualCopy ? <label className="share-manual-copy">Copy this text<textarea readOnly value={manualCopy} onFocus={(event) => event.currentTarget.select()} rows={4}/></label> : null}
       <details className="share-more"><summary>More ways to share</summary><div className="quick-share-actions">
         <button type="button" onClick={() => copy('profile')} disabled={!settings.publicEnabled}>Copy profile link</button>
         <button type="button" onClick={() => copy('html')} disabled={!settings.publicEnabled}>Copy HTML</button>

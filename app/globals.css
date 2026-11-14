@@ -1285,6 +1285,36 @@ button,a { font:inherit; } button { cursor:pointer; } a { color:inherit; text-de
 .social-share-choice>.secondary-link { margin:16px 0 0; }
 .social-share-choice>p:last-child { color:#555969; font-size:12px; line-height:1.65; }
 .social-share-choice button:disabled { opacity:.65; cursor:wait; }
+.share-destinations { display:flex; flex-wrap:wrap; gap:6px; margin:24px 0; }
+.activation-grid.share-composer { display:block; max-width:760px; }
+.share-composer>.activation-share-panel { padding:28px 36px; }
+.share-composer .composer-preview { margin:20px 0; border:2px solid #18122e; border-radius:20px; }
+.share-composer .identity-reveal { display:none; }
+.share-composer .social-share-choice { margin-top:16px; border-top:0; }
+.share-composer .share-panel-intro { max-width:58ch; }
+.social-card-preview { margin:16px 0 20px; padding:18px; border:1px solid #d6cdb7; border-radius:18px; background:#fffcf3; text-align:center; }
+.social-card-preview figcaption { color:#555969; font-size:12px; line-height:1.5; }
+.share-composer .card-vibe-picker { display:flex; flex-wrap:wrap; gap:10px; }
+.share-composer .card-vibe-picker button { flex:1; }
+@media (max-width:600px) { .share-composer>.activation-share-panel { padding:20px; } .social-card-preview { padding:12px; } }
+.share-destinations button { flex:1 1 85px; min-height:44px; padding:10px 8px; border:2px solid #18122e; border-radius:12px; background:#fff; color:#18122e; font-size:13px; font-weight:750; cursor:pointer; }
+.share-destinations button[aria-pressed="true"] { background:#dfff59; box-shadow:2px 3px 0 #18122e; }
+.share-destinations button:focus-visible,.linkedin-share :is(button,a,summary,textarea,input):focus-visible { outline:3px solid #6540ff; outline-offset:3px; }
+.linkedin-share { min-width:0; }
+.linkedin-share h3 { margin:0 0 16px; font-size:23px; line-height:1.2; }
+.linkedin-card-preview { display:block; width:100%; max-width:300px; height:auto; margin:0 auto 12px; border-radius:12px; }
+.linkedin-share p { color:#555969; font-size:13px; line-height:1.65; overflow-wrap:anywhere; }
+.linkedin-share label { display:block; margin:16px 0; color:#18122e; font-size:13px; font-weight:700; }
+.linkedin-share :is(textarea,input) { display:block; box-sizing:border-box; width:100%; min-width:0; margin-top:8px; padding:12px; border:1px solid #8a829b; border-radius:10px; background:#fff; color:#18122e; font:400 14px/1.5 var(--font-geist-sans),sans-serif; }
+.linkedin-share textarea { resize:vertical; }
+.linkedin-share button:not(.publish-copy-button) { min-height:44px; padding:10px 14px; border:2px solid #18122e; border-radius:10px; background:#fff; color:#18122e; font-weight:700; cursor:pointer; }
+.linkedin-share button:disabled,.share-destinations button:disabled { opacity:.65; cursor:wait; }
+.linkedin-actions { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:14px; }
+.linkedin-actions a { margin:0; }
+.linkedin-status { padding:12px; border-radius:12px; background:#e9faff; }
+.linkedin-featured { margin-top:24px; padding-top:20px; border-top:1px solid #ccc2a7; }
+.linkedin-featured summary { min-height:32px; font-weight:750; cursor:pointer; }
+.linkedin-featured a { font-size:13px; }
 .build-recap,.personality-preview { width:min(1100px,calc(100% - 40px)); margin:40px auto; padding:28px; border:2px solid #18122e; border-radius:24px; background:#fffdf7; box-shadow:6px 7px 0 #18122e; }
 .build-recap h2,.personality-preview h2 { font-size:clamp(24px,3vw,34px); margin:8px 0; }
 .build-recap p,.personality-preview p { color:#555969; font-size:14px; line-height:1.65; }
